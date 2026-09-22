@@ -5,6 +5,7 @@ import * as WebBrowser from "expo-web-browser";
 import { View, ScrollView, StyleSheet, Alert } from "react-native";
 
 import { Container } from "@/components/container";
+import { DeleteAccount } from "@/components/delete-account";
 import { SignIn } from "@/components/sign-in";
 import { SignUp } from "@/components/sign-up";
 import { authClient } from "@/lib/auth-client";
@@ -107,6 +108,7 @@ export default function Home() {
                   }}
                 />
               </Host>
+              <DeleteAccount />
               <Host style={styles.paymentActions} matchContents={{ vertical: true }}>
                 <Column spacing={8}>
                   <Button label="Upgrade to Pro" onPress={handlePolarCheckout} />

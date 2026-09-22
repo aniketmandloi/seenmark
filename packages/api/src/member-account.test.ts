@@ -174,6 +174,50 @@ test("a session without a member row is refused by the member-loop gate", async 
 	});
 });
 
+test("a caller missing either affirmation is refused", async () => {
+	const underage = await auth.api.signUpEmail({
+		body: {
+			name: "Fran Member",
+			email: "fran@example.com",
+			password: "password123",
+		},
+	});
+	await db.insert(memberSchema.member).values({
+		id: underage.user.id,
+		affirmedAtLeast18: false,
+		affirmedInUnitedStates: true,
+	});
+	const underageCaller = createMemberCaller({
+		userId: underage.user.id,
+		name: "Fran Member",
+		email: "fran@example.com",
+	});
+	await expect(underageCaller.member.current()).rejects.toMatchObject({
+		code: "FORBIDDEN",
+	});
+
+	const abroad = await auth.api.signUpEmail({
+		body: {
+			name: "Glen Member",
+			email: "glen@example.com",
+			password: "password123",
+		},
+	});
+	await db.insert(memberSchema.member).values({
+		id: abroad.user.id,
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: false,
+	});
+	const abroadCaller = createMemberCaller({
+		userId: abroad.user.id,
+		name: "Glen Member",
+		email: "glen@example.com",
+	});
+	await expect(abroadCaller.member.current()).rejects.toMatchObject({
+		code: "FORBIDDEN",
+	});
+});
+
 test("deleting the account removes the member record", async () => {
 	const publicCaller = await createPublicCaller();
 	const opened = await publicCaller.member.openAccount({

@@ -134,3 +134,51 @@ test("deleting a check-in removes its photo from the next list", async () => {
 		},
 	]);
 });
+
+test("a member cannot read another member's check-in or photo", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const first = await publicCaller.member.openAccount({
+		name: "Drew Member",
+		email: "drew@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	const second = await publicCaller.member.openAccount({
+		name: "Eden Member",
+		email: "eden@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+
+	const firstCaller = createMemberCaller(db, auth, {
+		userId: first.id,
+		name: "Drew Member",
+		email: "drew@example.com",
+	});
+	const secondCaller = createMemberCaller(db, auth, {
+		userId: second.id,
+		name: "Eden Member",
+		email: "eden@example.com",
+	});
+
+	const firstCheckIn = await firstCaller.checkIn.record({
+		imageBase64: "ZHJldw==",
+		takenAt: "2024-05-01T12:00:00.000Z",
+	});
+
+	const secondList = await secondCaller.checkIn.list();
+	expect(secondList).toEqual([]);
+
+	await secondCaller.checkIn.delete({ id: firstCheckIn.id });
+
+	const firstList = await firstCaller.checkIn.list();
+	expect(firstList).toEqual([
+		{
+			id: firstCheckIn.id,
+			takenAt: "2024-05-01T12:00:00.000Z",
+			imageBase64: "ZHJldw==",
+		},
+	]);
+});

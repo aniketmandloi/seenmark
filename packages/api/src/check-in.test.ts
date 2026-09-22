@@ -1,6 +1,8 @@
 import type { PGlite } from "@electric-sql/pglite";
 import type { Database } from "@seenmark/db";
+import { checkIn } from "@seenmark/db/schema/check-in";
 import * as memberSchema from "@seenmark/db/schema/member";
+import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, expect, test } from "vitest";
 import {
 	createMemberCaller,
@@ -299,4 +301,10 @@ test("deleting the account removes that member's check-ins", async () => {
 	});
 	const otherList = await otherCaller.checkIn.list();
 	expect(otherList).toEqual([]);
+
+	const remaining = await db
+		.select({ id: checkIn.id })
+		.from(checkIn)
+		.where(eq(checkIn.memberId, opened.id));
+	expect(remaining).toEqual([]);
 });

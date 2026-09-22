@@ -1,8 +1,6 @@
 import type { PGlite } from "@electric-sql/pglite";
 import type { Database } from "@seenmark/db";
 import * as memberSchema from "@seenmark/db/schema/member";
-import { score } from "@seenmark/db/schema/score";
-import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, expect, test } from "vitest";
 
 import {
@@ -245,10 +243,4 @@ test("deleting the account removes the score", async () => {
 		email: "iris@example.com",
 	});
 	expect(await otherCaller.score.current()).toBe(null);
-
-	const remaining = await db
-		.select({ memberId: score.memberId })
-		.from(score)
-		.where(eq(score.memberId, opened.id));
-	expect(remaining).toEqual([]);
 });

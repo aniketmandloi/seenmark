@@ -14,15 +14,37 @@ import { NAV_THEME } from "@/lib/constants";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { queryClient, trpc } from "@/utils/trpc";
 
+type Band = "early" | "mid" | "late";
+
+const BANDS: { value: Band; label: string }[] = [
+	{ value: "early", label: "Early" },
+	{ value: "mid", label: "Mid" },
+	{ value: "late", label: "Late" },
+];
+
 function CheckIns() {
 	const { colorScheme } = useColorScheme();
 	const theme = colorScheme === "dark" ? NAV_THEME.dark : NAV_THEME.light;
 	const [error, setError] = useState<string | null>(null);
 	const [cameraDenied, setCameraDenied] = useState(false);
+	const [openedId, setOpenedId] = useState<string | null>(null);
 
 	const checkIns = useQuery(trpc.checkIn.list.queryOptions());
+	const score = useQuery(trpc.score.current.queryOptions());
 	const record = useMutation(trpc.checkIn.record.mutationOptions());
 	const remove = useMutation(trpc.checkIn.delete.mutationOptions());
+	const choose = useMutation(trpc.score.choose.mutationOptions());
+
+	async function invalidateMemberLoop() {
+		await Promise.all([
+			queryClient.invalidateQueries({
+				queryKey: trpc.checkIn.list.queryKey(),
+			}),
+			queryClient.invalidateQueries({
+				queryKey: trpc.score.current.queryKey(),
+			}),
+		]);
+	}
 
 	async function takeCheckIn() {
 		setError(null);
@@ -56,9 +78,8 @@ function CheckIns() {
 				mediaType: asset.mimeType ?? "image/jpeg",
 				takenAt: new Date().toISOString(),
 			});
-			await queryClient.invalidateQueries({
-				queryKey: trpc.checkIn.list.queryKey(),
-			});
+			setOpenedId(null);
+			await invalidateMemberLoop();
 		} catch (cause) {
 			setError(
 				cause instanceof Error ? cause.message : "Failed to record check-in",
@@ -70,9 +91,10 @@ function CheckIns() {
 		setError(null);
 		try {
 			await remove.mutateAsync({ id });
-			await queryClient.invalidateQueries({
-				queryKey: trpc.checkIn.list.queryKey(),
-			});
+			if (openedId === id) {
+				setOpenedId(null);
+			}
+			await invalidateMemberLoop();
 		} catch (cause) {
 			setError(
 				cause instanceof Error ? cause.message : "Failed to delete check-in",
@@ -80,9 +102,26 @@ function CheckIns() {
 		}
 	}
 
+	async function chooseBand(band: Band) {
+		setError(null);
+		try {
+			await choose.mutateAsync(band);
+			await invalidateMemberLoop();
+		} catch (cause) {
+			setError(
+				cause instanceof Error ? cause.message : "Failed to choose a score",
+			);
+		}
+	}
+
 	const items = checkIns.data ?? [];
 	const isEmpty = !checkIns.isLoading && items.length === 0;
-	const isBusy = record.isPending || remove.isPending;
+	const isBusy =
+		record.isPending || remove.isPending || choose.isPending;
+	const currentBand = score.data ?? null;
+	const opened = openedId
+		? (items.find((item) => item.id === openedId) ?? null)
+		: null;
 
 	return (
 		<View
@@ -139,23 +178,20 @@ function CheckIns() {
 				</TouchableOpacity>
 			) : null}
 
-			{items.map((item) => (
-				<View
-					key={item.id}
-					style={[styles.item, { borderColor: theme.border }]}
-				>
+			{items.length === 1 && items[0] ? (
+				<View style={[styles.item, { borderColor: theme.border }]}>
 					<Image
 						source={{
-							uri: `data:${item.mediaType};base64,${item.imageBase64}`,
+							uri: `data:${items[0].mediaType};base64,${items[0].imageBase64}`,
 						}}
 						style={styles.photo}
 						accessibilityLabel="Check-in photo"
 					/>
 					<Text style={[styles.takenAt, { color: theme.text }]}>
-						{item.takenAt}
+						{items[0].takenAt}
 					</Text>
 					<TouchableOpacity
-						onPress={() => deleteCheckIn(item.id)}
+						onPress={() => deleteCheckIn(items[0].id)}
 						disabled={isBusy}
 						style={[
 							styles.deleteButton,
@@ -167,7 +203,166 @@ function CheckIns() {
 						</Text>
 					</TouchableOpacity>
 				</View>
-			))}
+			) : null}
+
+			{items.length >= 2 && items[0] && items[1] && !opened ? (
+				<View style={[styles.comparison, { borderColor: theme.border }]}>
+					<Text style={[styles.sectionLabel, { color: theme.text }]}>
+						Compare
+					</Text>
+					<View style={styles.sideBySide}>
+						<View style={styles.half}>
+							<Image
+								source={{
+									uri: `data:${items[0].mediaType};base64,${items[0].imageBase64}`,
+								}}
+								style={styles.halfPhoto}
+								accessibilityLabel="Newest check-in photo"
+							/>
+							<Text style={[styles.takenAt, { color: theme.text }]}>
+								{items[0].takenAt}
+							</Text>
+							<TouchableOpacity
+								onPress={() => deleteCheckIn(items[0].id)}
+								disabled={isBusy}
+								style={[
+									styles.deleteButton,
+									{ borderColor: theme.border, opacity: isBusy ? 0.5 : 1 },
+								]}
+							>
+								<Text style={[styles.deleteButtonText, { color: theme.text }]}>
+									Delete
+								</Text>
+							</TouchableOpacity>
+						</View>
+						<View style={styles.half}>
+							<Image
+								source={{
+									uri: `data:${items[1].mediaType};base64,${items[1].imageBase64}`,
+								}}
+								style={styles.halfPhoto}
+								accessibilityLabel="Previous check-in photo"
+							/>
+							<Text style={[styles.takenAt, { color: theme.text }]}>
+								{items[1].takenAt}
+							</Text>
+							<TouchableOpacity
+								onPress={() => deleteCheckIn(items[1].id)}
+								disabled={isBusy}
+								style={[
+									styles.deleteButton,
+									{ borderColor: theme.border, opacity: isBusy ? 0.5 : 1 },
+								]}
+							>
+								<Text style={[styles.deleteButtonText, { color: theme.text }]}>
+									Delete
+								</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
+				</View>
+			) : null}
+
+			{opened ? (
+				<View style={[styles.item, { borderColor: theme.border }]}>
+					<Text style={[styles.sectionLabel, { color: theme.text }]}>
+						Earlier check-in
+					</Text>
+					<Image
+						source={{
+							uri: `data:${opened.mediaType};base64,${opened.imageBase64}`,
+						}}
+						style={styles.photo}
+						accessibilityLabel="Opened check-in photo"
+					/>
+					<Text style={[styles.takenAt, { color: theme.text }]}>
+						{opened.takenAt}
+					</Text>
+					<TouchableOpacity
+						onPress={() => setOpenedId(null)}
+						style={[styles.deleteButton, { borderColor: theme.border }]}
+					>
+						<Text style={[styles.deleteButtonText, { color: theme.text }]}>
+							Back to comparison
+						</Text>
+					</TouchableOpacity>
+					<TouchableOpacity
+						onPress={() => deleteCheckIn(opened.id)}
+						disabled={isBusy}
+						style={[
+							styles.deleteButton,
+							{ borderColor: theme.border, opacity: isBusy ? 0.5 : 1 },
+						]}
+					>
+						<Text style={[styles.deleteButtonText, { color: theme.text }]}>
+							Delete check-in
+						</Text>
+					</TouchableOpacity>
+				</View>
+			) : null}
+
+			{items.length > 2 && !opened ? (
+				<View style={styles.history}>
+					<Text style={[styles.sectionLabel, { color: theme.text }]}>
+						History
+					</Text>
+					{items.slice(2).map((item) => (
+						<TouchableOpacity
+							key={item.id}
+							onPress={() => setOpenedId(item.id)}
+							style={[styles.historyItem, { borderColor: theme.border }]}
+						>
+							<Image
+								source={{
+									uri: `data:${item.mediaType};base64,${item.imageBase64}`,
+								}}
+								style={styles.historyThumb}
+								accessibilityLabel="Earlier check-in photo"
+							/>
+							<Text style={[styles.takenAt, { color: theme.text }]}>
+								{item.takenAt}
+							</Text>
+						</TouchableOpacity>
+					))}
+				</View>
+			) : null}
+
+			{items.length > 0 ? (
+				<View style={[styles.bands, { borderColor: theme.border }]}>
+					<Text style={[styles.sectionLabel, { color: theme.text }]}>
+						Choose a score
+					</Text>
+					<View style={styles.bandRow}>
+						{BANDS.map((band) => {
+							const selected = currentBand === band.value;
+							return (
+								<TouchableOpacity
+									key={band.value}
+									onPress={() => chooseBand(band.value)}
+									disabled={isBusy}
+									style={[
+										styles.bandButton,
+										{
+											borderColor: theme.border,
+											backgroundColor: selected ? theme.primary : "transparent",
+											opacity: isBusy ? 0.5 : 1,
+										},
+									]}
+								>
+									<Text
+										style={[
+											styles.bandButtonText,
+											{ color: selected ? "#ffffff" : theme.text },
+										]}
+									>
+										{band.label}
+									</Text>
+								</TouchableOpacity>
+							);
+						})}
+					</View>
+				</View>
+			) : null}
 		</View>
 	);
 }
@@ -230,6 +425,65 @@ const styles = StyleSheet.create({
 	},
 	deleteButtonText: {
 		fontSize: 14,
+	},
+	comparison: {
+		borderTopWidth: 1,
+		paddingTop: 12,
+		marginTop: 12,
+	},
+	sectionLabel: {
+		fontSize: 14,
+		fontWeight: "bold",
+		marginBottom: 8,
+	},
+	sideBySide: {
+		flexDirection: "row",
+		gap: 8,
+	},
+	half: {
+		flex: 1,
+	},
+	halfPhoto: {
+		width: "100%",
+		aspectRatio: 3 / 4,
+		borderRadius: 8,
+		backgroundColor: "#111111",
+	},
+	history: {
+		marginTop: 12,
+	},
+	historyItem: {
+		borderTopWidth: 1,
+		paddingTop: 12,
+		marginTop: 8,
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 12,
+	},
+	historyThumb: {
+		width: 64,
+		height: 80,
+		borderRadius: 4,
+		backgroundColor: "#111111",
+	},
+	bands: {
+		borderTopWidth: 1,
+		paddingTop: 12,
+		marginTop: 12,
+	},
+	bandRow: {
+		flexDirection: "row",
+		gap: 8,
+	},
+	bandButton: {
+		flex: 1,
+		paddingVertical: 12,
+		alignItems: "center",
+		borderWidth: 1,
+	},
+	bandButtonText: {
+		fontSize: 14,
+		fontWeight: "600",
 	},
 });
 

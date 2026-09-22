@@ -1,8 +1,10 @@
 import { useForm } from "@tanstack/react-form";
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -13,12 +15,14 @@ import z from "zod";
 import { authClient } from "@/lib/auth-client";
 import { NAV_THEME } from "@/lib/constants";
 import { useColorScheme } from "@/lib/use-color-scheme";
-import { queryClient } from "@/utils/trpc";
+import { queryClient, trpc } from "@/utils/trpc";
 
 const signUpSchema = z.object({
   name: z.string().trim().min(1, "Name is required").min(2, "Name must be at least 2 characters"),
   email: z.string().trim().min(1, "Email is required").email("Enter a valid email address"),
   password: z.string().min(1, "Password is required").min(8, "Use at least 8 characters"),
+  affirmedAtLeast18: z.boolean(),
+  affirmedInUnitedStates: z.boolean(),
 });
 
 function getErrorMessage(error: unknown): string | null {
@@ -52,34 +56,50 @@ function SignUp() {
   const { colorScheme } = useColorScheme();
   const theme = colorScheme === "dark" ? NAV_THEME.dark : NAV_THEME.light;
   const [error, setError] = useState<string | null>(null);
+  const openAccount = useMutation(trpc.member.openAccount.mutationOptions());
 
   const form = useForm({
     defaultValues: {
       name: "",
       email: "",
       password: "",
+      affirmedAtLeast18: false,
+      affirmedInUnitedStates: false,
     },
     validators: {
       onSubmit: signUpSchema,
     },
     onSubmit: async ({ value, formApi }) => {
-      await authClient.signUp.email(
-        {
+      if (!value.affirmedAtLeast18 || !value.affirmedInUnitedStates) {
+        setError("Both affirmations are required to open an account");
+        return;
+      }
+
+      try {
+        await openAccount.mutateAsync({
           name: value.name.trim(),
           email: value.email.trim(),
           password: value.password,
-        },
-        {
-          onError(error) {
-            setError(error.error?.message || "Failed to sign up");
-          },
-          onSuccess() {
-            setError(null);
-            formApi.reset();
-            queryClient.refetchQueries();
-          },
-        },
-      );
+          affirmedAtLeast18: true,
+          affirmedInUnitedStates: true,
+        });
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "Failed to open account");
+        return;
+      }
+
+      const signedIn = await authClient.signIn.email({
+        email: value.email.trim(),
+        password: value.password,
+      });
+      if (signedIn.error) {
+        setError(signedIn.error.message || "Failed to sign in");
+        return;
+      }
+
+      setError(null);
+      formApi.reset();
+      await queryClient.refetchQueries();
     },
   });
 
@@ -185,6 +205,44 @@ function SignUp() {
                 )}
               </form.Field>
 
+              <form.Field name="affirmedAtLeast18">
+                {(field) => (
+                  <View style={styles.affirmation}>
+                    <Switch
+                      value={field.state.value}
+                      onValueChange={(value) => {
+                        field.handleChange(value);
+                        if (error) {
+                          setError(null);
+                        }
+                      }}
+                    />
+                    <Text style={[styles.affirmationLabel, { color: theme.text }]}>
+                      I am 18 or older
+                    </Text>
+                  </View>
+                )}
+              </form.Field>
+
+              <form.Field name="affirmedInUnitedStates">
+                {(field) => (
+                  <View style={styles.affirmation}>
+                    <Switch
+                      value={field.state.value}
+                      onValueChange={(value) => {
+                        field.handleChange(value);
+                        if (error) {
+                          setError(null);
+                        }
+                      }}
+                    />
+                    <Text style={[styles.affirmationLabel, { color: theme.text }]}>
+                      I am in the United States
+                    </Text>
+                  </View>
+                )}
+              </form.Field>
+
               <TouchableOpacity
                 onPress={form.handleSubmit}
                 disabled={isSubmitting}
@@ -241,6 +299,16 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#ffffff",
+    fontSize: 16,
+  },
+  affirmation: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 12,
+  },
+  affirmationLabel: {
+    flex: 1,
     fontSize: 16,
   },
 });

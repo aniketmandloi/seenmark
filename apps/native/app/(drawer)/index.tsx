@@ -1,8 +1,6 @@
 import { Button, Column, Host, Text as ExpoUIText } from "@expo/ui";
 import { useQuery } from "@tanstack/react-query";
-import * as Linking from "expo-linking";
-import * as WebBrowser from "expo-web-browser";
-import { View, ScrollView, StyleSheet, Alert } from "react-native";
+import { View, ScrollView, StyleSheet } from "react-native";
 
 import { Container } from "@/components/container";
 import { DeleteAccount } from "@/components/delete-account";
@@ -13,8 +11,6 @@ import { NAV_THEME } from "@/lib/constants";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { queryClient, trpc } from "@/utils/trpc";
 
-import { ENV } from "../../src/env";
-
 export default function Home() {
   const { colorScheme } = useColorScheme();
   const theme = colorScheme === "dark" ? NAV_THEME.dark : NAV_THEME.light;
@@ -23,46 +19,6 @@ export default function Home() {
   const isConnected = healthCheck?.data === "OK";
   const isLoading = healthCheck?.isLoading;
   const { data: session } = authClient.useSession();
-
-  const openPolarLink = async (url: string, returnUrl: string) => {
-    await WebBrowser.openAuthSessionAsync(url, returnUrl);
-  };
-
-  const getPolarReturnUrl = (returnUrl: string) => {
-    const url = new URL("/polar/success", ENV.EXPO_PUBLIC_SERVER_URL);
-    url.searchParams.set("returnUrl", returnUrl);
-    return url.toString();
-  };
-
-  const handlePolarCheckout = async () => {
-    const returnUrl = Linking.createURL("/");
-    const polarReturnUrl = getPolarReturnUrl(returnUrl);
-    const { data, error } = await authClient.checkout({
-      slug: "pro",
-      redirect: false,
-      successUrl: polarReturnUrl,
-      returnUrl: polarReturnUrl,
-    });
-
-    if (error || !data?.url) {
-      Alert.alert("Checkout unavailable", error?.message ?? "Unable to create a checkout session.");
-      return;
-    }
-
-    await openPolarLink(data.url, returnUrl);
-  };
-
-  const handlePolarPortal = async () => {
-    const returnUrl = Linking.createURL("/");
-    const { data, error } = await authClient.customer.portal({ redirect: false });
-
-    if (error || !data?.url) {
-      Alert.alert("Portal unavailable", error?.message ?? "Unable to open the customer portal.");
-      return;
-    }
-
-    await openPolarLink(data.url, returnUrl);
-  };
 
   return (
     <Container>
@@ -109,16 +65,6 @@ export default function Home() {
                 />
               </Host>
               <DeleteAccount />
-              <Host style={styles.paymentActions} matchContents={{ vertical: true }}>
-                <Column spacing={8}>
-                  <Button label="Upgrade to Pro" onPress={handlePolarCheckout} />
-                  <Button
-                    label="Manage Subscription"
-                    variant="outlined"
-                    onPress={handlePolarPortal}
-                  />
-                </Column>
-              </Host>
             </View>
           ) : null}
 
@@ -216,9 +162,6 @@ const styles = StyleSheet.create({
   },
   userHeader: {
     marginBottom: 8,
-  },
-  paymentActions: {
-    marginTop: 12,
   },
   statusCard: {
     marginBottom: 16,

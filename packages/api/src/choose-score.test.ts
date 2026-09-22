@@ -45,3 +45,34 @@ test("with no check-in the score stays clear", async () => {
 
 	expect(await memberCaller.score.current()).toBe(null);
 });
+
+test("the stored score is the band the member submitted", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const opened = await publicCaller.member.openAccount({
+		name: "Blake Member",
+		email: "blake@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+
+	const memberCaller = createMemberCaller(db, auth, {
+		userId: opened.id,
+		name: "Blake Member",
+		email: "blake@example.com",
+	});
+
+	await memberCaller.checkIn.record({
+		imageBase64: "aGFpcmxpbmU=",
+		mediaType: "image/png",
+		takenAt: "2024-03-15T10:00:00.000Z",
+	});
+
+	expect(await memberCaller.score.current()).toBe(null);
+
+	await memberCaller.score.choose("mid");
+	expect(await memberCaller.score.current()).toBe("mid");
+
+	await memberCaller.score.choose("late");
+	expect(await memberCaller.score.current()).toBe("late");
+});

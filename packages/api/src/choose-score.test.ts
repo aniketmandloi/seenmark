@@ -76,3 +76,40 @@ test("the stored score is the band the member submitted", async () => {
 	await memberCaller.score.choose("late");
 	expect(await memberCaller.score.current()).toBe("late");
 });
+
+test("deleting the last check-in clears the score; deleting an earlier one does not", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const opened = await publicCaller.member.openAccount({
+		name: "Casey Member",
+		email: "casey@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+
+	const memberCaller = createMemberCaller(db, auth, {
+		userId: opened.id,
+		name: "Casey Member",
+		email: "casey@example.com",
+	});
+
+	const older = await memberCaller.checkIn.record({
+		imageBase64: "b2xkZXI=",
+		mediaType: "image/png",
+		takenAt: "2024-03-10T08:00:00.000Z",
+	});
+	const newer = await memberCaller.checkIn.record({
+		imageBase64: "bmV3ZXI=",
+		mediaType: "image/png",
+		takenAt: "2024-03-25T18:30:00.000Z",
+	});
+
+	await memberCaller.score.choose("early");
+	expect(await memberCaller.score.current()).toBe("early");
+
+	await memberCaller.checkIn.delete({ id: older.id });
+	expect(await memberCaller.score.current()).toBe("early");
+
+	await memberCaller.checkIn.delete({ id: newer.id });
+	expect(await memberCaller.score.current()).toBe(null);
+});

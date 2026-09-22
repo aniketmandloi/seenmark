@@ -1,4 +1,5 @@
 import { checkIn } from "@seenmark/db/schema/check-in";
+import { score } from "@seenmark/db/schema/score";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
@@ -71,6 +72,19 @@ export const checkInRouter = router({
 				.where(
 					and(eq(checkIn.id, input.id), eq(checkIn.memberId, ctx.member.id)),
 				);
+
+			const [remaining] = await ctx.db
+				.select({ id: checkIn.id })
+				.from(checkIn)
+				.where(eq(checkIn.memberId, ctx.member.id))
+				.limit(1);
+
+			if (!remaining) {
+				await ctx.db
+					.delete(score)
+					.where(eq(score.memberId, ctx.member.id));
+			}
+
 			return { ok: true as const };
 		}),
 });

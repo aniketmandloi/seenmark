@@ -1,5 +1,5 @@
 import { checkIn } from "@seenmark/db/schema/check-in";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { memberProcedure, router } from "../index";
@@ -46,4 +46,15 @@ export const checkInRouter = router({
 			imageBase64: imageBytesToBase64(row.imageBytes),
 		}));
 	}),
+
+	delete: memberProcedure
+		.input(z.object({ id: z.string().min(1) }))
+		.mutation(async ({ input, ctx }) => {
+			await ctx.db
+				.delete(checkIn)
+				.where(
+					and(eq(checkIn.id, input.id), eq(checkIn.memberId, ctx.member.id)),
+				);
+			return { ok: true as const };
+		}),
 });

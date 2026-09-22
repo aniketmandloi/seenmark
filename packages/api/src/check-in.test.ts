@@ -97,3 +97,40 @@ test("two check-ins in the same month come back newest first", async () => {
 		},
 	]);
 });
+
+test("deleting a check-in removes its photo from the next list", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const opened = await publicCaller.member.openAccount({
+		name: "Casey Member",
+		email: "casey@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+
+	const memberCaller = createMemberCaller(db, auth, {
+		userId: opened.id,
+		name: "Casey Member",
+		email: "casey@example.com",
+	});
+
+	const keep = await memberCaller.checkIn.record({
+		imageBase64: "a2VlcA==",
+		takenAt: "2024-04-01T09:00:00.000Z",
+	});
+	const remove = await memberCaller.checkIn.record({
+		imageBase64: "cmVtb3Zl",
+		takenAt: "2024-04-02T09:00:00.000Z",
+	});
+
+	await memberCaller.checkIn.delete({ id: remove.id });
+
+	const listed = await memberCaller.checkIn.list();
+	expect(listed).toEqual([
+		{
+			id: keep.id,
+			takenAt: "2024-04-01T09:00:00.000Z",
+			imageBase64: "a2VlcA==",
+		},
+	]);
+});

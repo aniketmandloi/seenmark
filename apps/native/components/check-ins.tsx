@@ -128,6 +128,8 @@ function CheckIns() {
 		record.isPending || remove.isPending || choose.isPending;
 	const currentBand = score.data ?? null;
 	const currentMenu = currentBand ? (menu.data?.menu ?? null) : null;
+	const paidLink =
+		currentMenu && "paidLink" in currentMenu ? currentMenu.paidLink : undefined;
 	const opened = openedId
 		? (items.find((item) => item.id === openedId) ?? null)
 		: null;
@@ -386,18 +388,21 @@ function CheckIns() {
 							{step}
 						</Text>
 					))}
-					{"paidLink" in currentMenu && currentMenu.paidLink ? (
+					{paidLink ? (
 						<View style={styles.paidLinkRow}>
 							<Text style={[styles.paidLinkLabel, { color: theme.text }]}>
-								{currentMenu.paidLink.label}
+								{paidLink.label}
 							</Text>
 							<TouchableOpacity
-								onPress={() =>
-									Linking.openURL(currentMenu.paidLink.destination)
-								}
+								onPress={() => Linking.openURL(paidLink.destination)}
 							>
-								<Text style={[styles.paidLinkDestination, { color: theme.primary }]}>
-									{currentMenu.paidLink.destination}
+								<Text
+									style={[
+										styles.paidLinkDestination,
+										{ color: theme.primary },
+									]}
+								>
+									{paidLink.destination}
 								</Text>
 							</TouchableOpacity>
 						</View>

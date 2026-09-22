@@ -29,6 +29,7 @@ function CheckIns() {
 	const [error, setError] = useState<string | null>(null);
 	const [cameraDenied, setCameraDenied] = useState(false);
 	const [openedId, setOpenedId] = useState<string | null>(null);
+	const [readingMenu, setReadingMenu] = useState(false);
 
 	const checkIns = useQuery(trpc.checkIn.list.queryOptions());
 	const score = useQuery(trpc.score.current.queryOptions());
@@ -130,6 +131,47 @@ function CheckIns() {
 	const currentMenu = currentBand ? (menu.data?.menu ?? null) : null;
 	const paidLink =
 		currentMenu && "paidLink" in currentMenu ? currentMenu.paidLink : undefined;
+
+	if (readingMenu && currentMenu) {
+		return (
+			<View
+				style={[
+					styles.card,
+					{ backgroundColor: theme.card, borderColor: theme.border },
+				]}
+			>
+				<TouchableOpacity onPress={() => setReadingMenu(false)}>
+					<Text style={[styles.sectionLabel, { color: theme.text }]}>
+						Back to check-ins
+					</Text>
+				</TouchableOpacity>
+				<Text style={[styles.sectionLabel, { color: theme.text }]}>
+					Next steps
+				</Text>
+				{currentMenu.steps.map((step) => (
+					<Text key={step} style={[styles.menuStep, { color: theme.text }]}>
+						{step}
+					</Text>
+				))}
+				{paidLink ? (
+					<View style={styles.paidLinkRow}>
+						<Text style={[styles.paidLinkLabel, { color: theme.text }]}>
+							{paidLink.label}
+						</Text>
+						<TouchableOpacity
+							onPress={() => Linking.openURL(paidLink.destination)}
+						>
+							<Text
+								style={[styles.paidLinkDestination, { color: theme.primary }]}
+							>
+								{paidLink.destination}
+							</Text>
+						</TouchableOpacity>
+					</View>
+				) : null}
+			</View>
+		);
+	}
 	const opened = openedId
 		? (items.find((item) => item.id === openedId) ?? null)
 		: null;
@@ -376,38 +418,12 @@ function CheckIns() {
 			) : null}
 
 			{currentMenu ? (
-				<View style={[styles.menu, { borderColor: theme.border }]}>
-					<Text style={[styles.sectionLabel, { color: theme.text }]}>
-						Next steps
-					</Text>
-					{currentMenu.steps.map((step) => (
-						<Text
-							key={step}
-							style={[styles.menuStep, { color: theme.text }]}
-						>
-							{step}
-						</Text>
-					))}
-					{paidLink ? (
-						<View style={styles.paidLinkRow}>
-							<Text style={[styles.paidLinkLabel, { color: theme.text }]}>
-								{paidLink.label}
-							</Text>
-							<TouchableOpacity
-								onPress={() => Linking.openURL(paidLink.destination)}
-							>
-								<Text
-									style={[
-										styles.paidLinkDestination,
-										{ color: theme.primary },
-									]}
-								>
-									{paidLink.destination}
-								</Text>
-							</TouchableOpacity>
-						</View>
-					) : null}
-				</View>
+				<TouchableOpacity
+					onPress={() => setReadingMenu(true)}
+					style={[styles.button, { backgroundColor: theme.primary }]}
+				>
+					<Text style={styles.buttonText}>Read the menu</Text>
+				</TouchableOpacity>
 			) : null}
 		</View>
 	);

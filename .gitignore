@@ -3,3 +3,8 @@
 
 # Skill lockfile
 skills-lock.json
+
+# Agent skill config (local setup)
+CLAUDE.md
+AGENTS.md
+docs/agents/

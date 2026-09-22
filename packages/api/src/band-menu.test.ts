@@ -142,3 +142,39 @@ test("the early menu includes one Paid link only when a destination is configure
 		},
 	});
 });
+
+test("the mid menu has no paid link", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const opened = await publicCaller.member.openAccount({
+		name: "Eden Member",
+		email: "eden@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+
+	const memberCaller = createMemberCaller(
+		db,
+		auth,
+		{
+			userId: opened.id,
+			name: "Eden Member",
+			email: "eden@example.com",
+		},
+		"https://example.com/habits",
+	);
+
+	await memberCaller.checkIn.record({
+		imageBase64: "ZWRlbg==",
+		mediaType: "image/png",
+		takenAt: "2024-06-01T09:00:00.000Z",
+	});
+	await memberCaller.score.choose("mid");
+
+	expect(await memberCaller.menu.current()).toEqual({
+		menu: {
+			band: "mid",
+			steps: ["A prescriber is who discusses medicines."],
+		},
+	});
+});

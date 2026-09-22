@@ -9,6 +9,8 @@ const EARLY_STEPS = [
 	"Treat shedding as something to notice rather than a score.",
 ] as const;
 
+const MID_STEPS = ["A prescriber is who discusses medicines."] as const;
+
 export const menuRouter = router({
 	current: memberProcedure.query(async ({ ctx }) => {
 		const [row] = await ctx.db
@@ -39,6 +41,15 @@ export const menuRouter = router({
 			}
 
 			return { menu };
+		}
+
+		if (row.band === "mid") {
+			return {
+				menu: {
+					band: "mid" as const,
+					steps: [...MID_STEPS],
+				},
+			};
 		}
 
 		return { menu: null };

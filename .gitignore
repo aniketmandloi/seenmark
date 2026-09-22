@@ -1,0 +1,5 @@
+# Dot-directories (agent tool folders and similar)
+.*/
+
+# Skill lockfile
+skills-lock.json

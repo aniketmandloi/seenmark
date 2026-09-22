@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
+import * as Linking from "expo-linking";
 import { useState } from "react";
 import {
 	ActivityIndicator,
@@ -31,6 +32,10 @@ function CheckIns() {
 
 	const checkIns = useQuery(trpc.checkIn.list.queryOptions());
 	const score = useQuery(trpc.score.current.queryOptions());
+	const menu = useQuery({
+		...trpc.menu.current.queryOptions(),
+		enabled: score.data != null,
+	});
 	const record = useMutation(trpc.checkIn.record.mutationOptions());
 	const remove = useMutation(trpc.checkIn.delete.mutationOptions());
 	const choose = useMutation(trpc.score.choose.mutationOptions());
@@ -42,6 +47,9 @@ function CheckIns() {
 			}),
 			queryClient.invalidateQueries({
 				queryKey: trpc.score.current.queryKey(),
+			}),
+			queryClient.invalidateQueries({
+				queryKey: trpc.menu.current.queryKey(),
 			}),
 		]);
 	}
@@ -119,6 +127,7 @@ function CheckIns() {
 	const isBusy =
 		record.isPending || remove.isPending || choose.isPending;
 	const currentBand = score.data ?? null;
+	const currentMenu = currentBand ? (menu.data?.menu ?? null) : null;
 	const opened = openedId
 		? (items.find((item) => item.id === openedId) ?? null)
 		: null;
@@ -363,6 +372,38 @@ function CheckIns() {
 					</View>
 				</View>
 			) : null}
+
+			{currentMenu ? (
+				<View style={[styles.menu, { borderColor: theme.border }]}>
+					<Text style={[styles.sectionLabel, { color: theme.text }]}>
+						Next steps
+					</Text>
+					{currentMenu.steps.map((step) => (
+						<Text
+							key={step}
+							style={[styles.menuStep, { color: theme.text }]}
+						>
+							{step}
+						</Text>
+					))}
+					{"paidLink" in currentMenu && currentMenu.paidLink ? (
+						<View style={styles.paidLinkRow}>
+							<Text style={[styles.paidLinkLabel, { color: theme.text }]}>
+								{currentMenu.paidLink.label}
+							</Text>
+							<TouchableOpacity
+								onPress={() =>
+									Linking.openURL(currentMenu.paidLink.destination)
+								}
+							>
+								<Text style={[styles.paidLinkDestination, { color: theme.primary }]}>
+									{currentMenu.paidLink.destination}
+								</Text>
+							</TouchableOpacity>
+						</View>
+					) : null}
+				</View>
+			) : null}
 		</View>
 	);
 }
@@ -484,6 +525,30 @@ const styles = StyleSheet.create({
 	bandButtonText: {
 		fontSize: 14,
 		fontWeight: "600",
+	},
+	menu: {
+		borderTopWidth: 1,
+		paddingTop: 12,
+		marginTop: 12,
+		gap: 8,
+	},
+	menuStep: {
+		fontSize: 14,
+		lineHeight: 20,
+	},
+	paidLinkRow: {
+		marginTop: 4,
+		flexDirection: "row",
+		flexWrap: "wrap",
+		alignItems: "center",
+		gap: 8,
+	},
+	paidLinkLabel: {
+		fontSize: 14,
+		fontWeight: "600",
+	},
+	paidLinkDestination: {
+		fontSize: 14,
 	},
 });
 

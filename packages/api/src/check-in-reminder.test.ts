@@ -1,5 +1,6 @@
 import type { PGlite } from "@electric-sql/pglite";
 import type { Database } from "@seenmark/db";
+import * as memberSchema from "@seenmark/db/schema/member";
 import { afterEach, beforeEach, expect, test } from "vitest";
 import {
 	createMemberCaller,
@@ -138,12 +139,66 @@ test("a newer check-in keeps the reminder from being due", async () => {
 		mediaType: "image/png",
 		takenAt: "2024-06-01T00:00:00.000Z",
 	});
-	await memberCaller.checkIn.record({
-		imageBase64: "bmV3ZXI=",
-		mediaType: "image/png",
-		takenAt: "2024-07-20T00:00:00.000Z",
-	});
-
 	const reminder = await memberCaller.checkIn.reminder();
 	expect(reminder).toEqual({ due: false });
+});
+
+test("a signed-out caller and a caller missing an affirmation cannot read the reminder", async () => {
+	const publicCaller = createPublicCaller(db, auth, () => CLOCK_NOW);
+
+	await expect(publicCaller.checkIn.reminder()).rejects.toMatchObject({
+		code: "UNAUTHORIZED",
+	});
+
+	const underage = await auth.api.signUpEmail({
+		body: {
+			name: "Eden Member",
+			email: "eden@example.com",
+			password: "password123",
+		},
+	});
+	await db.insert(memberSchema.member).values({
+		id: underage.user.id,
+		affirmedAtLeast18: false,
+		affirmedInUnitedStates: true,
+	});
+	const underageCaller = createMemberCaller(
+		db,
+		auth,
+		{
+			userId: underage.user.id,
+			name: "Eden Member",
+			email: "eden@example.com",
+		},
+		() => CLOCK_NOW,
+	);
+	await expect(underageCaller.checkIn.reminder()).rejects.toMatchObject({
+		code: "FORBIDDEN",
+	});
+
+	const abroad = await auth.api.signUpEmail({
+		body: {
+			name: "Fran Member",
+			email: "fran@example.com",
+			password: "password123",
+		},
+	});
+	await db.insert(memberSchema.member).values({
+		id: abroad.user.id,
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: false,
+	});
+	const abroadCaller = createMemberCaller(
+		db,
+		auth,
+		{
+			userId: abroad.user.id,
+			name: "Fran Member",
+			email: "fran@example.com",
+		},
+		() => CLOCK_NOW,
+	);
+	await expect(abroadCaller.checkIn.reminder()).rejects.toMatchObject({
+		code: "FORBIDDEN",
+	});
 });

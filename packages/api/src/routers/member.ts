@@ -33,11 +33,16 @@ export const memberRouter = router({
 				},
 			});
 
-			await ctx.db.insert(member).values({
-				id: result.user.id,
-				affirmedAtLeast18: true,
-				affirmedInUnitedStates: true,
-			});
+			try {
+				await ctx.db.insert(member).values({
+					id: result.user.id,
+					affirmedAtLeast18: true,
+					affirmedInUnitedStates: true,
+				});
+			} catch (cause) {
+				await ctx.db.delete(user).where(eq(user.id, result.user.id));
+				throw cause;
+			}
 
 			return {
 				id: result.user.id,

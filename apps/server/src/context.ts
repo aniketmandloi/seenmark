@@ -18,6 +18,7 @@ export async function createContext({
 		session,
 		auth,
 		now: () => new Date(),
+		paidLinkDestination: null,
 	};
 }
 

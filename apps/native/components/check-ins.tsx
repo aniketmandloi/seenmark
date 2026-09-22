@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
+import * as Linking from "expo-linking";
 import { useState } from "react";
 import {
 	ActivityIndicator,
@@ -28,10 +29,15 @@ function CheckIns() {
 	const [error, setError] = useState<string | null>(null);
 	const [cameraDenied, setCameraDenied] = useState(false);
 	const [openedId, setOpenedId] = useState<string | null>(null);
+	const [readingMenu, setReadingMenu] = useState(false);
 
 	const checkIns = useQuery(trpc.checkIn.list.queryOptions());
 	const score = useQuery(trpc.score.current.queryOptions());
 	const reminder = useQuery(trpc.checkIn.reminder.queryOptions());
+	const menu = useQuery({
+		...trpc.menu.current.queryOptions(),
+		enabled: score.data != null,
+	});
 	const record = useMutation(trpc.checkIn.record.mutationOptions());
 	const remove = useMutation(trpc.checkIn.delete.mutationOptions());
 	const choose = useMutation(trpc.score.choose.mutationOptions());
@@ -43,6 +49,9 @@ function CheckIns() {
 			}),
 			queryClient.invalidateQueries({
 				queryKey: trpc.score.current.queryKey(),
+			}),
+			queryClient.invalidateQueries({
+				queryKey: trpc.menu.current.queryKey(),
 			}),
 			queryClient.invalidateQueries({
 				queryKey: trpc.checkIn.reminder.queryKey(),
@@ -123,6 +132,50 @@ function CheckIns() {
 	const isBusy =
 		record.isPending || remove.isPending || choose.isPending;
 	const currentBand = score.data ?? null;
+	const currentMenu = currentBand ? (menu.data?.menu ?? null) : null;
+	const paidLink =
+		currentMenu && "paidLink" in currentMenu ? currentMenu.paidLink : undefined;
+
+	if (readingMenu && currentMenu) {
+		return (
+			<View
+				style={[
+					styles.card,
+					{ backgroundColor: theme.card, borderColor: theme.border },
+				]}
+			>
+				<TouchableOpacity onPress={() => setReadingMenu(false)}>
+					<Text style={[styles.sectionLabel, { color: theme.text }]}>
+						Back to check-ins
+					</Text>
+				</TouchableOpacity>
+				<Text style={[styles.sectionLabel, { color: theme.text }]}>
+					Next steps
+				</Text>
+				{currentMenu.steps.map((step) => (
+					<Text key={step} style={[styles.menuStep, { color: theme.text }]}>
+						{step}
+					</Text>
+				))}
+				{paidLink ? (
+					<View style={styles.paidLinkRow}>
+						<Text style={[styles.paidLinkLabel, { color: theme.text }]}>
+							{paidLink.label}
+						</Text>
+						<TouchableOpacity
+							onPress={() => Linking.openURL(paidLink.destination)}
+						>
+							<Text
+								style={[styles.paidLinkDestination, { color: theme.primary }]}
+							>
+								{paidLink.destination}
+							</Text>
+						</TouchableOpacity>
+					</View>
+				) : null}
+			</View>
+		);
+	}
 	const opened = openedId
 		? (items.find((item) => item.id === openedId) ?? null)
 		: null;
@@ -373,6 +426,15 @@ function CheckIns() {
 					</View>
 				</View>
 			) : null}
+
+			{currentMenu ? (
+				<TouchableOpacity
+					onPress={() => setReadingMenu(true)}
+					style={[styles.button, { backgroundColor: theme.primary }]}
+				>
+					<Text style={styles.buttonText}>Read the menu</Text>
+				</TouchableOpacity>
+			) : null}
 		</View>
 	);
 }
@@ -498,6 +560,30 @@ const styles = StyleSheet.create({
 	bandButtonText: {
 		fontSize: 14,
 		fontWeight: "600",
+	},
+	menu: {
+		borderTopWidth: 1,
+		paddingTop: 12,
+		marginTop: 12,
+		gap: 8,
+	},
+	menuStep: {
+		fontSize: 14,
+		lineHeight: 20,
+	},
+	paidLinkRow: {
+		marginTop: 4,
+		flexDirection: "row",
+		flexWrap: "wrap",
+		alignItems: "center",
+		gap: 8,
+	},
+	paidLinkLabel: {
+		fontSize: 14,
+		fontWeight: "600",
+	},
+	paidLinkDestination: {
+		fontSize: 14,
 	},
 });
 

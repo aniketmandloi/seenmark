@@ -41,7 +41,7 @@ test("no check-in means the reminder is not due", async () => {
 			name: "Ada Member",
 			email: "ada@example.com",
 		},
-		() => CLOCK_NOW,
+		{ now: () => CLOCK_NOW },
 	);
 
 	const reminder = await memberCaller.checkIn.reminder();
@@ -66,7 +66,7 @@ test("a check-in taken exactly 30 days ago means the reminder is due", async () 
 			name: "Blake Member",
 			email: "blake@example.com",
 		},
-		() => CLOCK_NOW,
+		{ now: () => CLOCK_NOW },
 	);
 
 	await memberCaller.checkIn.record({
@@ -100,7 +100,7 @@ test("a check-in taken 29 days ago means the reminder is not due", async () => {
 			name: "Casey Member",
 			email: "casey@example.com",
 		},
-		() => CLOCK_NOW,
+		{ now: () => CLOCK_NOW },
 	);
 
 	await memberCaller.checkIn.record({
@@ -131,7 +131,7 @@ test("a newer check-in keeps the reminder from being due", async () => {
 			name: "Drew Member",
 			email: "drew@example.com",
 		},
-		() => CLOCK_NOW,
+		{ now: () => CLOCK_NOW },
 	);
 
 	await memberCaller.checkIn.record({
@@ -150,7 +150,7 @@ test("a newer check-in keeps the reminder from being due", async () => {
 });
 
 test("a signed-out caller and a caller missing an affirmation cannot read the reminder", async () => {
-	const publicCaller = createPublicCaller(db, auth, () => CLOCK_NOW);
+	const publicCaller = createPublicCaller(db, auth, { now: () => CLOCK_NOW });
 
 	await expect(publicCaller.checkIn.reminder()).rejects.toMatchObject({
 		code: "UNAUTHORIZED",
@@ -176,7 +176,7 @@ test("a signed-out caller and a caller missing an affirmation cannot read the re
 			name: "Eden Member",
 			email: "eden@example.com",
 		},
-		() => CLOCK_NOW,
+		{ now: () => CLOCK_NOW },
 	);
 	await expect(underageCaller.checkIn.reminder()).rejects.toMatchObject({
 		code: "FORBIDDEN",
@@ -202,7 +202,7 @@ test("a signed-out caller and a caller missing an affirmation cannot read the re
 			name: "Fran Member",
 			email: "fran@example.com",
 		},
-		() => CLOCK_NOW,
+		{ now: () => CLOCK_NOW },
 	);
 	await expect(abroadCaller.checkIn.reminder()).rejects.toMatchObject({
 		code: "FORBIDDEN",

@@ -8,4 +8,5 @@ export type Context = {
 	db: Database;
 	auth: Auth;
 	now: () => Date;
+	paidLinkDestination: string | null;
 };

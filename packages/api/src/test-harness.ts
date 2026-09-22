@@ -42,16 +42,22 @@ export async function openTestDatabase(): Promise<{
 	return { client, db, auth };
 }
 
+type CallerOptions = {
+	paidLinkDestination?: string | null;
+	now?: () => Date;
+};
+
 export function createPublicCaller(
 	db: Database,
 	auth: TestAuth,
-	now: () => Date = () => new Date(),
+	options: CallerOptions = {},
 ) {
 	return appRouter.createCaller({
 		session: null,
 		db,
 		auth,
-		now,
+		paidLinkDestination: options.paidLinkDestination ?? null,
+		now: options.now ?? (() => new Date()),
 	});
 }
 
@@ -63,7 +69,7 @@ export function createMemberCaller(
 		name: string;
 		email: string;
 	},
-	now: () => Date = () => new Date(),
+	options: CallerOptions = {},
 ) {
 	return appRouter.createCaller({
 		session: {
@@ -86,6 +92,7 @@ export function createMemberCaller(
 		},
 		db,
 		auth,
-		now,
+		paidLinkDestination: options.paidLinkDestination ?? null,
+		now: options.now ?? (() => new Date()),
 	});
 }

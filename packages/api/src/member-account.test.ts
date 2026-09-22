@@ -86,3 +86,44 @@ test("refusing United States affirmation leaves no account", async () => {
 		affirmedInUnitedStates: true,
 	});
 });
+
+test("stored affirmations are readable through the router with no gender", async () => {
+	const publicCaller = await createPublicCaller();
+	const opened = await publicCaller.member.openAccount({
+		name: "Casey Member",
+		email: "casey@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+
+	const memberCaller = appRouter.createCaller({
+		session: {
+			session: {
+				id: "session-casey",
+				userId: opened.id,
+				expiresAt: new Date(Date.now() + 60_000),
+				token: "token-casey",
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			},
+			user: {
+				id: opened.id,
+				name: "Casey Member",
+				email: "casey@example.com",
+				emailVerified: false,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			},
+		},
+		db,
+		auth,
+	});
+
+	const current = await memberCaller.member.current();
+	expect(current).toEqual({
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	expect(current).not.toHaveProperty("gender");
+});

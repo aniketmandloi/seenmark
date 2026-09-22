@@ -2,7 +2,7 @@ import { member } from "@seenmark/db/schema/member";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-import { publicProcedure, router } from "../index";
+import { memberProcedure, publicProcedure, router } from "../index";
 
 export const memberRouter = router({
 	openAccount: publicProcedure
@@ -43,4 +43,11 @@ export const memberRouter = router({
 				affirmedInUnitedStates: true as const,
 			};
 		}),
+
+	current: memberProcedure.query(({ ctx }) => {
+		return {
+			affirmedAtLeast18: ctx.member.affirmedAtLeast18,
+			affirmedInUnitedStates: ctx.member.affirmedInUnitedStates,
+		};
+	}),
 });

@@ -1,10 +1,68 @@
-# Dot-directories (agent tool folders and similar)
-.*/
+# Dependencies
+node_modules
+.pnp
+.pnp.js
 
-# Skill lockfile
+# Build outputs
+dist
+build
+*.tsbuildinfo
+
+# Generated files
+apps/web/src/routeTree.gen.ts
+local.db
+local.db-*
+
+# Environment variables
+.env
+.env*.local
+
+# IDEs and editors
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs
+.evlog/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Turbo
+.turbo
+.nx
+
+# Better-T-Stack
+.alchemy
+.vercel
+
+# Testing
+coverage
+.nyc_output
+
+# Misc
+*.tgz
+.cache
+tmp
+temp
+
+# Local agent setup (not part of the app)
+.agents/
+.claude/
+.crush/
+.grok/
 skills-lock.json
-
-# Agent skill config (local setup)
-CLAUDE.md
-AGENTS.md
+/CLAUDE.md
+/AGENTS.md
 docs/agents/

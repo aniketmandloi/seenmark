@@ -1,0 +1,24 @@
+{
+  "name": "@seenmark/api",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@seenmark/auth": "workspace:*",
+    "@seenmark/db": "workspace:*",
+    "@trpc/client": "catalog:",
+    "@trpc/server": "catalog:",
+    "@types/pg": "^8.23.1",
+    "drizzle-orm": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@seenmark/config": "workspace:*",
+    "typescript": "^6.0.3"
+  }
+}

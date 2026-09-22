@@ -1,0 +1,3 @@
+{
+  "extends": "@seenmark/config/tsconfig.base.json"
+}

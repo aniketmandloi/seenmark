@@ -1,0 +1,6 @@
+{
+  "extends": "@seenmark/config/tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  }
+}

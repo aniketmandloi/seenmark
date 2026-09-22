@@ -116,7 +116,7 @@ test("the early menu includes one Paid link only when a destination is configure
 			name: "Drew Member",
 			email: "drew@example.com",
 		},
-		"https://example.com/habits",
+		{ paidLinkDestination: "https://example.com/habits" },
 	);
 
 	await memberCaller.checkIn.record({
@@ -164,7 +164,7 @@ test("the mid menu has no paid link", async () => {
 			name: "Eden Member",
 			email: "eden@example.com",
 		},
-		"https://example.com/habits",
+		{ paidLinkDestination: "https://example.com/habits" },
 	);
 
 	await memberCaller.checkIn.record({
@@ -200,7 +200,7 @@ test("the late menu states the verified-clinic check and has no paid link", asyn
 			name: "Fran Member",
 			email: "fran@example.com",
 		},
-		"https://example.com/habits",
+		{ paidLinkDestination: "https://example.com/habits" },
 	);
 
 	await memberCaller.checkIn.record({

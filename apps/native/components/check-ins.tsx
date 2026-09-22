@@ -33,6 +33,7 @@ function CheckIns() {
 
 	const checkIns = useQuery(trpc.checkIn.list.queryOptions());
 	const score = useQuery(trpc.score.current.queryOptions());
+	const reminder = useQuery(trpc.checkIn.reminder.queryOptions());
 	const menu = useQuery({
 		...trpc.menu.current.queryOptions(),
 		enabled: score.data != null,
@@ -51,6 +52,9 @@ function CheckIns() {
 			}),
 			queryClient.invalidateQueries({
 				queryKey: trpc.menu.current.queryKey(),
+			}),
+			queryClient.invalidateQueries({
+				queryKey: trpc.checkIn.reminder.queryKey(),
 			}),
 		]);
 	}
@@ -184,6 +188,12 @@ function CheckIns() {
 			]}
 		>
 			<Text style={[styles.title, { color: theme.text }]}>Check-ins</Text>
+
+			{reminder.data?.due ? (
+				<Text style={[styles.invitation, { color: theme.text }]}>
+					{reminder.data.invitation}
+				</Text>
+			) : null}
 
 			{cameraDenied ? (
 				<Text style={[styles.cameraDeniedText, { color: theme.notification }]}>
@@ -442,6 +452,10 @@ const styles = StyleSheet.create({
 		marginBottom: 12,
 	},
 	prompt: {
+		fontSize: 14,
+		marginBottom: 12,
+	},
+	invitation: {
 		fontSize: 14,
 		marginBottom: 12,
 	},

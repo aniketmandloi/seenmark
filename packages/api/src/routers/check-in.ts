@@ -64,6 +64,31 @@ export const checkInRouter = router({
 		}));
 	}),
 
+	reminder: memberProcedure.query(async ({ ctx }) => {
+		const [newest] = await ctx.db
+			.select({ takenAt: checkIn.takenAt })
+			.from(checkIn)
+			.where(eq(checkIn.memberId, ctx.member.id))
+			.orderBy(desc(checkIn.takenAt))
+			.limit(1);
+
+		if (!newest) {
+			return { due: false as const };
+		}
+
+		const threshold = new Date(ctx.now());
+		threshold.setUTCDate(threshold.getUTCDate() - 30);
+
+		if (newest.takenAt.getTime() > threshold.getTime()) {
+			return { due: false as const };
+		}
+
+		return {
+			due: true as const,
+			invitation: "Take another photo of your hairline." as const,
+		};
+	}),
+
 	delete: memberProcedure
 		.input(z.object({ id: z.string().min(1) }))
 		.mutation(async ({ input, ctx }) => {

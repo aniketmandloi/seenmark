@@ -31,6 +31,35 @@ async function createPublicCaller() {
 	});
 }
 
+function createMemberCaller(input: {
+	userId: string;
+	name: string;
+	email: string;
+}) {
+	return appRouter.createCaller({
+		session: {
+			session: {
+				id: `session-${input.userId}`,
+				userId: input.userId,
+				expiresAt: new Date(Date.now() + 60_000),
+				token: `token-${input.userId}`,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			},
+			user: {
+				id: input.userId,
+				name: input.name,
+				email: input.email,
+				emailVerified: false,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			},
+		},
+		db,
+		auth,
+	});
+}
+
 beforeEach(async () => {
 	client = new PGlite();
 	db = drizzle({ client });
@@ -97,27 +126,10 @@ test("stored affirmations are readable through the router with no gender", async
 		affirmedInUnitedStates: true,
 	});
 
-	const memberCaller = appRouter.createCaller({
-		session: {
-			session: {
-				id: "session-casey",
-				userId: opened.id,
-				expiresAt: new Date(Date.now() + 60_000),
-				token: "token-casey",
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			},
-			user: {
-				id: opened.id,
-				name: "Casey Member",
-				email: "casey@example.com",
-				emailVerified: false,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			},
-		},
-		db,
-		auth,
+	const memberCaller = createMemberCaller({
+		userId: opened.id,
+		name: "Casey Member",
+		email: "casey@example.com",
 	});
 
 	const current = await memberCaller.member.current();
@@ -126,4 +138,38 @@ test("stored affirmations are readable through the router with no gender", async
 		affirmedInUnitedStates: true,
 	});
 	expect(current).not.toHaveProperty("gender");
+});
+
+test("a signed-out caller is refused by the member-loop gate", async () => {
+	const caller = await createPublicCaller();
+
+	await expect(caller.member.current()).rejects.toMatchObject({
+		code: "UNAUTHORIZED",
+	});
+	await expect(caller.member.deleteAccount()).rejects.toMatchObject({
+		code: "UNAUTHORIZED",
+	});
+});
+
+test("a session without a member row is refused by the member-loop gate", async () => {
+	const authUser = await auth.api.signUpEmail({
+		body: {
+			name: "Drew Auth-Only",
+			email: "drew@example.com",
+			password: "password123",
+		},
+	});
+
+	const caller = createMemberCaller({
+		userId: authUser.user.id,
+		name: "Drew Auth-Only",
+		email: "drew@example.com",
+	});
+
+	await expect(caller.member.current()).rejects.toMatchObject({
+		code: "FORBIDDEN",
+	});
+	await expect(caller.member.deleteAccount()).rejects.toMatchObject({
+		code: "FORBIDDEN",
+	});
 });

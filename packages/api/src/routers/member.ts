@@ -1,5 +1,7 @@
+import { user } from "@seenmark/db/schema/auth";
 import { member } from "@seenmark/db/schema/member";
 import { TRPCError } from "@trpc/server";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { memberProcedure, publicProcedure, router } from "../index";
@@ -49,5 +51,10 @@ export const memberRouter = router({
 			affirmedAtLeast18: ctx.member.affirmedAtLeast18,
 			affirmedInUnitedStates: ctx.member.affirmedInUnitedStates,
 		};
+	}),
+
+	deleteAccount: memberProcedure.mutation(async ({ ctx }) => {
+		await ctx.db.delete(user).where(eq(user.id, ctx.session.user.id));
+		return { ok: true as const };
 	}),
 });

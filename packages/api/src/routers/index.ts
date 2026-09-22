@@ -1,6 +1,7 @@
 import { protectedProcedure, publicProcedure, router } from "../index";
 import { checkInRouter } from "./check-in";
 import { memberRouter } from "./member";
+import { scoreRouter } from "./score";
 import { todoRouter } from "./todo";
 
 export const appRouter = router({
@@ -16,5 +17,6 @@ export const appRouter = router({
 	todo: todoRouter,
 	member: memberRouter,
 	checkIn: checkInRouter,
+	score: scoreRouter,
 });
 export type AppRouter = typeof appRouter;

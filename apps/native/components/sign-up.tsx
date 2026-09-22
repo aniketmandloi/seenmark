@@ -52,6 +52,25 @@ function getErrorMessage(error: unknown): string | null {
   return null;
 }
 
+function AffirmationSwitch({
+  label,
+  value,
+  onChange,
+  color,
+}: {
+  label: string;
+  value: boolean;
+  onChange: (value: boolean) => void;
+  color: string;
+}) {
+  return (
+    <View style={styles.affirmation}>
+      <Switch value={value} onValueChange={onChange} />
+      <Text style={[styles.affirmationLabel, { color }]}>{label}</Text>
+    </View>
+  );
+}
+
 function SignUp() {
   const { colorScheme } = useColorScheme();
   const theme = colorScheme === "dark" ? NAV_THEME.dark : NAV_THEME.light;
@@ -207,39 +226,33 @@ function SignUp() {
 
               <form.Field name="affirmedAtLeast18">
                 {(field) => (
-                  <View style={styles.affirmation}>
-                    <Switch
-                      value={field.state.value}
-                      onValueChange={(value) => {
-                        field.handleChange(value);
-                        if (error) {
-                          setError(null);
-                        }
-                      }}
-                    />
-                    <Text style={[styles.affirmationLabel, { color: theme.text }]}>
-                      I am 18 or older
-                    </Text>
-                  </View>
+                  <AffirmationSwitch
+                    label="I am 18 or older"
+                    value={field.state.value}
+                    color={theme.text}
+                    onChange={(value) => {
+                      field.handleChange(value);
+                      if (error) {
+                        setError(null);
+                      }
+                    }}
+                  />
                 )}
               </form.Field>
 
               <form.Field name="affirmedInUnitedStates">
                 {(field) => (
-                  <View style={styles.affirmation}>
-                    <Switch
-                      value={field.state.value}
-                      onValueChange={(value) => {
-                        field.handleChange(value);
-                        if (error) {
-                          setError(null);
-                        }
-                      }}
-                    />
-                    <Text style={[styles.affirmationLabel, { color: theme.text }]}>
-                      I am in the United States
-                    </Text>
-                  </View>
+                  <AffirmationSwitch
+                    label="I am in the United States"
+                    value={field.state.value}
+                    color={theme.text}
+                    onChange={(value) => {
+                      field.handleChange(value);
+                      if (error) {
+                        setError(null);
+                      }
+                    }}
+                  />
                 )}
               </form.Field>
 

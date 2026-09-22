@@ -9,7 +9,10 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.seenmark"
+      "bundleIdentifier": "com.anonymous.seenmark",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Seenmark needs the camera to take a check-in photo of your hairline."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +22,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.seenmark"
+      "package": "com.anonymous.seenmark",
+      "permissions": ["android.permission.CAMERA"]
     },
     "web": {
       "output": "static",
@@ -27,6 +31,14 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Seenmark needs the camera to take a check-in photo of your hairline.",
+          "photosPermission": false,
+          "microphonePermission": false
+        }
+      ],
       [
         "expo-splash-screen",
         {

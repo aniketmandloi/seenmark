@@ -1,9 +1,9 @@
 import { checkIn } from "@seenmark/db/schema/check-in";
-import { score } from "@seenmark/db/schema/score";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { memberProcedure, router } from "../index";
+import { clearScoreWhenNoCheckInRemains } from "./score";
 
 function decodeBase64(value: string): Uint8Array {
 	const binary = atob(value);
@@ -73,17 +73,7 @@ export const checkInRouter = router({
 					and(eq(checkIn.id, input.id), eq(checkIn.memberId, ctx.member.id)),
 				);
 
-			const [remaining] = await ctx.db
-				.select({ id: checkIn.id })
-				.from(checkIn)
-				.where(eq(checkIn.memberId, ctx.member.id))
-				.limit(1);
-
-			if (!remaining) {
-				await ctx.db
-					.delete(score)
-					.where(eq(score.memberId, ctx.member.id));
-			}
+			await clearScoreWhenNoCheckInRemains(ctx.db, ctx.member.id);
 
 			return { ok: true as const };
 		}),

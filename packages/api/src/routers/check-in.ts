@@ -4,8 +4,21 @@ import { z } from "zod";
 
 import { memberProcedure, router } from "../index";
 
-function imageBytesToBase64(bytes: Buffer | Uint8Array): string {
-	return Buffer.from(bytes).toString("base64");
+function decodeBase64(value: string): Uint8Array {
+	const binary = atob(value);
+	const bytes = new Uint8Array(binary.length);
+	for (let i = 0; i < binary.length; i++) {
+		bytes[i] = binary.charCodeAt(i);
+	}
+	return bytes;
+}
+
+function encodeBase64(bytes: Uint8Array): string {
+	let binary = "";
+	for (let i = 0; i < bytes.length; i++) {
+		binary += String.fromCharCode(bytes[i] ?? 0);
+	}
+	return btoa(binary);
 }
 
 export const checkInRouter = router({
@@ -23,7 +36,7 @@ export const checkInRouter = router({
 			await ctx.db.insert(checkIn).values({
 				id,
 				memberId: ctx.member.id,
-				imageBytes: Buffer.from(input.imageBase64, "base64"),
+				imageBytes: decodeBase64(input.imageBase64),
 				takenAt,
 			});
 
@@ -43,7 +56,7 @@ export const checkInRouter = router({
 		return rows.map((row) => ({
 			id: row.id,
 			takenAt: row.takenAt.toISOString(),
-			imageBase64: imageBytesToBase64(row.imageBytes),
+			imageBase64: encodeBase64(row.imageBytes),
 		}));
 	}),
 

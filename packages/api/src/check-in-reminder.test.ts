@@ -111,3 +111,39 @@ test("a check-in taken 29 days ago means the reminder is not due", async () => {
 	const reminder = await memberCaller.checkIn.reminder();
 	expect(reminder).toEqual({ due: false });
 });
+
+test("a newer check-in keeps the reminder from being due", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const opened = await publicCaller.member.openAccount({
+		name: "Drew Member",
+		email: "drew@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+
+	const memberCaller = createMemberCaller(
+		db,
+		auth,
+		{
+			userId: opened.id,
+			name: "Drew Member",
+			email: "drew@example.com",
+		},
+		() => CLOCK_NOW,
+	);
+
+	await memberCaller.checkIn.record({
+		imageBase64: "b2xkZXI=",
+		mediaType: "image/png",
+		takenAt: "2024-06-01T00:00:00.000Z",
+	});
+	await memberCaller.checkIn.record({
+		imageBase64: "bmV3ZXI=",
+		mediaType: "image/png",
+		takenAt: "2024-07-20T00:00:00.000Z",
+	});
+
+	const reminder = await memberCaller.checkIn.reminder();
+	expect(reminder).toEqual({ due: false });
+});

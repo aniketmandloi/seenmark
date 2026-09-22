@@ -26,6 +26,7 @@ export const checkInRouter = router({
 		.input(
 			z.object({
 				imageBase64: z.string().min(1),
+				mediaType: z.string().regex(/^image\//),
 				takenAt: z.string().datetime(),
 			}),
 		)
@@ -37,6 +38,7 @@ export const checkInRouter = router({
 				id,
 				memberId: ctx.member.id,
 				imageBytes: decodeBase64(input.imageBase64),
+				mediaType: input.mediaType,
 				takenAt,
 			});
 
@@ -57,6 +59,7 @@ export const checkInRouter = router({
 			id: row.id,
 			takenAt: row.takenAt.toISOString(),
 			imageBase64: encodeBase64(row.imageBytes),
+			mediaType: row.mediaType,
 		}));
 	}),
 

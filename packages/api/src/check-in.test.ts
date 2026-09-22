@@ -39,6 +39,7 @@ test("a member can record a check-in and read back that photo and time", async (
 
 	const recorded = await memberCaller.checkIn.record({
 		imageBase64: "aGFpcmxpbmU=",
+		mediaType: "image/png",
 		takenAt: "2024-03-15T10:00:00.000Z",
 	});
 
@@ -55,6 +56,7 @@ test("a member can record a check-in and read back that photo and time", async (
 			id: recorded.id,
 			takenAt: "2024-03-15T10:00:00.000Z",
 			imageBase64: "aGFpcmxpbmU=",
+			mediaType: "image/png",
 		},
 	]);
 });
@@ -77,10 +79,12 @@ test("two check-ins in the same month come back newest first", async () => {
 
 	const earlier = await memberCaller.checkIn.record({
 		imageBase64: "ZWFybGllcg==",
+		mediaType: "image/png",
 		takenAt: "2024-03-10T08:00:00.000Z",
 	});
 	const later = await memberCaller.checkIn.record({
 		imageBase64: "bGF0ZXI=",
+		mediaType: "image/png",
 		takenAt: "2024-03-25T18:30:00.000Z",
 	});
 
@@ -90,11 +94,13 @@ test("two check-ins in the same month come back newest first", async () => {
 			id: later.id,
 			takenAt: "2024-03-25T18:30:00.000Z",
 			imageBase64: "bGF0ZXI=",
+			mediaType: "image/png",
 		},
 		{
 			id: earlier.id,
 			takenAt: "2024-03-10T08:00:00.000Z",
 			imageBase64: "ZWFybGllcg==",
+			mediaType: "image/png",
 		},
 	]);
 });
@@ -117,10 +123,12 @@ test("deleting a check-in removes its photo from the next list", async () => {
 
 	const keep = await memberCaller.checkIn.record({
 		imageBase64: "a2VlcA==",
+		mediaType: "image/png",
 		takenAt: "2024-04-01T09:00:00.000Z",
 	});
 	const remove = await memberCaller.checkIn.record({
 		imageBase64: "cmVtb3Zl",
+		mediaType: "image/png",
 		takenAt: "2024-04-02T09:00:00.000Z",
 	});
 
@@ -132,6 +140,7 @@ test("deleting a check-in removes its photo from the next list", async () => {
 			id: keep.id,
 			takenAt: "2024-04-01T09:00:00.000Z",
 			imageBase64: "a2VlcA==",
+			mediaType: "image/png",
 		},
 	]);
 });
@@ -166,6 +175,7 @@ test("a member cannot read another member's check-in or photo", async () => {
 
 	const firstCheckIn = await firstCaller.checkIn.record({
 		imageBase64: "ZHJldw==",
+		mediaType: "image/png",
 		takenAt: "2024-05-01T12:00:00.000Z",
 	});
 
@@ -180,6 +190,7 @@ test("a member cannot read another member's check-in or photo", async () => {
 			id: firstCheckIn.id,
 			takenAt: "2024-05-01T12:00:00.000Z",
 			imageBase64: "ZHJldw==",
+			mediaType: "image/png",
 		},
 	]);
 });
@@ -190,6 +201,7 @@ test("a signed-out caller and a caller missing either affirmation cannot record"
 	await expect(
 		publicCaller.checkIn.record({
 			imageBase64: "aGFpcmxpbmU=",
+			mediaType: "image/png",
 			takenAt: "2024-06-01T10:00:00.000Z",
 		}),
 	).rejects.toMatchObject({ code: "UNAUTHORIZED" });
@@ -214,6 +226,7 @@ test("a signed-out caller and a caller missing either affirmation cannot record"
 	await expect(
 		underageCaller.checkIn.record({
 			imageBase64: "aGFpcmxpbmU=",
+			mediaType: "image/png",
 			takenAt: "2024-06-01T10:00:00.000Z",
 		}),
 	).rejects.toMatchObject({ code: "FORBIDDEN" });
@@ -238,6 +251,7 @@ test("a signed-out caller and a caller missing either affirmation cannot record"
 	await expect(
 		abroadCaller.checkIn.record({
 			imageBase64: "aGFpcmxpbmU=",
+			mediaType: "image/png",
 			takenAt: "2024-06-01T10:00:00.000Z",
 		}),
 	).rejects.toMatchObject({ code: "FORBIDDEN" });
@@ -261,6 +275,7 @@ test("deleting the account removes that member's check-ins", async () => {
 
 	await memberCaller.checkIn.record({
 		imageBase64: "aGFycGVy",
+		mediaType: "image/png",
 		takenAt: "2024-07-01T10:00:00.000Z",
 	});
 

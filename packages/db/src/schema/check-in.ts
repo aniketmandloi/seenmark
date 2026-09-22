@@ -14,5 +14,6 @@ export const checkIn = pgTable("check_in", {
 		.notNull()
 		.references(() => member.id, { onDelete: "cascade" }),
 	imageBytes: imageBytes("image_bytes").notNull(),
+	mediaType: text("media_type").notNull(),
 	takenAt: timestamp("taken_at").notNull(),
 });

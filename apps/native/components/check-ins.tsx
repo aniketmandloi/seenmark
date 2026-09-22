@@ -37,7 +37,6 @@ function CheckIns() {
 		const result = await ImagePicker.launchCameraAsync({
 			mediaTypes: ["images"],
 			allowsEditing: false,
-			quality: 0.8,
 			base64: true,
 		});
 
@@ -54,6 +53,7 @@ function CheckIns() {
 		try {
 			await record.mutateAsync({
 				imageBase64: asset.base64,
+				mediaType: asset.mimeType ?? "image/jpeg",
 				takenAt: new Date().toISOString(),
 			});
 			await queryClient.invalidateQueries({
@@ -94,7 +94,7 @@ function CheckIns() {
 			<Text style={[styles.title, { color: theme.text }]}>Check-ins</Text>
 
 			{cameraDenied ? (
-				<Text style={[styles.stopText, { color: theme.notification }]}>
+				<Text style={[styles.cameraDeniedText, { color: theme.notification }]}>
 					Camera access is required to take a check-in. Enable the camera in
 					Settings to continue. A check-in cannot be imported from the photo
 					library.
@@ -145,7 +145,9 @@ function CheckIns() {
 					style={[styles.item, { borderColor: theme.border }]}
 				>
 					<Image
-						source={{ uri: `data:image/jpeg;base64,${item.imageBase64}` }}
+						source={{
+							uri: `data:${item.mediaType};base64,${item.imageBase64}`,
+						}}
 						style={styles.photo}
 						accessibilityLabel="Check-in photo"
 					/>
@@ -186,7 +188,7 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		marginBottom: 12,
 	},
-	stopText: {
+	cameraDeniedText: {
 		fontSize: 14,
 		marginBottom: 12,
 	},

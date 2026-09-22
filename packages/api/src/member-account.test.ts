@@ -173,3 +173,34 @@ test("a session without a member row is refused by the member-loop gate", async 
 		code: "FORBIDDEN",
 	});
 });
+
+test("deleting the account removes the member record", async () => {
+	const publicCaller = await createPublicCaller();
+	const opened = await publicCaller.member.openAccount({
+		name: "Eden Member",
+		email: "eden@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+
+	const memberCaller = createMemberCaller({
+		userId: opened.id,
+		name: "Eden Member",
+		email: "eden@example.com",
+	});
+
+	await memberCaller.member.deleteAccount();
+
+	await expect(memberCaller.member.current()).rejects.toMatchObject({
+		code: "FORBIDDEN",
+	});
+
+	await publicCaller.member.openAccount({
+		name: "Eden Member",
+		email: "eden@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+});

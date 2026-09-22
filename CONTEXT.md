@@ -12,6 +12,10 @@ _Avoid_: User, patient, customer, lead
 A hair restoration practice a member may later be introduced to. A clinic is not a member.
 _Avoid_: Provider, doctor, vendor, seller
 
+**Verified clinic**:
+A clinic Seenmark has checked, not a badge a clinic can buy. The check is a named US-licensed physician, a published price range, and result photos at least 12 months out that are not the clinic's ads.
+_Avoid_: Partner, accredited, board-certified
+
 **Check-in**:
 A photo a member takes of their own hairline, kept so a later check-in can be compared with it.
 _Avoid_: Scan, selfie, assessment

@@ -33,7 +33,7 @@ export default function Home() {
                 textAlign: "center",
               }}
             >
-              BETTER T STACK
+              Seenmark
             </ExpoUIText>
           </Host>
 

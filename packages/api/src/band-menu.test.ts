@@ -124,7 +124,9 @@ test("the early menu includes one Paid link only when a destination is configure
 		mediaType: "image/png",
 		takenAt: "2024-05-01T12:00:00.000Z",
 	});
-	await memberCaller.score.choose("early");
+	const chosen = await memberCaller.score.choose("early");
+	expect(chosen).toEqual({ band: "early" });
+	expect(chosen).not.toHaveProperty("paidLink");
 
 	expect(await memberCaller.score.current()).toBe("early");
 

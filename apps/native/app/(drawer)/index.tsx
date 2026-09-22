@@ -11,7 +11,7 @@ import { NAV_THEME } from "@/lib/constants";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { queryClient, trpc } from "@/utils/trpc";
 
-export default function Home() {
+export default function Account() {
   const { colorScheme } = useColorScheme();
   const theme = colorScheme === "dark" ? NAV_THEME.dark : NAV_THEME.light;
   const healthCheck = useQuery(trpc.healthCheck.queryOptions());
@@ -33,7 +33,7 @@ export default function Home() {
                 textAlign: "center",
               }}
             >
-              Seenmark
+              BETTER T STACK
             </ExpoUIText>
           </Host>
 

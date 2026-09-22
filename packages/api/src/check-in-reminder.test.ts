@@ -139,6 +139,12 @@ test("a newer check-in keeps the reminder from being due", async () => {
 		mediaType: "image/png",
 		takenAt: "2024-06-01T00:00:00.000Z",
 	});
+	await memberCaller.checkIn.record({
+		imageBase64: "bmV3ZXI=",
+		mediaType: "image/png",
+		takenAt: "2024-07-20T00:00:00.000Z",
+	});
+
 	const reminder = await memberCaller.checkIn.reminder();
 	expect(reminder).toEqual({ due: false });
 });

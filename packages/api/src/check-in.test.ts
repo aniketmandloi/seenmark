@@ -1,5 +1,6 @@
 import type { PGlite } from "@electric-sql/pglite";
 import type { Database } from "@seenmark/db";
+import * as memberSchema from "@seenmark/db/schema/member";
 import { afterEach, beforeEach, expect, test } from "vitest";
 import {
 	createMemberCaller,
@@ -181,4 +182,63 @@ test("a member cannot read another member's check-in or photo", async () => {
 			imageBase64: "ZHJldw==",
 		},
 	]);
+});
+
+test("a signed-out caller and a caller missing either affirmation cannot record", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+
+	await expect(
+		publicCaller.checkIn.record({
+			imageBase64: "aGFpcmxpbmU=",
+			takenAt: "2024-06-01T10:00:00.000Z",
+		}),
+	).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+
+	const underage = await auth.api.signUpEmail({
+		body: {
+			name: "Fran Member",
+			email: "fran@example.com",
+			password: "password123",
+		},
+	});
+	await db.insert(memberSchema.member).values({
+		id: underage.user.id,
+		affirmedAtLeast18: false,
+		affirmedInUnitedStates: true,
+	});
+	const underageCaller = createMemberCaller(db, auth, {
+		userId: underage.user.id,
+		name: "Fran Member",
+		email: "fran@example.com",
+	});
+	await expect(
+		underageCaller.checkIn.record({
+			imageBase64: "aGFpcmxpbmU=",
+			takenAt: "2024-06-01T10:00:00.000Z",
+		}),
+	).rejects.toMatchObject({ code: "FORBIDDEN" });
+
+	const abroad = await auth.api.signUpEmail({
+		body: {
+			name: "Glen Member",
+			email: "glen@example.com",
+			password: "password123",
+		},
+	});
+	await db.insert(memberSchema.member).values({
+		id: abroad.user.id,
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: false,
+	});
+	const abroadCaller = createMemberCaller(db, auth, {
+		userId: abroad.user.id,
+		name: "Glen Member",
+		email: "glen@example.com",
+	});
+	await expect(
+		abroadCaller.checkIn.record({
+			imageBase64: "aGFpcmxpbmU=",
+			takenAt: "2024-06-01T10:00:00.000Z",
+		}),
+	).rejects.toMatchObject({ code: "FORBIDDEN" });
 });

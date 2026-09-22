@@ -1,6 +1,8 @@
 import type { PGlite } from "@electric-sql/pglite";
 import type { Database } from "@seenmark/db";
 import * as memberSchema from "@seenmark/db/schema/member";
+import { score } from "@seenmark/db/schema/score";
+import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, expect, test } from "vitest";
 
 import {
@@ -198,4 +200,55 @@ test("another member, a signed-out caller, and a caller missing an affirmation c
 	await expect(abroadCaller.score.choose("early")).rejects.toMatchObject({
 		code: "FORBIDDEN",
 	});
+});
+
+test("deleting the account removes the score", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const opened = await publicCaller.member.openAccount({
+		name: "Harper Member",
+		email: "harper@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+
+	const memberCaller = createMemberCaller(db, auth, {
+		userId: opened.id,
+		name: "Harper Member",
+		email: "harper@example.com",
+	});
+
+	await memberCaller.checkIn.record({
+		imageBase64: "aGFycGVy",
+		mediaType: "image/png",
+		takenAt: "2024-07-01T10:00:00.000Z",
+	});
+	await memberCaller.score.choose("late");
+	expect(await memberCaller.score.current()).toBe("late");
+
+	await memberCaller.member.deleteAccount();
+
+	await expect(memberCaller.score.current()).rejects.toMatchObject({
+		code: "FORBIDDEN",
+	});
+
+	const other = await publicCaller.member.openAccount({
+		name: "Iris Member",
+		email: "iris@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	const otherCaller = createMemberCaller(db, auth, {
+		userId: other.id,
+		name: "Iris Member",
+		email: "iris@example.com",
+	});
+	expect(await otherCaller.score.current()).toBe(null);
+
+	const remaining = await db
+		.select({ memberId: score.memberId })
+		.from(score)
+		.where(eq(score.memberId, opened.id));
+	expect(remaining).toEqual([]);
 });

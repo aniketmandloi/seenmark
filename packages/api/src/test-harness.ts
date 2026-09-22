@@ -42,11 +42,16 @@ export async function openTestDatabase(): Promise<{
 	return { client, db, auth };
 }
 
-export function createPublicCaller(db: Database, auth: TestAuth) {
+export function createPublicCaller(
+	db: Database,
+	auth: TestAuth,
+	now: () => Date = () => new Date(),
+) {
 	return appRouter.createCaller({
 		session: null,
 		db,
 		auth,
+		now,
 	});
 }
 
@@ -58,6 +63,7 @@ export function createMemberCaller(
 		name: string;
 		email: string;
 	},
+	now: () => Date = () => new Date(),
 ) {
 	return appRouter.createCaller({
 		session: {
@@ -80,5 +86,6 @@ export function createMemberCaller(
 		},
 		db,
 		auth,
+		now,
 	});
 }

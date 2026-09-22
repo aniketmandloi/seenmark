@@ -17,6 +17,7 @@ export async function createContext({
 		db,
 		session,
 		auth,
+		now: () => new Date(),
 	};
 }
 

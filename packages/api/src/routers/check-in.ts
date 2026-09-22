@@ -64,6 +64,10 @@ export const checkInRouter = router({
 		}));
 	}),
 
+	reminder: memberProcedure.query(async () => {
+		return { due: false as const };
+	}),
+
 	delete: memberProcedure
 		.input(z.object({ id: z.string().min(1) }))
 		.mutation(async ({ input, ctx }) => {

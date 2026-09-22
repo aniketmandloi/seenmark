@@ -22,12 +22,23 @@ export const menuRouter = router({
 		}
 
 		if (row.band === "early") {
-			return {
-				menu: {
-					band: "early" as const,
-					steps: [...EARLY_STEPS],
-				},
+			const menu: {
+				band: "early";
+				steps: string[];
+				paidLink?: { label: "Paid link"; destination: string };
+			} = {
+				band: "early",
+				steps: [...EARLY_STEPS],
 			};
+
+			if (ctx.paidLinkDestination !== null) {
+				menu.paidLink = {
+					label: "Paid link",
+					destination: ctx.paidLinkDestination,
+				};
+			}
+
+			return { menu };
 		}
 
 		return { menu: null };

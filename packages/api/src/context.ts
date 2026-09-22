@@ -7,4 +7,5 @@ export type Context = {
 	session: Session | null;
 	db: Database;
 	auth: Auth;
+	paidLinkDestination: string | null;
 };

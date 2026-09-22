@@ -23,3 +23,7 @@ _Avoid_: Stage, level, grade, Norwood
 **Introduction**:
 A member's request to be connected to a clinic. Not a booking and not a payment.
 _Avoid_: Lead, referral, match, appointment
+
+**Menu**:
+The short list of next steps shown for one band. Not a store.
+_Avoid_: Catalog, feed, shop

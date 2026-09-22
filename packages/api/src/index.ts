@@ -26,15 +26,7 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
 	});
 });
 
-export const memberProcedure = t.procedure.use(async ({ ctx, next }) => {
-	if (!ctx.session) {
-		throw new TRPCError({
-			code: "UNAUTHORIZED",
-			message: "Authentication required",
-			cause: "No session",
-		});
-	}
-
+export const memberProcedure = protectedProcedure.use(async ({ ctx, next }) => {
 	const [row] = await ctx.db
 		.select()
 		.from(member)

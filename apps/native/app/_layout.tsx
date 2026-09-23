@@ -50,11 +50,11 @@ export default function RootLayout() {
 							<Stack.Screen name="(auth)" />
 						</Stack.Protected>
 						<Stack.Screen
-							name="modal"
+							name="about"
 							options={{
-								headerShown: true,
-								title: "About Seenmark",
-								presentation: "modal",
+								presentation: "formSheet",
+								sheetAllowedDetents: [0.6, 1],
+								sheetGrabberVisible: true,
 							}}
 						/>
 					</Stack>

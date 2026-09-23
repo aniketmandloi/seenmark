@@ -6,7 +6,6 @@ import * as checkInSchema from "@seenmark/db/schema/check-in";
 import * as introductionSchema from "@seenmark/db/schema/introduction";
 import * as memberSchema from "@seenmark/db/schema/member";
 import * as scoreSchema from "@seenmark/db/schema/score";
-import * as todoSchema from "@seenmark/db/schema/todo";
 import { pushSchema } from "drizzle-kit/api-postgres";
 import { drizzle } from "drizzle-orm/pglite";
 
@@ -18,7 +17,6 @@ const schema = {
 	...checkInSchema,
 	...introductionSchema,
 	...scoreSchema,
-	...todoSchema,
 };
 
 const authEnv = {

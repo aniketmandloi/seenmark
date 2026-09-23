@@ -41,6 +41,13 @@ function CheckIns() {
 	const record = useMutation(trpc.checkIn.record.mutationOptions());
 	const remove = useMutation(trpc.checkIn.delete.mutationOptions());
 	const choose = useMutation(trpc.score.choose.mutationOptions());
+	const introduction = useQuery(trpc.introduction.current.queryOptions());
+	const fileIntroduction = useMutation(
+		trpc.introduction.file.mutationOptions(),
+	);
+	const deleteIntroduction = useMutation(
+		trpc.introduction.delete.mutationOptions(),
+	);
 
 	async function invalidateMemberLoop() {
 		await Promise.all([
@@ -56,7 +63,36 @@ function CheckIns() {
 			queryClient.invalidateQueries({
 				queryKey: trpc.checkIn.reminder.queryKey(),
 			}),
+			queryClient.invalidateQueries({
+				queryKey: trpc.introduction.current.queryKey(),
+			}),
 		]);
+	}
+
+	async function fileAnIntroduction() {
+		setError(null);
+		try {
+			await fileIntroduction.mutateAsync();
+			await invalidateMemberLoop();
+		} catch (cause) {
+			setError(
+				cause instanceof Error ? cause.message : "Failed to file an introduction",
+			);
+		}
+	}
+
+	async function takeBackIntroduction() {
+		setError(null);
+		try {
+			await deleteIntroduction.mutateAsync();
+			await invalidateMemberLoop();
+		} catch (cause) {
+			setError(
+				cause instanceof Error
+					? cause.message
+					: "Failed to delete the introduction",
+			);
+		}
 	}
 
 	async function takeCheckIn() {
@@ -130,7 +166,11 @@ function CheckIns() {
 	const items = checkIns.data ?? [];
 	const isEmpty = !checkIns.isLoading && items.length === 0;
 	const isBusy =
-		record.isPending || remove.isPending || choose.isPending;
+		record.isPending ||
+		remove.isPending ||
+		choose.isPending ||
+		fileIntroduction.isPending ||
+		deleteIntroduction.isPending;
 	const currentBand = score.data ?? null;
 	const currentMenu = currentBand ? (menu.data?.menu ?? null) : null;
 	const paidLink =
@@ -157,6 +197,45 @@ function CheckIns() {
 						{step}
 					</Text>
 				))}
+				{currentMenu.band === "late" ? (
+					<View style={styles.introduction}>
+						{introduction.data ? (
+							<>
+								<Text style={[styles.menuStep, { color: theme.text }]}>
+									Recorded, not sent.
+								</Text>
+								<TouchableOpacity
+									onPress={takeBackIntroduction}
+									disabled={isBusy}
+									style={[
+										styles.deleteButton,
+										{ borderColor: theme.border, opacity: isBusy ? 0.5 : 1 },
+									]}
+								>
+									<Text
+										style={[styles.deleteButtonText, { color: theme.text }]}
+									>
+										Delete introduction
+									</Text>
+								</TouchableOpacity>
+							</>
+						) : (
+							<TouchableOpacity
+								onPress={fileAnIntroduction}
+								disabled={isBusy}
+								style={[
+									styles.button,
+									{
+										backgroundColor: theme.primary,
+										opacity: isBusy ? 0.5 : 1,
+									},
+								]}
+							>
+								<Text style={styles.buttonText}>File an introduction</Text>
+							</TouchableOpacity>
+						)}
+					</View>
+				) : null}
 				{paidLink ? (
 					<View style={styles.paidLinkRow}>
 						<Text style={[styles.paidLinkLabel, { color: theme.text }]}>
@@ -570,6 +649,9 @@ const styles = StyleSheet.create({
 	menuStep: {
 		fontSize: 14,
 		lineHeight: 20,
+	},
+	introduction: {
+		marginTop: 16,
 	},
 	paidLinkRow: {
 		marginTop: 4,

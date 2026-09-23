@@ -40,5 +40,5 @@ export function useStackScreenOptions(): StackOptions {
 
 export function useTabsAppearance(): Partial<NativeTabsProps> {
 	const { theme } = useColorScheme();
-	return { tintColor: theme.primary };
+	return { tintColor: theme.primary, sidebarAdaptable: true };
 }

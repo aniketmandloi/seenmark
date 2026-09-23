@@ -54,13 +54,14 @@ test("a member can record a check-in and read back that photo and time", async (
 
 	const listed = await memberCaller.checkIn.list();
 	expect(listed).toEqual([
-		{
-			id: recorded.id,
-			takenAt: "2024-03-15T10:00:00.000Z",
-			imageBase64: "aGFpcmxpbmU=",
-			mediaType: "image/png",
-		},
+		{ id: recorded.id, takenAt: "2024-03-15T10:00:00.000Z" },
 	]);
+	expect(await memberCaller.checkIn.photo({ id: recorded.id })).toEqual({
+		id: recorded.id,
+		takenAt: "2024-03-15T10:00:00.000Z",
+		imageBase64: "aGFpcmxpbmU=",
+		mediaType: "image/png",
+	});
 });
 
 test("two check-ins in the same month come back newest first", async () => {
@@ -92,22 +93,12 @@ test("two check-ins in the same month come back newest first", async () => {
 
 	const listed = await memberCaller.checkIn.list();
 	expect(listed).toEqual([
-		{
-			id: later.id,
-			takenAt: "2024-03-25T18:30:00.000Z",
-			imageBase64: "bGF0ZXI=",
-			mediaType: "image/png",
-		},
-		{
-			id: earlier.id,
-			takenAt: "2024-03-10T08:00:00.000Z",
-			imageBase64: "ZWFybGllcg==",
-			mediaType: "image/png",
-		},
+		{ id: later.id, takenAt: "2024-03-25T18:30:00.000Z" },
+		{ id: earlier.id, takenAt: "2024-03-10T08:00:00.000Z" },
 	]);
 });
 
-test("deleting a check-in removes its photo from the next list", async () => {
+test("deleting a check-in removes it from the next list", async () => {
 	const publicCaller = createPublicCaller(db, auth);
 	const opened = await publicCaller.member.openAccount({
 		name: "Casey Member",
@@ -138,12 +129,7 @@ test("deleting a check-in removes its photo from the next list", async () => {
 
 	const listed = await memberCaller.checkIn.list();
 	expect(listed).toEqual([
-		{
-			id: keep.id,
-			takenAt: "2024-04-01T09:00:00.000Z",
-			imageBase64: "a2VlcA==",
-			mediaType: "image/png",
-		},
+		{ id: keep.id, takenAt: "2024-04-01T09:00:00.000Z" },
 	]);
 });
 
@@ -188,12 +174,7 @@ test("a member cannot read another member's check-in or photo", async () => {
 
 	const firstList = await firstCaller.checkIn.list();
 	expect(firstList).toEqual([
-		{
-			id: firstCheckIn.id,
-			takenAt: "2024-05-01T12:00:00.000Z",
-			imageBase64: "ZHJldw==",
-			mediaType: "image/png",
-		},
+		{ id: firstCheckIn.id, takenAt: "2024-05-01T12:00:00.000Z" },
 	]);
 });
 

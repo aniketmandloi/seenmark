@@ -52,7 +52,7 @@ export const checkInRouter = router({
 
 	list: memberProcedure.query(async ({ ctx }) => {
 		const rows = await ctx.db
-			.select()
+			.select({ id: checkIn.id, takenAt: checkIn.takenAt })
 			.from(checkIn)
 			.where(eq(checkIn.memberId, ctx.member.id))
 			.orderBy(desc(checkIn.takenAt));
@@ -60,8 +60,6 @@ export const checkInRouter = router({
 		return rows.map((row) => ({
 			id: row.id,
 			takenAt: row.takenAt.toISOString(),
-			imageBase64: encodeBase64(row.imageBytes),
-			mediaType: row.mediaType,
 		}));
 	}),
 

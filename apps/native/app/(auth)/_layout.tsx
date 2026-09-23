@@ -7,10 +7,9 @@ export default function AuthStack() {
 
 	return (
 		<Stack screenOptions={screenOptions}>
-			<Stack.Screen
-				name="welcome"
-				options={{ title: "Seenmark", headerLargeTitleEnabled: true }}
-			/>
+			<Stack.Screen name="welcome" options={{ headerShown: false }} />
+			<Stack.Screen name="sign-in" options={{ title: "Sign in" }} />
+			<Stack.Screen name="sign-up" options={{ title: "Create account" }} />
 		</Stack>
 	);
 }

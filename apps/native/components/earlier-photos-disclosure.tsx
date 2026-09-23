@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
-import type { ColorValue, StyleProp, ViewStyle } from "react-native";
+import type { StyleProp, ViewStyle } from "react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type EarlierPhotosDisclosureProps = {
 	label: string;
-	labelColor: ColorValue;
-	borderColor: ColorValue;
+	labelColor: string;
+	borderColor: string;
 	style?: StyleProp<ViewStyle>;
 	children: ReactNode;
 };

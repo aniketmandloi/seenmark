@@ -1,5 +1,11 @@
-import { DisclosureGroup, Host, RNHostView } from "@expo/ui/swift-ui";
-import { foregroundStyle } from "@expo/ui/swift-ui/modifiers";
+import {
+	Column,
+	Text as ComposeText,
+	Host,
+	RNHostView,
+	Row,
+	TextButton,
+} from "@expo/ui/jetpack-compose";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import type { StyleProp, ViewStyle } from "react-native";
@@ -42,16 +48,27 @@ export function EarlierPhotosDisclosure({
 				style,
 			]}
 		>
-			<DisclosureGroup
-				label={label}
-				isExpanded={expanded}
-				onIsExpandedChange={setExpanded}
-				modifiers={[foregroundStyle(labelColor)]}
-			>
-				<RNHostView matchContents>
-					<View style={{ paddingTop: 12 }}>{children}</View>
-				</RNHostView>
-			</DisclosureGroup>
+			<Column>
+				<Row horizontalArrangement="spaceBetween" verticalAlignment="center">
+					<ComposeText
+						color={labelColor}
+						style={{ fontSize: 16, fontWeight: "600" }}
+					>
+						{label}
+					</ComposeText>
+					<TextButton
+						colors={{ contentColor: labelColor }}
+						onClick={() => setExpanded((value) => !value)}
+					>
+						<ComposeText>{expanded ? "Hide" : "Show"}</ComposeText>
+					</TextButton>
+				</Row>
+				{expanded ? (
+					<RNHostView matchContents>
+						<View style={{ paddingTop: 12 }}>{children}</View>
+					</RNHostView>
+				) : null}
+			</Column>
 		</Host>
 	);
 }

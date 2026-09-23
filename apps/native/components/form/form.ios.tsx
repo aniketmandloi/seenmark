@@ -34,7 +34,9 @@ import {
 	listRowBackground,
 	listRowInsets,
 	type ModifierConfig,
+	multilineTextAlignment,
 	onSubmit,
+	padding,
 	pickerStyle,
 	refreshable,
 	submitLabel,
@@ -43,7 +45,7 @@ import {
 	textInputAutocapitalization,
 } from "@expo/ui/swift-ui/modifiers";
 import { Stack } from "expo-router";
-import { Image as RNImage, StyleSheet, View } from "react-native";
+import { Platform, Image as RNImage, StyleSheet, View } from "react-native";
 
 import type {
 	FormButtonProps,
@@ -64,6 +66,10 @@ import type {
 } from "@/components/form/types";
 import { ICONS } from "@/lib/icons";
 import { useColorScheme } from "@/lib/use-color-scheme";
+
+// SwiftUI's ContentUnavailableView renders nothing before iOS 17.
+const hasContentUnavailableView =
+	Number.parseInt(String(Platform.Version), 10) >= 17;
 
 const secondary = foregroundStyle({ type: "hierarchical", style: "secondary" });
 const tertiary = foregroundStyle({ type: "hierarchical", style: "tertiary" });
@@ -456,14 +462,46 @@ export function FormEmptyState({
 	title,
 	description,
 }: FormEmptyStateProps) {
+	if (hasContentUnavailableView) {
+		return (
+			<Section>
+				<ContentUnavailableView
+					title={title}
+					systemImage={ICONS[icon].ios}
+					description={description}
+					modifiers={[listRowBackground("clear")]}
+				/>
+			</Section>
+		);
+	}
+
 	return (
 		<Section>
-			<ContentUnavailableView
-				title={title}
-				systemImage={ICONS[icon].ios}
-				description={description}
-				modifiers={[listRowBackground("clear")]}
-			/>
+			<VStack
+				spacing={8}
+				modifiers={[
+					frame({ maxWidth: Number.POSITIVE_INFINITY }),
+					padding({ vertical: 24 }),
+					listRowBackground("clear"),
+				]}
+			>
+				<Image
+					systemName={ICONS[icon].ios}
+					modifiers={[font({ size: 44 }), secondary]}
+				/>
+				<Text modifiers={[font({ textStyle: "title2", weight: "bold" })]}>
+					{title}
+				</Text>
+				<Text
+					modifiers={[
+						font({ textStyle: "subheadline" }),
+						secondary,
+						multilineTextAlignment("center"),
+					]}
+				>
+					{description}
+				</Text>
+			</VStack>
 		</Section>
 	);
 }

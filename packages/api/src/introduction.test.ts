@@ -1,5 +1,6 @@
 import type { PGlite } from "@electric-sql/pglite";
 import type { Database } from "@seenmark/db";
+import * as memberSchema from "@seenmark/db/schema/member";
 import { afterEach, beforeEach, expect, test } from "vitest";
 
 import {
@@ -225,4 +226,127 @@ test("the member can delete their introduction", async () => {
 		recorded: true,
 		sent: false,
 	});
+});
+
+test("another member cannot read the introduction", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const first = await publicCaller.member.openAccount({
+		name: "Fran Member",
+		email: "fran@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	const second = await publicCaller.member.openAccount({
+		name: "Glen Member",
+		email: "glen@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	const firstCaller = createMemberCaller(db, auth, {
+		userId: first.id,
+		name: "Fran Member",
+		email: "fran@example.com",
+	});
+	const secondCaller = createMemberCaller(db, auth, {
+		userId: second.id,
+		name: "Glen Member",
+		email: "glen@example.com",
+	});
+
+	await firstCaller.checkIn.record({
+		imageBase64: "ZnJhbg==",
+		mediaType: "image/png",
+		takenAt: "2024-08-01T12:00:00.000Z",
+	});
+	await firstCaller.score.choose("late");
+	await firstCaller.introduction.file();
+
+	expect(await secondCaller.introduction.current()).toBeNull();
+	await secondCaller.introduction.delete();
+	expect(await firstCaller.introduction.current()).not.toBeNull();
+});
+
+test("a signed-out caller and a caller missing an affirmation cannot file", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	await expect(publicCaller.introduction.file()).rejects.toMatchObject({
+		code: "UNAUTHORIZED",
+	});
+
+	const underage = await auth.api.signUpEmail({
+		body: {
+			name: "Harper Member",
+			email: "harper@example.com",
+			password: "password123",
+		},
+	});
+	await db.insert(memberSchema.member).values({
+		id: underage.user.id,
+		affirmedAtLeast18: false,
+		affirmedInUnitedStates: true,
+	});
+	const underageCaller = createMemberCaller(db, auth, {
+		userId: underage.user.id,
+		name: "Harper Member",
+		email: "harper@example.com",
+	});
+	await expect(underageCaller.introduction.file()).rejects.toMatchObject({
+		code: "FORBIDDEN",
+	});
+});
+
+test("deleting the account removes the check-in, score, and introduction", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const opened = await publicCaller.member.openAccount({
+		name: "Iris Member",
+		email: "iris@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	const memberCaller = createMemberCaller(db, auth, {
+		userId: opened.id,
+		name: "Iris Member",
+		email: "iris@example.com",
+	});
+
+	await memberCaller.checkIn.record({
+		imageBase64: "aXJpcw==",
+		mediaType: "image/png",
+		takenAt: "2024-08-01T12:00:00.000Z",
+	});
+	await memberCaller.score.choose("late");
+	await memberCaller.introduction.file();
+	expect(await memberCaller.checkIn.list()).toHaveLength(1);
+	expect(await memberCaller.score.current()).toBe("late");
+	expect(await memberCaller.introduction.current()).not.toBeNull();
+
+	await memberCaller.member.deleteAccount();
+
+	await expect(memberCaller.checkIn.list()).rejects.toMatchObject({
+		code: "FORBIDDEN",
+	});
+	await expect(memberCaller.score.current()).rejects.toMatchObject({
+		code: "FORBIDDEN",
+	});
+	await expect(memberCaller.introduction.current()).rejects.toMatchObject({
+		code: "FORBIDDEN",
+	});
+
+	const other = await publicCaller.member.openAccount({
+		name: "Jules Member",
+		email: "jules@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	const otherCaller = createMemberCaller(db, auth, {
+		userId: other.id,
+		name: "Jules Member",
+		email: "jules@example.com",
+	});
+	expect(await otherCaller.checkIn.list()).toEqual([]);
+	expect(await otherCaller.score.current()).toBeNull();
+	expect(await otherCaller.introduction.current()).toBeNull();
 });

@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { Container } from "@/components/container";
 import { DeleteAccount } from "@/components/delete-account";
 import { NativeButton } from "@/components/native-button";
+import { PrivacyHeading } from "@/components/privacy-heading";
 import { authClient } from "@/lib/auth-client";
 import { NAV_THEME } from "@/lib/constants";
 import { useColorScheme } from "@/lib/use-color-scheme";
@@ -73,9 +74,7 @@ export default function AccountScreen() {
 				</View>
 
 				<View style={styles.privacy}>
-					<Text style={[styles.sectionTitle, { color: theme.text }]}>
-						Your record stays yours.
-					</Text>
+					<PrivacyHeading label="Your record stays yours." color={theme.text} />
 					<Text style={[styles.body, { color: theme.muted }]}>
 						Only you can see your check-in photos. You choose an early, mid, or
 						late band; Seenmark does not interpret or diagnose a photo.
@@ -132,11 +131,6 @@ const styles = StyleSheet.create({
 		paddingVertical: 26,
 		borderBottomWidth: StyleSheet.hairlineWidth,
 		borderBottomColor: "#8A958C55",
-	},
-	sectionTitle: {
-		fontSize: 19,
-		fontWeight: "600",
-		marginBottom: 8,
 	},
 	body: {
 		fontSize: 15,

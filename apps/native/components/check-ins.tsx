@@ -1,11 +1,7 @@
-import { SegmentedControl } from "@expo/ui/community/segmented-control";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
-import * as ExpoLinking from "expo-linking";
 import { useState } from "react";
 import {
-	ActivityIndicator,
-	Alert,
 	Image,
 	Linking,
 	StyleSheet,
@@ -14,7 +10,12 @@ import {
 	View,
 } from "react-native";
 
+import { BandPicker } from "@/components/band-picker";
+import { ConfirmAction } from "@/components/confirm-action";
+import { EarlierPhotosDisclosure } from "@/components/earlier-photos-disclosure";
+import { ExternalLinkAction } from "@/components/external-link-action";
 import { NativeButton } from "@/components/native-button";
+import { ProgressIndicator } from "@/components/progress-indicator";
 import { NAV_THEME } from "@/lib/constants";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { queryClient, trpc } from "@/utils/trpc";
@@ -158,21 +159,6 @@ function CheckIns() {
 		}
 	}
 
-	function confirmDeleteCheckIn(id: string) {
-		Alert.alert(
-			"Delete this photo?",
-			"This check-in will be removed from your record.",
-			[
-				{ text: "Keep photo", style: "cancel" },
-				{
-					text: "Delete photo",
-					style: "destructive",
-					onPress: () => void deleteCheckIn(id),
-				},
-			],
-		);
-	}
-
 	async function chooseBand(band: Band) {
 		setError(null);
 		setOptimisticBand(band);
@@ -239,19 +225,26 @@ function CheckIns() {
 								? "Your request is saved here. Nothing has been sent."
 								: "If you want, you can request an introduction. It will not book anything or send until you choose to continue."}
 						</Text>
-						<NativeButton
-							label={
-								introduction.data ? "Delete request" : "File an introduction"
-							}
-							variant={introduction.data ? "outlined" : "filled"}
-							onPress={() =>
-								void (introduction.data
-									? takeBackIntroduction()
-									: fileAnIntroduction())
-							}
-							disabled={isBusy}
-							style={styles.actionButton}
-						/>
+						{introduction.data ? (
+							<ConfirmAction
+								label="Delete request"
+								title="Delete your introduction request?"
+								message="This request will be removed from your record. Nothing has been sent."
+								confirmLabel="Delete request"
+								cancelLabel="Keep request"
+								variant="outlined"
+								onConfirm={() => void takeBackIntroduction()}
+								disabled={isBusy}
+								style={styles.actionButton}
+							/>
+						) : (
+							<NativeButton
+								label="File an introduction"
+								onPress={() => void fileAnIntroduction()}
+								disabled={isBusy}
+								style={styles.actionButton}
+							/>
+						)}
 					</View>
 				) : null}
 				{paidLink ? (
@@ -264,11 +257,7 @@ function CheckIns() {
 								Opens an external link.
 							</Text>
 						</View>
-						<NativeButton
-							label="Open link"
-							variant="outlined"
-							onPress={() => void ExpoLinking.openURL(paidLink.destination)}
-						/>
+						<ExternalLinkAction destination={paidLink.destination} />
 					</View>
 				) : null}
 			</View>
@@ -322,7 +311,7 @@ function CheckIns() {
 
 			{checkIns.isLoading ? (
 				<View style={styles.loading}>
-					<ActivityIndicator size="small" color={theme.primary} />
+					<ProgressIndicator />
 					<Text style={[styles.supportingCopy, { color: theme.muted }]}>
 						Loading your photos…
 					</Text>
@@ -368,10 +357,13 @@ function CheckIns() {
 					<Text style={[styles.takenAt, { color: theme.muted }]}>
 						{formatDate(items[0].takenAt)}
 					</Text>
-					<NativeButton
+					<ConfirmAction
 						label="Delete check-in"
-						variant="text"
-						onPress={() => confirmDeleteCheckIn(items[0].id)}
+						title="Delete this photo?"
+						message="This check-in will be removed from your record."
+						confirmLabel="Delete photo"
+						cancelLabel="Keep photo"
+						onConfirm={() => void deleteCheckIn(items[0].id)}
 						disabled={isBusy}
 						style={styles.deleteAction}
 					/>
@@ -405,10 +397,13 @@ function CheckIns() {
 								<Text style={[styles.takenAt, { color: theme.muted }]}>
 									{formatDate(item.takenAt)}
 								</Text>
-								<NativeButton
+								<ConfirmAction
 									label="Delete photo"
-									variant="text"
-									onPress={() => confirmDeleteCheckIn(item.id)}
+									title="Delete this photo?"
+									message="This check-in will be removed from your record."
+									confirmLabel="Delete photo"
+									cancelLabel="Keep photo"
+									onConfirm={() => void deleteCheckIn(item.id)}
 									disabled={isBusy}
 									style={styles.deleteAction}
 								/>
@@ -439,10 +434,13 @@ function CheckIns() {
 						onPress={() => setOpenedId(null)}
 						style={styles.actionButton}
 					/>
-					<NativeButton
+					<ConfirmAction
 						label="Delete check-in"
-						variant="text"
-						onPress={() => confirmDeleteCheckIn(opened.id)}
+						title="Delete this photo?"
+						message="This check-in will be removed from your record."
+						confirmLabel="Delete photo"
+						cancelLabel="Keep photo"
+						onConfirm={() => void deleteCheckIn(opened.id)}
 						disabled={isBusy}
 						style={styles.deleteAction}
 					/>
@@ -450,36 +448,40 @@ function CheckIns() {
 			) : null}
 
 			{items.length > 2 && !opened ? (
-				<View style={[styles.history, { borderColor: theme.border }]}>
-					<Text style={[styles.sectionLabel, { color: theme.text }]}>
-						Earlier photos
-					</Text>
-					{items.slice(2).map((item) => (
-						<TouchableOpacity
-							key={item.id}
-							accessibilityRole="button"
-							accessibilityLabel={`View check-in from ${formatDate(item.takenAt)}`}
-							onPress={() => setOpenedId(item.id)}
-							style={[styles.historyItem, { borderColor: theme.border }]}
-						>
-							<Image
-								source={{
-									uri: `data:${item.mediaType};base64,${item.imageBase64}`,
-								}}
-								style={styles.historyThumb}
-								accessibilityLabel="Earlier check-in photo"
-							/>
-							<View style={styles.historyCopy}>
-								<Text style={[styles.historyDate, { color: theme.text }]}>
-									{formatDate(item.takenAt)}
-								</Text>
-								<Text style={[styles.historyHint, { color: theme.muted }]}>
-									View photo
-								</Text>
-							</View>
-						</TouchableOpacity>
-					))}
-				</View>
+				<EarlierPhotosDisclosure
+					label={`Earlier photos (${items.length - 2})`}
+					labelColor={theme.text}
+					borderColor={theme.border}
+					style={styles.history}
+				>
+					<View>
+						{items.slice(2).map((item) => (
+							<TouchableOpacity
+								key={item.id}
+								accessibilityRole="button"
+								accessibilityLabel={`View check-in from ${formatDate(item.takenAt)}`}
+								onPress={() => setOpenedId(item.id)}
+								style={[styles.historyItem, { borderColor: theme.border }]}
+							>
+								<Image
+									source={{
+										uri: `data:${item.mediaType};base64,${item.imageBase64}`,
+									}}
+									style={styles.historyThumb}
+									accessibilityLabel="Earlier check-in photo"
+								/>
+								<View style={styles.historyCopy}>
+									<Text style={[styles.historyDate, { color: theme.text }]}>
+										{formatDate(item.takenAt)}
+									</Text>
+									<Text style={[styles.historyHint, { color: theme.muted }]}>
+										View photo
+									</Text>
+								</View>
+							</TouchableOpacity>
+						))}
+					</View>
+				</EarlierPhotosDisclosure>
 			) : null}
 
 			{items.length > 0 ? (
@@ -490,19 +492,15 @@ function CheckIns() {
 					<Text style={[styles.supportingCopy, { color: theme.muted }]}>
 						This is your description. It is not generated from the photo.
 					</Text>
-					<SegmentedControl
-						values={BANDS.map((band) => band.label)}
-						selectedIndex={
-							displayedBand
-								? BANDS.findIndex((band) => band.value === displayedBand)
-								: undefined
-						}
+					<BandPicker
+						options={BANDS}
+						selection={displayedBand}
 						enabled={!isBusy}
 						tintColor={theme.primary}
 						appearance={colorScheme}
 						style={styles.segmentedControl}
-						onValueChange={(label) => {
-							const band = BANDS.find((item) => item.label === label);
+						onSelectionChange={(value) => {
+							const band = BANDS.find((item) => item.value === value);
 							if (band) void chooseBand(band.value);
 						}}
 					/>

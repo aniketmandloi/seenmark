@@ -1,5 +1,5 @@
 import { Column, Text as ExpoText, Host } from "@expo/ui";
-import { Redirect, router } from "expo-router";
+import { router } from "expo-router";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { Container } from "@/components/container";
 import { DeleteAccount } from "@/components/delete-account";
@@ -15,9 +15,7 @@ export default function AccountScreen() {
 	const theme = colorScheme === "dark" ? NAV_THEME.dark : NAV_THEME.light;
 	const { data: session } = authClient.useSession();
 
-	if (!session?.user) {
-		return <Redirect href="/" />;
-	}
+	if (!session?.user) return null;
 
 	async function signOut() {
 		await authClient.signOut();

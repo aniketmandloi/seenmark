@@ -1,5 +1,5 @@
+import { useQuery } from "@tanstack/react-query";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
 
 import {
 	FormConfirmButton,
@@ -11,6 +11,7 @@ import {
 	FormSection,
 } from "@/components/form/form";
 import {
+	checkInPhotoQuery,
 	checkInPhotoUri,
 	formatCheckInDate,
 	useMemberLoop,
@@ -19,16 +20,14 @@ import {
 export default function CheckInScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
 	const loop = useMemberLoop();
-	const found = loop.items.find((item) => item.id === id);
-	// Keep showing the photo while the screen pops after a delete removes it from the list.
-	const [lastSeen, setLastSeen] = useState(found);
-	if (found && found !== lastSeen) setLastSeen(found);
-	const checkIn = found ?? lastSeen;
+	// A delete leaves this cached photo in place, so it stays on screen while the screen pops.
+	const photo = useQuery(checkInPhotoQuery(id));
+	const checkIn = photo.data;
 
 	if (!checkIn) {
 		return (
 			<FormScreen>
-				{loop.isLoading ? (
+				{photo.isLoading ? (
 					<FormSection>
 						<FormProgress label="Loading your photo…" />
 					</FormSection>

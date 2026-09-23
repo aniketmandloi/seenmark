@@ -29,6 +29,14 @@ export function checkInPhotoUri(checkIn: {
 	return `data:${checkIn.mediaType};base64,${checkIn.imageBase64}`;
 }
 
+/** A recorded photo never changes, so once loaded it is never refetched. */
+export function checkInPhotoQuery(id: string) {
+	return {
+		...trpc.checkIn.photo.queryOptions({ id }),
+		staleTime: Number.POSITIVE_INFINITY,
+	};
+}
+
 function messageFrom(cause: unknown, fallback: string) {
 	return cause instanceof Error ? cause.message : fallback;
 }

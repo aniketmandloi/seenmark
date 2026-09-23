@@ -1,3 +1,4 @@
+import { useQueries } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { Linking } from "react-native";
 
@@ -14,6 +15,7 @@ import {
 } from "@/components/form/form";
 import {
 	BANDS,
+	checkInPhotoQuery,
 	checkInPhotoUri,
 	formatCheckInDate,
 	useMemberLoop,
@@ -21,7 +23,10 @@ import {
 
 export default function CheckInsScreen() {
 	const loop = useMemberLoop();
-	const latest = loop.items.slice(0, 2);
+	const latest = useQueries({
+		queries: loop.items.slice(0, 2).map((item) => checkInPhotoQuery(item.id)),
+	});
+	const latestPhotos = latest.flatMap(({ data }) => (data ? [data] : []));
 	const takeCheckIn = () => void loop.takeCheckIn();
 	const bandLabel = BANDS.find((band) => band.value === loop.band)?.label;
 
@@ -106,17 +111,27 @@ export default function CheckInsScreen() {
 							: "Take another check-in later to compare."
 					}
 				>
-					<FormPhotos
-						photos={latest.map((item, index) => ({
-							id: item.id,
-							uri: checkInPhotoUri(item),
-							accessibilityLabel:
-								index === 0
-									? "Newest check-in photo"
-									: "Previous check-in photo",
-							caption: formatCheckInDate(item.takenAt),
-						}))}
-					/>
+					{latest.some((photo) => photo.isError) ? (
+						<FormRow
+							icon="error"
+							title="Your photos could not load."
+							tone="destructive"
+						/>
+					) : latestPhotos.length === latest.length ? (
+						<FormPhotos
+							photos={latestPhotos.map((photo, index) => ({
+								id: photo.id,
+								uri: checkInPhotoUri(photo),
+								accessibilityLabel:
+									index === 0
+										? "Newest check-in photo"
+										: "Previous check-in photo",
+								caption: formatCheckInDate(photo.takenAt),
+							}))}
+						/>
+					) : (
+						<FormProgress label="Loading your photos…" />
+					)}
 				</FormSection>
 			) : null}
 
@@ -156,7 +171,7 @@ export default function CheckInsScreen() {
 					{loop.items.map((item, index) => (
 						<FormRow
 							key={item.id}
-							thumbnailUri={checkInPhotoUri(item)}
+							icon="camera"
 							title={formatCheckInDate(item.takenAt)}
 							subtitle={index === 0 ? "Newest" : undefined}
 							showsChevron

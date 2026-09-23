@@ -38,7 +38,6 @@ export type FormRowProps = {
 	subtitle?: string;
 	value?: string;
 	icon?: IconName;
-	thumbnailUri?: string;
 	tone?: Tone;
 	onPress?: () => void;
 	showsChevron?: boolean;

@@ -123,7 +123,6 @@ export function FormRow({
 	title,
 	subtitle,
 	value,
-	thumbnailUri,
 	tone = "default",
 	onPress,
 	showsChevron = false,
@@ -144,9 +143,6 @@ export function FormRow({
 			disabled={disabled || !onPress}
 			style={[styles.row, disabled && styles.disabled]}
 		>
-			{thumbnailUri ? (
-				<Image source={{ uri: thumbnailUri }} style={styles.thumbnail} />
-			) : null}
 			<View style={styles.rowCopy}>
 				<Text style={[styles.rowTitle, { color }]}>{title}</Text>
 				{subtitle ? (
@@ -428,11 +424,6 @@ const styles = StyleSheet.create({
 	},
 	disabled: {
 		opacity: 0.4,
-	},
-	thumbnail: {
-		width: 44,
-		height: 55,
-		borderRadius: 8,
 	},
 	prominent: {
 		minHeight: 50,

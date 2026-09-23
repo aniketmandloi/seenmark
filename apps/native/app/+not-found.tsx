@@ -1,62 +1,78 @@
-import { Button, Column, Host, Text as ExpoUIText } from "@expo/ui";
-import { Stack, router } from "expo-router";
-import { Text, View, StyleSheet } from "react-native";
-
+import { Column, Text as ExpoText, Host } from "@expo/ui";
+import { router, Stack } from "expo-router";
+import { StyleSheet, View } from "react-native";
 import { Container } from "@/components/container";
+import { NativeButton } from "@/components/native-button";
 import { NAV_THEME } from "@/lib/constants";
 import { useColorScheme } from "@/lib/use-color-scheme";
 
 export default function NotFoundScreen() {
-  const { colorScheme } = useColorScheme();
-  const theme = colorScheme === "dark" ? NAV_THEME.dark : NAV_THEME.light;
+	const { colorScheme } = useColorScheme();
+	const theme = colorScheme === "dark" ? NAV_THEME.dark : NAV_THEME.light;
 
-  return (
-    <>
-      <Stack.Screen options={{ title: "Oops!" }} />
-      <Container>
-        <View style={styles.container}>
-          <View style={styles.content}>
-            <Text style={styles.emoji}>🤔</Text>
-            <Host matchContents={{ vertical: true }}>
-              <Column spacing={12} alignment="center">
-                <ExpoUIText
-                  textStyle={{
-                    color: theme.text,
-                    fontSize: 20,
-                    fontWeight: "bold",
-                    textAlign: "center",
-                  }}
-                >
-                  Page Not Found
-                </ExpoUIText>
-                <ExpoUIText
-                  textStyle={{ color: theme.text, fontSize: 14, textAlign: "center" }}
-                  style={{ opacity: 0.7 }}
-                >
-                  Sorry, the page you're looking for doesn't exist.
-                </ExpoUIText>
-                <Button label="Go to Home" variant="outlined" onPress={() => router.replace("/")} />
-              </Column>
-            </Host>
-          </View>
-        </View>
-      </Container>
-    </>
-  );
+	return (
+		<>
+			<Stack.Screen options={{ title: "Page not found" }} />
+			<Container>
+				<View style={styles.container}>
+					<Host
+						colorScheme={colorScheme}
+						seedColor={theme.primary}
+						matchContents={{ vertical: true }}
+					>
+						<Column spacing={12} alignment="center">
+							<ExpoText
+								textStyle={{
+									color: theme.primary,
+									fontSize: 11,
+									fontWeight: "700",
+									letterSpacing: 1.2,
+								}}
+							>
+								SEENMARK
+							</ExpoText>
+							<ExpoText
+								textStyle={{
+									color: theme.text,
+									fontSize: 25,
+									fontWeight: "600",
+									textAlign: "center",
+								}}
+							>
+								We can’t find that page.
+							</ExpoText>
+							<ExpoText
+								textStyle={{
+									color: theme.muted,
+									fontSize: 15,
+									textAlign: "center",
+									lineHeight: 22,
+								}}
+							>
+								Your check-ins are still right where you left them.
+							</ExpoText>
+						</Column>
+					</Host>
+					<NativeButton
+						label="Back to check-ins"
+						onPress={() => router.replace("/")}
+						style={styles.button}
+					/>
+				</View>
+			</Container>
+		</>
+	);
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 16,
-  },
-  content: {
-    alignItems: "center",
-  },
-  emoji: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
+	container: {
+		flex: 1,
+		alignItems: "center",
+		justifyContent: "center",
+		paddingHorizontal: 28,
+		gap: 22,
+	},
+	button: {
+		alignSelf: "center",
+	},
 });

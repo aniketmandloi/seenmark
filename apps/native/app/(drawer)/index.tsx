@@ -1,179 +1,62 @@
-import { Button, Column, Text as ExpoUIText, Host } from "@expo/ui";
-import { useQuery } from "@tanstack/react-query";
+import { Column, Text as ExpoText, Host } from "@expo/ui";
 import { ScrollView, StyleSheet, View } from "react-native";
 
+import { AuthGate } from "@/components/auth-gate";
 import { CheckIns } from "@/components/check-ins";
 import { Container } from "@/components/container";
-import { DeleteAccount } from "@/components/delete-account";
-import { SignIn } from "@/components/sign-in";
-import { SignUp } from "@/components/sign-up";
 import { authClient } from "@/lib/auth-client";
 import { NAV_THEME } from "@/lib/constants";
 import { useColorScheme } from "@/lib/use-color-scheme";
-import { queryClient, trpc } from "@/utils/trpc";
 
-export default function Account() {
+export default function CheckInsScreen() {
 	const { colorScheme } = useColorScheme();
 	const theme = colorScheme === "dark" ? NAV_THEME.dark : NAV_THEME.light;
-	const healthCheck = useQuery(trpc.healthCheck.queryOptions());
-	const privateData = useQuery(trpc.privateData.queryOptions());
-	const isConnected = healthCheck?.data === "OK";
-	const isLoading = healthCheck?.isLoading;
 	const { data: session } = authClient.useSession();
 
 	return (
 		<Container>
 			<ScrollView
 				style={styles.scrollView}
-				contentInsetAdjustmentBehavior="never"
+				contentContainerStyle={styles.content}
+				keyboardShouldPersistTaps="handled"
 			>
-				<View style={styles.content}>
-					<Host style={styles.titleHost}>
-						<ExpoUIText
-							textStyle={{
-								color: theme.text,
-								fontSize: 24,
-								fontWeight: "bold",
-								textAlign: "center",
-							}}
-						>
-							BETTER T STACK
-						</ExpoUIText>
+				<View style={styles.intro}>
+					<Host
+						colorScheme={colorScheme}
+						seedColor={theme.primary}
+						matchContents={{ vertical: true }}
+					>
+						<Column spacing={8}>
+							<ExpoText
+								textStyle={{
+									color: theme.primary,
+									fontSize: 11,
+									fontWeight: "700",
+									letterSpacing: 1.3,
+								}}
+							>
+								SEENMARK · PRIVATE BY DESIGN
+							</ExpoText>
+							<ExpoText
+								textStyle={{
+									color: theme.text,
+									fontSize: 30,
+									fontWeight: "600",
+									lineHeight: 36,
+								}}
+							>
+								Your hairline, over time.
+							</ExpoText>
+							<ExpoText
+								textStyle={{ color: theme.muted, fontSize: 15, lineHeight: 22 }}
+							>
+								A quiet place to keep your own check-in photos and look back
+								when you choose.
+							</ExpoText>
+						</Column>
 					</Host>
-
-					{session?.user ? (
-						<View
-							style={[
-								styles.userCard,
-								{ backgroundColor: theme.card, borderColor: theme.border },
-							]}
-						>
-							<Host
-								style={styles.userHeader}
-								matchContents={{ vertical: true }}
-							>
-								<Column spacing={8}>
-									<ExpoUIText textStyle={{ color: theme.text, fontSize: 16 }}>
-										{`Welcome, ${session.user.name}`}
-									</ExpoUIText>
-									<ExpoUIText
-										textStyle={{ color: theme.text, fontSize: 14 }}
-										style={{ opacity: 0.7 }}
-									>
-										{session.user.email}
-									</ExpoUIText>
-								</Column>
-							</Host>
-							<Host matchContents={{ vertical: true }}>
-								<Button
-									label="Sign Out"
-									variant="outlined"
-									onPress={() => {
-										authClient.signOut();
-										queryClient.invalidateQueries();
-									}}
-								/>
-							</Host>
-							<DeleteAccount />
-						</View>
-					) : null}
-
-					{session?.user ? <CheckIns /> : null}
-
-					<View
-						style={[
-							styles.statusCard,
-							{ backgroundColor: theme.card, borderColor: theme.border },
-						]}
-					>
-						<Host
-							style={styles.cardTitleHost}
-							matchContents={{ vertical: true }}
-						>
-							<ExpoUIText
-								textStyle={{
-									color: theme.text,
-									fontSize: 16,
-									fontWeight: "bold",
-								}}
-							>
-								System Status
-							</ExpoUIText>
-						</Host>
-						<View style={styles.statusRow}>
-							<View
-								style={[
-									styles.statusIndicator,
-									{ backgroundColor: isConnected ? "#10b981" : "#ef4444" },
-								]}
-							/>
-							<View style={styles.statusContent}>
-								<Host matchContents={{ vertical: true }}>
-									<Column spacing={4}>
-										<ExpoUIText
-											textStyle={{
-												color: theme.text,
-												fontSize: 14,
-												fontWeight: "bold",
-											}}
-										>
-											TRPC Backend
-										</ExpoUIText>
-										<ExpoUIText
-											textStyle={{ color: theme.text, fontSize: 12 }}
-											style={{ opacity: 0.7 }}
-										>
-											{isLoading
-												? "Checking connection..."
-												: isConnected
-													? "Connected to API"
-													: "API Disconnected"}
-										</ExpoUIText>
-									</Column>
-								</Host>
-							</View>
-						</View>
-					</View>
-
-					<View
-						style={[
-							styles.privateDataCard,
-							{ backgroundColor: theme.card, borderColor: theme.border },
-						]}
-					>
-						<Host
-							style={styles.cardTitleHost}
-							matchContents={{ vertical: true }}
-						>
-							<ExpoUIText
-								textStyle={{
-									color: theme.text,
-									fontSize: 16,
-									fontWeight: "bold",
-								}}
-							>
-								Private Data
-							</ExpoUIText>
-						</Host>
-						{privateData && (
-							<Host matchContents={{ vertical: true }}>
-								<ExpoUIText
-									textStyle={{ color: theme.text, fontSize: 14 }}
-									style={{ opacity: 0.7 }}
-								>
-									{privateData.data?.message ?? ""}
-								</ExpoUIText>
-							</Host>
-						)}
-					</View>
-
-					{!session?.user && (
-						<>
-							<SignIn />
-							<SignUp />
-						</>
-					)}
 				</View>
+				{session?.user ? <CheckIns /> : <AuthGate />}
 			</ScrollView>
 		</Container>
 	);
@@ -185,48 +68,10 @@ const styles = StyleSheet.create({
 	},
 	content: {
 		paddingHorizontal: 20,
-		paddingTop: 28,
-		paddingBottom: 32,
+		paddingTop: 24,
+		paddingBottom: 36,
 	},
-	titleHost: {
-		alignSelf: "stretch",
-		height: 34,
+	intro: {
 		marginBottom: 24,
-	},
-	userCard: {
-		marginBottom: 16,
-		padding: 16,
-		borderWidth: 1,
-		borderRadius: 16,
-	},
-	userHeader: {
-		marginBottom: 8,
-	},
-	statusCard: {
-		marginBottom: 16,
-		padding: 16,
-		borderWidth: 1,
-		borderRadius: 16,
-	},
-	cardTitleHost: {
-		marginBottom: 12,
-	},
-	statusRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 8,
-	},
-	statusIndicator: {
-		height: 8,
-		width: 8,
-	},
-	statusContent: {
-		flex: 1,
-	},
-	privateDataCard: {
-		marginBottom: 16,
-		padding: 16,
-		borderWidth: 1,
-		borderRadius: 16,
 	},
 });

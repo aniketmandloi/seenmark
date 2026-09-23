@@ -14,8 +14,6 @@ type Band = "early" | "mid" | "late";
 type CheckIn = {
   id: string;
   takenAt: string;
-  imageBase64: string;
-  mediaType: string;
 };
 
 const bands: { value: Band; label: string }[] = [
@@ -33,9 +31,27 @@ function formatDate(value: string) {
 }
 
 function Photo({ item, alt }: { item: CheckIn; alt: string }) {
+  // A recorded photo never changes, so once loaded it is never refetched.
+  const photo = useQuery({
+    ...trpc.checkIn.photo.queryOptions({ id: item.id }),
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+
+  if (!photo.data) {
+    return (
+      <div
+        role="status"
+        aria-label={photo.isError ? "This photo could not load" : "Loading photo"}
+        className={`aspect-[3/4] w-full rounded-2xl bg-muted ${
+          photo.isError ? "" : "animate-pulse motion-reduce:animate-none"
+        }`}
+      />
+    );
+  }
+
   return (
     <Image
-      src={`data:${item.mediaType};base64,${item.imageBase64}`}
+      src={`data:${photo.data.mediaType};base64,${photo.data.imageBase64}`}
       alt={alt}
       width={900}
       height={1200}
@@ -108,7 +124,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   );
   const deleteAccount = useMutation(trpc.member.deleteAccount.mutationOptions());
 
-  const items = (checkIns.data ?? []) as CheckIn[];
+  const items: CheckIn[] = checkIns.data ?? [];
   const opened = openedId ? (items.find((item) => item.id === openedId) ?? null) : null;
   const selectedBand = bands.find((band) => band.value === currentBand.data)?.label;
   const currentMenu = menu.data?.menu ?? null;
@@ -331,18 +347,17 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
                   <h3 id="earlier-heading" className="text-lg font-semibold tracking-tight">
                     Earlier check-ins
                   </h3>
-                  <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4">
+                  <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
                     {items.slice(2).map((item) => (
                       <button
                         key={item.id}
                         type="button"
+                        aria-label={`Open check-in from ${formatDate(item.takenAt)}`}
                         onClick={() => setOpenedId(item.id)}
-                        className="group min-w-0 rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        className="flex min-w-0 items-center gap-2 rounded-xl border border-border bg-card px-3 py-3 text-left text-sm text-muted-foreground transition hover:border-primary/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       >
-                        <Photo item={item} alt={`Open check-in from ${formatDate(item.takenAt)}`} />
-                        <span className="mt-2 block truncate text-xs text-muted-foreground group-hover:text-foreground">
-                          {formatDate(item.takenAt)}
-                        </span>
+                        <Camera aria-hidden="true" className="size-4 shrink-0 text-primary" />
+                        <span className="truncate">{formatDate(item.takenAt)}</span>
                       </button>
                     ))}
                   </div>

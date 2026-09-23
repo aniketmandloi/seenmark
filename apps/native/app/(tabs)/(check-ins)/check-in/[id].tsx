@@ -14,12 +14,12 @@ import {
 	checkInPhotoQuery,
 	checkInPhotoUri,
 	formatCheckInDate,
-	useMemberLoop,
+	useMemberActions,
 } from "@/lib/use-member-loop";
 
 export default function CheckInScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
-	const loop = useMemberLoop();
+	const actions = useMemberActions();
 	// A delete leaves this cached photo in place, so it stays on screen while the screen pops.
 	const photo = useQuery(checkInPhotoQuery(id));
 	const checkIn = photo.data;
@@ -48,9 +48,9 @@ export default function CheckInScreen() {
 		<>
 			<Stack.Screen options={{ title: takenOn }} />
 			<FormScreen>
-				{loop.error ? (
+				{actions.error ? (
 					<FormSection>
-						<FormRow icon="error" title={loop.error} tone="destructive" />
+						<FormRow icon="error" title={actions.error} tone="destructive" />
 					</FormSection>
 				) : null}
 				<FormSection footer="Only you can see this photo.">
@@ -74,9 +74,9 @@ export default function CheckInScreen() {
 						confirmLabel="Delete photo"
 						cancelLabel="Keep photo"
 						onConfirm={async () => {
-							if (await loop.deleteCheckIn(checkIn.id)) router.back();
+							if (await actions.deleteCheckIn(checkIn.id)) router.back();
 						}}
-						disabled={loop.isBusy}
+						disabled={actions.isBusy}
 					/>
 				</FormSection>
 			</FormScreen>

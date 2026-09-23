@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { type QueryKey, useMutation, useQuery } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 
@@ -41,34 +41,62 @@ function messageFrom(cause: unknown, fallback: string) {
 	return cause instanceof Error ? cause.message : fallback;
 }
 
-async function invalidateMemberLoop() {
-	await Promise.all([
-		queryClient.invalidateQueries({ queryKey: trpc.checkIn.list.queryKey() }),
-		queryClient.invalidateQueries({ queryKey: trpc.score.current.queryKey() }),
-		queryClient.invalidateQueries({ queryKey: trpc.menu.current.queryKey() }),
-		queryClient.invalidateQueries({
-			queryKey: trpc.checkIn.reminder.queryKey(),
-		}),
-		queryClient.invalidateQueries({
-			queryKey: trpc.introduction.current.queryKey(),
-		}),
-	]);
+async function refresh(...queryKeys: QueryKey[]) {
+	await Promise.all(
+		queryKeys.map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+	);
 }
 
-/** The member's check-ins, band, menu and introduction, with the actions that change them. */
-export function useMemberLoop() {
+const checkInsKey = trpc.checkIn.list.queryKey();
+const reminderKey = trpc.checkIn.reminder.queryKey();
+const bandKey = trpc.score.current.queryKey();
+const menuKey = trpc.menu.current.queryKey();
+const introductionKey = trpc.introduction.current.queryKey();
+
+// A menu belongs to one band, so a changed band drops it rather than showing it stale.
+function forgetMenu() {
+	return queryClient.resetQueries({ queryKey: menuKey });
+}
+
+/** The check-ins screen: the photo record, the reminder and the chosen band. */
+export function useCheckIns() {
+	const checkIns = useQuery(trpc.checkIn.list.queryOptions());
+	const reminder = useQuery(trpc.checkIn.reminder.queryOptions());
+	const band = useQuery(trpc.score.current.queryOptions());
+	const items = checkIns.data ?? [];
+
+	return {
+		items,
+		isLoading: checkIns.isLoading,
+		isEmpty: !checkIns.isLoading && items.length === 0,
+		reminder: reminder.data?.due ? reminder.data.invitation : null,
+		band: band.data ?? null,
+		refresh: () => refresh(checkInsKey, reminderKey, bandKey),
+	};
+}
+
+/** The next-steps screen: the menu for the chosen band and any introduction. */
+export function useNextSteps() {
+	const menu = useQuery(trpc.menu.current.queryOptions());
+	const introduction = useQuery(trpc.introduction.current.queryOptions());
+	const currentMenu = menu.data?.menu ?? null;
+
+	return {
+		isLoading: menu.isLoading || introduction.isLoading,
+		menu: currentMenu,
+		paidLink:
+			currentMenu && "paidLink" in currentMenu
+				? currentMenu.paidLink
+				: undefined,
+		introduction: introduction.data ?? null,
+		refresh: () => refresh(menuKey, introductionKey),
+	};
+}
+
+/** The actions that change the member loop; each refreshes only the reads it can change. */
+export function useMemberActions() {
 	const [error, setError] = useState<string | null>(null);
 	const [cameraDenied, setCameraDenied] = useState(false);
-	const [optimisticBand, setOptimisticBand] = useState<Band | null>(null);
-
-	const checkIns = useQuery(trpc.checkIn.list.queryOptions());
-	const score = useQuery(trpc.score.current.queryOptions());
-	const reminder = useQuery(trpc.checkIn.reminder.queryOptions());
-	const menu = useQuery({
-		...trpc.menu.current.queryOptions(),
-		enabled: score.data != null,
-	});
-	const introduction = useQuery(trpc.introduction.current.queryOptions());
 
 	const record = useMutation(trpc.checkIn.record.mutationOptions());
 	const remove = useMutation(trpc.checkIn.delete.mutationOptions());
@@ -108,7 +136,7 @@ export function useMemberLoop() {
 				mediaType: asset.mimeType ?? "image/jpeg",
 				takenAt: new Date().toISOString(),
 			});
-			await invalidateMemberLoop();
+			await refresh(checkInsKey, reminderKey);
 		} catch (cause) {
 			setError(messageFrom(cause, "Failed to record check-in"));
 		}
@@ -118,7 +146,11 @@ export function useMemberLoop() {
 		setError(null);
 		try {
 			await remove.mutateAsync({ id });
-			await invalidateMemberLoop();
+			// Deleting the last check-in also clears the band.
+			await Promise.all([
+				refresh(checkInsKey, reminderKey, bandKey),
+				forgetMenu(),
+			]);
 			return true;
 		} catch (cause) {
 			setError(messageFrom(cause, "Failed to delete check-in"));
@@ -128,14 +160,14 @@ export function useMemberLoop() {
 
 	async function chooseBand(band: Band) {
 		setError(null);
-		setOptimisticBand(band);
+		await queryClient.cancelQueries({ queryKey: bandKey });
+		queryClient.setQueryData(bandKey, band);
 		try {
 			await choose.mutateAsync(band);
-			await invalidateMemberLoop();
+			await forgetMenu();
 		} catch (cause) {
 			setError(messageFrom(cause, "Failed to save your band"));
-		} finally {
-			setOptimisticBand(null);
+			await refresh(bandKey);
 		}
 	}
 
@@ -143,7 +175,7 @@ export function useMemberLoop() {
 		setError(null);
 		try {
 			await fileIntroduction.mutateAsync();
-			await invalidateMemberLoop();
+			await refresh(introductionKey);
 		} catch (cause) {
 			setError(messageFrom(cause, "Failed to file an introduction"));
 		}
@@ -153,20 +185,13 @@ export function useMemberLoop() {
 		setError(null);
 		try {
 			await deleteIntroduction.mutateAsync();
-			await invalidateMemberLoop();
+			await refresh(introductionKey);
 		} catch (cause) {
 			setError(messageFrom(cause, "Failed to delete the introduction"));
 		}
 	}
 
-	const items = checkIns.data ?? [];
-	const currentBand = score.data ?? null;
-	const currentMenu = currentBand ? (menu.data?.menu ?? null) : null;
-
 	return {
-		items,
-		isLoading: checkIns.isLoading,
-		isEmpty: !checkIns.isLoading && items.length === 0,
 		isRecording: record.isPending,
 		isBusy:
 			record.isPending ||
@@ -176,15 +201,6 @@ export function useMemberLoop() {
 			deleteIntroduction.isPending,
 		error,
 		cameraDenied,
-		reminder: reminder.data?.due ? reminder.data.invitation : null,
-		band: optimisticBand ?? currentBand,
-		menu: currentMenu,
-		paidLink:
-			currentMenu && "paidLink" in currentMenu
-				? currentMenu.paidLink
-				: undefined,
-		introduction: introduction.data ?? null,
-		refresh: invalidateMemberLoop,
 		takeCheckIn,
 		deleteCheckIn,
 		chooseBand,

@@ -3,21 +3,38 @@ import {
 	FormConfirmButton,
 	FormEmptyState,
 	FormLink,
+	FormProgress,
 	FormRow,
 	FormScreen,
 	FormSection,
 	FormText,
 } from "@/components/form/form";
-import { BANDS, formatCheckInDate, useMemberLoop } from "@/lib/use-member-loop";
+import {
+	BANDS,
+	formatCheckInDate,
+	useMemberActions,
+	useNextSteps,
+} from "@/lib/use-member-loop";
 
 export default function NextStepsScreen() {
-	const loop = useMemberLoop();
-	const menu = loop.menu;
+	const steps = useNextSteps();
+	const actions = useMemberActions();
+	const menu = steps.menu;
 	const bandLabel = BANDS.find((band) => band.value === menu?.band)?.label;
+
+	if (steps.isLoading) {
+		return (
+			<FormScreen>
+				<FormSection>
+					<FormProgress label="Loading your next steps…" />
+				</FormSection>
+			</FormScreen>
+		);
+	}
 
 	if (!menu) {
 		return (
-			<FormScreen onRefresh={loop.refresh}>
+			<FormScreen onRefresh={steps.refresh}>
 				<FormEmptyState
 					icon="steps"
 					title="Your menu waits for a band."
@@ -28,10 +45,10 @@ export default function NextStepsScreen() {
 	}
 
 	return (
-		<FormScreen onRefresh={loop.refresh}>
-			{loop.error ? (
+		<FormScreen onRefresh={steps.refresh}>
+			{actions.error ? (
 				<FormSection>
-					<FormRow icon="error" title={loop.error} tone="destructive" />
+					<FormRow icon="error" title={actions.error} tone="destructive" />
 				</FormSection>
 			) : null}
 
@@ -45,17 +62,17 @@ export default function NextStepsScreen() {
 				<FormSection
 					title="Introduction"
 					footer={
-						loop.introduction
+						steps.introduction
 							? "Your request is saved here. Nothing has been sent."
 							: "If you want, you can request an introduction. It will not book anything or send until you choose to continue."
 					}
 				>
-					{loop.introduction ? (
+					{steps.introduction ? (
 						<>
 							<FormRow
 								icon="done"
 								title="Request saved"
-								value={formatCheckInDate(loop.introduction.filedAt)}
+								value={formatCheckInDate(steps.introduction.filedAt)}
 							/>
 							<FormConfirmButton
 								label="Delete request"
@@ -64,25 +81,25 @@ export default function NextStepsScreen() {
 								message="This request will be removed from your record. Nothing has been sent."
 								confirmLabel="Delete request"
 								cancelLabel="Keep request"
-								onConfirm={() => void loop.takeBackIntroduction()}
-								disabled={loop.isBusy}
+								onConfirm={() => void actions.takeBackIntroduction()}
+								disabled={actions.isBusy}
 							/>
 						</>
 					) : (
 						<FormButton
 							label="File an introduction"
-							onPress={() => void loop.fileAnIntroduction()}
-							disabled={loop.isBusy}
+							onPress={() => void actions.fileAnIntroduction()}
+							disabled={actions.isBusy}
 						/>
 					)}
 				</FormSection>
 			) : null}
 
-			{loop.paidLink ? (
+			{steps.paidLink ? (
 				<FormSection footer="Opens an external link.">
 					<FormLink
-						label={loop.paidLink.label}
-						destination={loop.paidLink.destination}
+						label={steps.paidLink.label}
+						destination={steps.paidLink.destination}
 					/>
 				</FormSection>
 			) : null}

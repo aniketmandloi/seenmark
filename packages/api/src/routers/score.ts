@@ -1,26 +1,10 @@
-import type { Database } from "@seenmark/db";
 import { checkIn } from "@seenmark/db/schema/check-in";
 import { score } from "@seenmark/db/schema/score";
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { memberProcedure, router } from "../index";
-
-export async function clearScoreWhenNoCheckInRemains(
-	db: Database,
-	memberId: string,
-) {
-	const [remaining] = await db
-		.select({ id: checkIn.id })
-		.from(checkIn)
-		.where(eq(checkIn.memberId, memberId))
-		.limit(1);
-
-	if (!remaining) {
-		await db.delete(score).where(eq(score.memberId, memberId));
-	}
-}
 
 const band = z.enum(["early", "mid", "late"]);
 
@@ -48,29 +32,33 @@ export const scoreRouter = router({
 	}),
 
 	choose: memberProcedure.input(band).mutation(async ({ input, ctx }) => {
-		const [existing] = await ctx.db
-			.select({ id: checkIn.id })
-			.from(checkIn)
-			.where(eq(checkIn.memberId, ctx.member.id))
-			.limit(1);
+		// One statement writes the score only from a check-in that still exists; the
+		// share lock makes a concurrent delete of that check-in wait or be seen.
+		const [saved] = await ctx.db
+			.insert(score)
+			.select(
+				ctx.db
+					.select({
+						memberId: checkIn.memberId,
+						band: sql<string>`${input}::text`.as("band"),
+					})
+					.from(checkIn)
+					.where(eq(checkIn.memberId, ctx.member.id))
+					.limit(1)
+					.for("share"),
+			)
+			.onConflictDoUpdate({
+				target: score.memberId,
+				set: { band: input },
+			})
+			.returning({ band: score.band });
 
-		if (!existing) {
+		if (!saved) {
 			throw new TRPCError({
 				code: "BAD_REQUEST",
 				message: "A check-in is required before choosing a score",
 			});
 		}
-
-		await ctx.db
-			.insert(score)
-			.values({
-				memberId: ctx.member.id,
-				band: input,
-			})
-			.onConflictDoUpdate({
-				target: score.memberId,
-				set: { band: input },
-			});
 
 		return { band: input };
 	}),

@@ -1,10 +1,10 @@
 import { checkIn } from "@seenmark/db/schema/check-in";
+import { score } from "@seenmark/db/schema/score";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, ne, notExists } from "drizzle-orm";
 import { z } from "zod";
 
 import { memberProcedure, router } from "../index";
-import { clearScoreWhenNoCheckInRemains } from "./score";
 
 function decodeBase64(value: string): Uint8Array {
 	const binary = atob(value);
@@ -117,13 +117,36 @@ export const checkInRouter = router({
 	delete: memberProcedure
 		.input(z.object({ id: z.string().min(1) }))
 		.mutation(async ({ input, ctx }) => {
-			await ctx.db
-				.delete(checkIn)
-				.where(
-					and(eq(checkIn.id, input.id), eq(checkIn.memberId, ctx.member.id)),
-				);
+			const removed = ctx.db.$with("removed").as(
+				ctx.db
+					.delete(checkIn)
+					.where(
+						and(eq(checkIn.id, input.id), eq(checkIn.memberId, ctx.member.id)),
+					)
+					.returning({ id: checkIn.id }),
+			);
 
-			await clearScoreWhenNoCheckInRemains(ctx.db, ctx.member.id);
+			// One statement, so the score is never left without a check-in. Both deletes
+			// read the same snapshot, so the remaining check-ins must exclude this one.
+			await ctx.db
+				.with(removed)
+				.delete(score)
+				.where(
+					and(
+						eq(score.memberId, ctx.member.id),
+						notExists(
+							ctx.db
+								.select({ id: checkIn.id })
+								.from(checkIn)
+								.where(
+									and(
+										eq(checkIn.memberId, ctx.member.id),
+										ne(checkIn.id, input.id),
+									),
+								),
+						),
+					),
+				);
 
 			return { ok: true as const };
 		}),

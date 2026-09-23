@@ -25,7 +25,6 @@ export const ICONS = {
 		ios: "checkmark.circle.fill",
 		android: require("@/assets/icons/check_circle.xml"),
 	},
-	email: { ios: "envelope", android: require("@/assets/icons/mail.xml") },
 	error: {
 		ios: "exclamationmark.triangle.fill",
 		android: require("@/assets/icons/error.xml"),

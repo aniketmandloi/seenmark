@@ -178,3 +178,51 @@ test("leaving the late band keeps the introduction unsent", async () => {
 	await memberCaller.score.choose("late");
 	expect(await memberCaller.introduction.current()).toEqual(filed);
 });
+
+test("the member can delete their introduction", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const opened = await publicCaller.member.openAccount({
+		name: "Eden Member",
+		email: "eden@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	const memberCaller = createMemberCaller(
+		db,
+		auth,
+		{
+			userId: opened.id,
+			name: "Eden Member",
+			email: "eden@example.com",
+		},
+		{ now: () => new Date(FILED_AT) },
+	);
+
+	await memberCaller.checkIn.record({
+		imageBase64: "ZWRlbg==",
+		mediaType: "image/png",
+		takenAt: "2024-08-01T12:00:00.000Z",
+	});
+	await memberCaller.score.choose("late");
+	await memberCaller.introduction.file();
+	await memberCaller.introduction.delete();
+	expect(await memberCaller.introduction.current()).toBeNull();
+
+	const laterCaller = createMemberCaller(
+		db,
+		auth,
+		{
+			userId: opened.id,
+			name: "Eden Member",
+			email: "eden@example.com",
+		},
+		{ now: () => new Date("2024-10-01T12:00:00.000Z") },
+	);
+	expect(await laterCaller.introduction.file()).toEqual({
+		memberId: opened.id,
+		filedAt: "2024-10-01T12:00:00.000Z",
+		recorded: true,
+		sent: false,
+	});
+});

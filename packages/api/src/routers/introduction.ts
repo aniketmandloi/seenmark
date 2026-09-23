@@ -61,4 +61,11 @@ export const introductionRouter = router({
 
 		return toIntroduction(ctx.member.id, filedAt);
 	}),
+
+	delete: memberProcedure.mutation(async ({ ctx }) => {
+		await ctx.db
+			.delete(introduction)
+			.where(eq(introduction.memberId, ctx.member.id));
+		return { ok: true as const };
+	}),
 });

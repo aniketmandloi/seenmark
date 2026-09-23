@@ -1,16 +1,20 @@
+import { SegmentedControl } from "@expo/ui/community/segmented-control";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
-import * as Linking from "expo-linking";
+import * as ExpoLinking from "expo-linking";
 import { useState } from "react";
 import {
 	ActivityIndicator,
+	Alert,
 	Image,
+	Linking,
 	StyleSheet,
 	Text,
 	TouchableOpacity,
 	View,
 } from "react-native";
 
+import { NativeButton } from "@/components/native-button";
 import { NAV_THEME } from "@/lib/constants";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { queryClient, trpc } from "@/utils/trpc";
@@ -23,6 +27,16 @@ const BANDS: { value: Band; label: string }[] = [
 	{ value: "late", label: "Late" },
 ];
 
+function formatDate(value: string) {
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) return value;
+	return new Intl.DateTimeFormat("en-US", {
+		month: "long",
+		day: "numeric",
+		year: "numeric",
+	}).format(date);
+}
+
 function CheckIns() {
 	const { colorScheme } = useColorScheme();
 	const theme = colorScheme === "dark" ? NAV_THEME.dark : NAV_THEME.light;
@@ -30,6 +44,7 @@ function CheckIns() {
 	const [cameraDenied, setCameraDenied] = useState(false);
 	const [openedId, setOpenedId] = useState<string | null>(null);
 	const [readingMenu, setReadingMenu] = useState(false);
+	const [optimisticBand, setOptimisticBand] = useState<Band | null>(null);
 
 	const checkIns = useQuery(trpc.checkIn.list.queryOptions());
 	const score = useQuery(trpc.score.current.queryOptions());
@@ -51,15 +66,11 @@ function CheckIns() {
 
 	async function invalidateMemberLoop() {
 		await Promise.all([
-			queryClient.invalidateQueries({
-				queryKey: trpc.checkIn.list.queryKey(),
-			}),
+			queryClient.invalidateQueries({ queryKey: trpc.checkIn.list.queryKey() }),
 			queryClient.invalidateQueries({
 				queryKey: trpc.score.current.queryKey(),
 			}),
-			queryClient.invalidateQueries({
-				queryKey: trpc.menu.current.queryKey(),
-			}),
+			queryClient.invalidateQueries({ queryKey: trpc.menu.current.queryKey() }),
 			queryClient.invalidateQueries({
 				queryKey: trpc.checkIn.reminder.queryKey(),
 			}),
@@ -76,7 +87,9 @@ function CheckIns() {
 			await invalidateMemberLoop();
 		} catch (cause) {
 			setError(
-				cause instanceof Error ? cause.message : "Failed to file an introduction",
+				cause instanceof Error
+					? cause.message
+					: "Failed to file an introduction",
 			);
 		}
 	}
@@ -98,30 +111,26 @@ function CheckIns() {
 	async function takeCheckIn() {
 		setError(null);
 		setCameraDenied(false);
-
-		const permission = await ImagePicker.requestCameraPermissionsAsync();
-		if (!permission.granted) {
-			setCameraDenied(true);
-			return;
-		}
-
-		const result = await ImagePicker.launchCameraAsync({
-			mediaTypes: ["images"],
-			allowsEditing: false,
-			base64: true,
-		});
-
-		if (result.canceled) {
-			return;
-		}
-
-		const asset = result.assets[0];
-		if (!asset?.base64) {
-			setError("Camera did not return a photo");
-			return;
-		}
-
 		try {
+			const permission = await ImagePicker.requestCameraPermissionsAsync();
+			if (!permission.granted) {
+				setCameraDenied(true);
+				return;
+			}
+
+			const result = await ImagePicker.launchCameraAsync({
+				mediaTypes: ["images"],
+				allowsEditing: false,
+				base64: true,
+			});
+			if (result.canceled) return;
+
+			const asset = result.assets[0];
+			if (!asset?.base64) {
+				setError("The camera did not return a photo. Please try again.");
+				return;
+			}
+
 			await record.mutateAsync({
 				imageBase64: asset.base64,
 				mediaType: asset.mimeType ?? "image/jpeg",
@@ -140,9 +149,7 @@ function CheckIns() {
 		setError(null);
 		try {
 			await remove.mutateAsync({ id });
-			if (openedId === id) {
-				setOpenedId(null);
-			}
+			if (openedId === id) setOpenedId(null);
 			await invalidateMemberLoop();
 		} catch (cause) {
 			setError(
@@ -151,14 +158,32 @@ function CheckIns() {
 		}
 	}
 
+	function confirmDeleteCheckIn(id: string) {
+		Alert.alert(
+			"Delete this photo?",
+			"This check-in will be removed from your record.",
+			[
+				{ text: "Keep photo", style: "cancel" },
+				{
+					text: "Delete photo",
+					style: "destructive",
+					onPress: () => void deleteCheckIn(id),
+				},
+			],
+		);
+	}
+
 	async function chooseBand(band: Band) {
 		setError(null);
+		setOptimisticBand(band);
 		try {
 			await choose.mutateAsync(band);
 			await invalidateMemberLoop();
+			setOptimisticBand(null);
 		} catch (cause) {
+			setOptimisticBand(null);
 			setError(
-				cause instanceof Error ? cause.message : "Failed to choose a score",
+				cause instanceof Error ? cause.message : "Failed to save your band",
 			);
 		}
 	}
@@ -172,9 +197,13 @@ function CheckIns() {
 		fileIntroduction.isPending ||
 		deleteIntroduction.isPending;
 	const currentBand = score.data ?? null;
+	const displayedBand = optimisticBand ?? currentBand;
 	const currentMenu = currentBand ? (menu.data?.menu ?? null) : null;
 	const paidLink =
 		currentMenu && "paidLink" in currentMenu ? currentMenu.paidLink : undefined;
+	const opened = openedId
+		? (items.find((item) => item.id === openedId) ?? null)
+		: null;
 
 	if (readingMenu && currentMenu) {
 		return (
@@ -184,80 +213,67 @@ function CheckIns() {
 					{ backgroundColor: theme.card, borderColor: theme.border },
 				]}
 			>
-				<TouchableOpacity onPress={() => setReadingMenu(false)}>
-					<Text style={[styles.sectionLabel, { color: theme.text }]}>
-						Back to check-ins
-					</Text>
-				</TouchableOpacity>
-				<Text style={[styles.sectionLabel, { color: theme.text }]}>
-					Next steps
-				</Text>
-				{currentMenu.steps.map((step) => (
-					<Text key={step} style={[styles.menuStep, { color: theme.text }]}>
-						{step}
-					</Text>
-				))}
+				<NativeButton
+					label="Back to check-ins"
+					variant="text"
+					onPress={() => setReadingMenu(false)}
+					style={styles.menuBack}
+				/>
+				<Text style={[styles.title, { color: theme.text }]}>Next steps</Text>
+				<View style={[styles.menuSteps, { borderColor: theme.border }]}>
+					{currentMenu.steps.map((step, index) => (
+						<View key={step} style={styles.menuStepRow}>
+							<Text style={[styles.stepNumber, { color: theme.primary }]}>
+								{String(index + 1).padStart(2, "0")}
+							</Text>
+							<Text style={[styles.menuStep, { color: theme.text }]}>
+								{step}
+							</Text>
+						</View>
+					))}
+				</View>
 				{currentMenu.band === "late" ? (
 					<View style={styles.introduction}>
-						{introduction.data ? (
-							<>
-								<Text style={[styles.menuStep, { color: theme.text }]}>
-									Recorded, not sent.
-								</Text>
-								<TouchableOpacity
-									onPress={takeBackIntroduction}
-									disabled={isBusy}
-									style={[
-										styles.deleteButton,
-										{ borderColor: theme.border, opacity: isBusy ? 0.5 : 1 },
-									]}
-								>
-									<Text
-										style={[styles.deleteButtonText, { color: theme.text }]}
-									>
-										Delete introduction
-									</Text>
-								</TouchableOpacity>
-							</>
-						) : (
-							<TouchableOpacity
-								onPress={fileAnIntroduction}
-								disabled={isBusy}
-								style={[
-									styles.button,
-									{
-										backgroundColor: theme.primary,
-										opacity: isBusy ? 0.5 : 1,
-									},
-								]}
-							>
-								<Text style={styles.buttonText}>File an introduction</Text>
-							</TouchableOpacity>
-						)}
+						<Text style={[styles.supportingCopy, { color: theme.muted }]}>
+							{introduction.data
+								? "Your request is saved here. Nothing has been sent."
+								: "If you want, you can request an introduction. It will not book anything or send until you choose to continue."}
+						</Text>
+						<NativeButton
+							label={
+								introduction.data ? "Delete request" : "File an introduction"
+							}
+							variant={introduction.data ? "outlined" : "filled"}
+							onPress={() =>
+								void (introduction.data
+									? takeBackIntroduction()
+									: fileAnIntroduction())
+							}
+							disabled={isBusy}
+							style={styles.actionButton}
+						/>
 					</View>
 				) : null}
 				{paidLink ? (
-					<View style={styles.paidLinkRow}>
-						<Text style={[styles.paidLinkLabel, { color: theme.text }]}>
-							{paidLink.label}
-						</Text>
-						<TouchableOpacity
-							onPress={() => Linking.openURL(paidLink.destination)}
-						>
-							<Text
-								style={[styles.paidLinkDestination, { color: theme.primary }]}
-							>
-								{paidLink.destination}
+					<View style={[styles.paidLinkRow, { borderColor: theme.border }]}>
+						<View style={styles.paidLinkCopy}>
+							<Text style={[styles.paidLinkLabel, { color: theme.text }]}>
+								{paidLink.label}
 							</Text>
-						</TouchableOpacity>
+							<Text style={[styles.supportingCopy, { color: theme.muted }]}>
+								Opens an external link.
+							</Text>
+						</View>
+						<NativeButton
+							label="Open link"
+							variant="outlined"
+							onPress={() => void ExpoLinking.openURL(paidLink.destination)}
+						/>
 					</View>
 				) : null}
 			</View>
 		);
 	}
-	const opened = openedId
-		? (items.find((item) => item.id === openedId) ?? null)
-		: null;
 
 	return (
 		<View
@@ -266,20 +282,36 @@ function CheckIns() {
 				{ backgroundColor: theme.card, borderColor: theme.border },
 			]}
 		>
-			<Text style={[styles.title, { color: theme.text }]}>Check-ins</Text>
+			<View style={styles.sectionHeading}>
+				<Text style={[styles.eyebrow, { color: theme.primary }]}>
+					YOUR PHOTO RECORD
+				</Text>
+				<Text style={[styles.title, { color: theme.text }]}>
+					Check in at your pace.
+				</Text>
+			</View>
 
 			{reminder.data?.due ? (
-				<Text style={[styles.invitation, { color: theme.text }]}>
-					{reminder.data.invitation}
-				</Text>
+				<View style={[styles.reminder, { backgroundColor: theme.background }]}>
+					<Text style={[styles.invitation, { color: theme.text }]}>
+						{reminder.data.invitation}
+					</Text>
+				</View>
 			) : null}
 
 			{cameraDenied ? (
-				<Text style={[styles.cameraDeniedText, { color: theme.notification }]}>
-					Camera access is required to take a check-in. Enable the camera in
-					Settings to continue. A check-in cannot be imported from the photo
-					library.
-				</Text>
+				<View style={[styles.message, { backgroundColor: theme.background }]}>
+					<Text style={[styles.cameraDeniedText, { color: theme.text }]}>
+						Camera access is needed for a check-in. Photos cannot be imported
+						from your library.
+					</Text>
+					<NativeButton
+						label="Open device settings"
+						variant="outlined"
+						onPress={() => void Linking.openSettings()}
+						style={styles.settingsButton}
+					/>
+				</View>
 			) : null}
 
 			{error ? (
@@ -289,39 +321,43 @@ function CheckIns() {
 			) : null}
 
 			{checkIns.isLoading ? (
-				<ActivityIndicator size="small" color={theme.text} />
+				<View style={styles.loading}>
+					<ActivityIndicator size="small" color={theme.primary} />
+					<Text style={[styles.supportingCopy, { color: theme.muted }]}>
+						Loading your photos…
+					</Text>
+				</View>
 			) : null}
 
 			{isEmpty && !cameraDenied ? (
-				<Text style={[styles.prompt, { color: theme.text }]}>
-					Take your first check-in photo with the camera.
-				</Text>
+				<View style={[styles.emptyState, { borderColor: theme.border }]}>
+					<Text style={[styles.emptyTitle, { color: theme.text }]}>
+						A first photo sets the baseline.
+					</Text>
+					<Text style={[styles.supportingCopy, { color: theme.muted }]}>
+						Use the camera when you’re ready. The photo stays visible only to
+						you.
+					</Text>
+				</View>
 			) : null}
 
 			{!cameraDenied ? (
-				<TouchableOpacity
-					onPress={takeCheckIn}
+				<NativeButton
+					label={
+						record.isPending
+							? "Saving check-in…"
+							: isEmpty
+								? "Take first check-in"
+								: "Take check-in"
+					}
+					onPress={() => void takeCheckIn()}
 					disabled={isBusy}
-					style={[
-						styles.button,
-						{
-							backgroundColor: theme.primary,
-							opacity: isBusy ? 0.5 : 1,
-						},
-					]}
-				>
-					{record.isPending ? (
-						<ActivityIndicator size="small" color="#ffffff" />
-					) : (
-						<Text style={styles.buttonText}>
-							{isEmpty ? "Take first check-in" : "Take check-in"}
-						</Text>
-					)}
-				</TouchableOpacity>
+					style={styles.primaryAction}
+				/>
 			) : null}
 
 			{items.length === 1 && items[0] ? (
-				<View style={[styles.item, { borderColor: theme.border }]}>
+				<View style={[styles.photoPanel, { borderColor: theme.border }]}>
 					<Image
 						source={{
 							uri: `data:${items[0].mediaType};base64,${items[0].imageBase64}`,
@@ -329,84 +365,61 @@ function CheckIns() {
 						style={styles.photo}
 						accessibilityLabel="Check-in photo"
 					/>
-					<Text style={[styles.takenAt, { color: theme.text }]}>
-						{items[0].takenAt}
+					<Text style={[styles.takenAt, { color: theme.muted }]}>
+						{formatDate(items[0].takenAt)}
 					</Text>
-					<TouchableOpacity
-						onPress={() => deleteCheckIn(items[0].id)}
+					<NativeButton
+						label="Delete check-in"
+						variant="text"
+						onPress={() => confirmDeleteCheckIn(items[0].id)}
 						disabled={isBusy}
-						style={[
-							styles.deleteButton,
-							{ borderColor: theme.border, opacity: isBusy ? 0.5 : 1 },
-						]}
-					>
-						<Text style={[styles.deleteButtonText, { color: theme.text }]}>
-							Delete check-in
-						</Text>
-					</TouchableOpacity>
+						style={styles.deleteAction}
+					/>
 				</View>
 			) : null}
 
 			{items.length >= 2 && items[0] && items[1] && !opened ? (
 				<View style={[styles.comparison, { borderColor: theme.border }]}>
-					<Text style={[styles.sectionLabel, { color: theme.text }]}>
-						Compare
-					</Text>
+					<View style={styles.comparisonHeading}>
+						<Text style={[styles.sectionLabel, { color: theme.text }]}>
+							Side by side
+						</Text>
+						<Text style={[styles.supportingCopy, { color: theme.muted }]}>
+							Your two most recent photos
+						</Text>
+					</View>
 					<View style={styles.sideBySide}>
-						<View style={styles.half}>
-							<Image
-								source={{
-									uri: `data:${items[0].mediaType};base64,${items[0].imageBase64}`,
-								}}
-								style={styles.halfPhoto}
-								accessibilityLabel="Newest check-in photo"
-							/>
-							<Text style={[styles.takenAt, { color: theme.text }]}>
-								{items[0].takenAt}
-							</Text>
-							<TouchableOpacity
-								onPress={() => deleteCheckIn(items[0].id)}
-								disabled={isBusy}
-								style={[
-									styles.deleteButton,
-									{ borderColor: theme.border, opacity: isBusy ? 0.5 : 1 },
-								]}
-							>
-								<Text style={[styles.deleteButtonText, { color: theme.text }]}>
-									Delete
+						{[items[0], items[1]].map((item, index) => (
+							<View key={item.id} style={styles.half}>
+								<Image
+									source={{
+										uri: `data:${item.mediaType};base64,${item.imageBase64}`,
+									}}
+									style={styles.halfPhoto}
+									accessibilityLabel={
+										index === 0
+											? "Newest check-in photo"
+											: "Previous check-in photo"
+									}
+								/>
+								<Text style={[styles.takenAt, { color: theme.muted }]}>
+									{formatDate(item.takenAt)}
 								</Text>
-							</TouchableOpacity>
-						</View>
-						<View style={styles.half}>
-							<Image
-								source={{
-									uri: `data:${items[1].mediaType};base64,${items[1].imageBase64}`,
-								}}
-								style={styles.halfPhoto}
-								accessibilityLabel="Previous check-in photo"
-							/>
-							<Text style={[styles.takenAt, { color: theme.text }]}>
-								{items[1].takenAt}
-							</Text>
-							<TouchableOpacity
-								onPress={() => deleteCheckIn(items[1].id)}
-								disabled={isBusy}
-								style={[
-									styles.deleteButton,
-									{ borderColor: theme.border, opacity: isBusy ? 0.5 : 1 },
-								]}
-							>
-								<Text style={[styles.deleteButtonText, { color: theme.text }]}>
-									Delete
-								</Text>
-							</TouchableOpacity>
-						</View>
+								<NativeButton
+									label="Delete photo"
+									variant="text"
+									onPress={() => confirmDeleteCheckIn(item.id)}
+									disabled={isBusy}
+									style={styles.deleteAction}
+								/>
+							</View>
+						))}
 					</View>
 				</View>
 			) : null}
 
 			{opened ? (
-				<View style={[styles.item, { borderColor: theme.border }]}>
+				<View style={[styles.photoPanel, { borderColor: theme.border }]}>
 					<Text style={[styles.sectionLabel, { color: theme.text }]}>
 						Earlier check-in
 					</Text>
@@ -417,40 +430,35 @@ function CheckIns() {
 						style={styles.photo}
 						accessibilityLabel="Opened check-in photo"
 					/>
-					<Text style={[styles.takenAt, { color: theme.text }]}>
-						{opened.takenAt}
+					<Text style={[styles.takenAt, { color: theme.muted }]}>
+						{formatDate(opened.takenAt)}
 					</Text>
-					<TouchableOpacity
+					<NativeButton
+						label="Back to comparison"
+						variant="outlined"
 						onPress={() => setOpenedId(null)}
-						style={[styles.deleteButton, { borderColor: theme.border }]}
-					>
-						<Text style={[styles.deleteButtonText, { color: theme.text }]}>
-							Back to comparison
-						</Text>
-					</TouchableOpacity>
-					<TouchableOpacity
-						onPress={() => deleteCheckIn(opened.id)}
+						style={styles.actionButton}
+					/>
+					<NativeButton
+						label="Delete check-in"
+						variant="text"
+						onPress={() => confirmDeleteCheckIn(opened.id)}
 						disabled={isBusy}
-						style={[
-							styles.deleteButton,
-							{ borderColor: theme.border, opacity: isBusy ? 0.5 : 1 },
-						]}
-					>
-						<Text style={[styles.deleteButtonText, { color: theme.text }]}>
-							Delete check-in
-						</Text>
-					</TouchableOpacity>
+						style={styles.deleteAction}
+					/>
 				</View>
 			) : null}
 
 			{items.length > 2 && !opened ? (
-				<View style={styles.history}>
+				<View style={[styles.history, { borderColor: theme.border }]}>
 					<Text style={[styles.sectionLabel, { color: theme.text }]}>
-						History
+						Earlier photos
 					</Text>
 					{items.slice(2).map((item) => (
 						<TouchableOpacity
 							key={item.id}
+							accessibilityRole="button"
+							accessibilityLabel={`View check-in from ${formatDate(item.takenAt)}`}
 							onPress={() => setOpenedId(item.id)}
 							style={[styles.historyItem, { borderColor: theme.border }]}
 						>
@@ -461,9 +469,14 @@ function CheckIns() {
 								style={styles.historyThumb}
 								accessibilityLabel="Earlier check-in photo"
 							/>
-							<Text style={[styles.takenAt, { color: theme.text }]}>
-								{item.takenAt}
-							</Text>
+							<View style={styles.historyCopy}>
+								<Text style={[styles.historyDate, { color: theme.text }]}>
+									{formatDate(item.takenAt)}
+								</Text>
+								<Text style={[styles.historyHint, { color: theme.muted }]}>
+									View photo
+								</Text>
+							</View>
 						</TouchableOpacity>
 					))}
 				</View>
@@ -472,47 +485,36 @@ function CheckIns() {
 			{items.length > 0 ? (
 				<View style={[styles.bands, { borderColor: theme.border }]}>
 					<Text style={[styles.sectionLabel, { color: theme.text }]}>
-						Choose a score
+						Choose the band that feels right
 					</Text>
-					<View style={styles.bandRow}>
-						{BANDS.map((band) => {
-							const selected = currentBand === band.value;
-							return (
-								<TouchableOpacity
-									key={band.value}
-									onPress={() => chooseBand(band.value)}
-									disabled={isBusy}
-									style={[
-										styles.bandButton,
-										{
-											borderColor: theme.border,
-											backgroundColor: selected ? theme.primary : "transparent",
-											opacity: isBusy ? 0.5 : 1,
-										},
-									]}
-								>
-									<Text
-										style={[
-											styles.bandButtonText,
-											{ color: selected ? "#ffffff" : theme.text },
-										]}
-									>
-										{band.label}
-									</Text>
-								</TouchableOpacity>
-							);
-						})}
-					</View>
+					<Text style={[styles.supportingCopy, { color: theme.muted }]}>
+						This is your description. It is not generated from the photo.
+					</Text>
+					<SegmentedControl
+						values={BANDS.map((band) => band.label)}
+						selectedIndex={
+							displayedBand
+								? BANDS.findIndex((band) => band.value === displayedBand)
+								: undefined
+						}
+						enabled={!isBusy}
+						tintColor={theme.primary}
+						appearance={colorScheme}
+						style={styles.segmentedControl}
+						onValueChange={(label) => {
+							const band = BANDS.find((item) => item.label === label);
+							if (band) void chooseBand(band.value);
+						}}
+					/>
 				</View>
 			) : null}
 
 			{currentMenu ? (
-				<TouchableOpacity
+				<NativeButton
+					label="Read your next-step menu"
 					onPress={() => setReadingMenu(true)}
-					style={[styles.button, { backgroundColor: theme.primary }]}
-				>
-					<Text style={styles.buttonText}>Read the menu</Text>
-				</TouchableOpacity>
+					style={styles.menuAction}
+				/>
 			) : null}
 		</View>
 	);
@@ -521,151 +523,212 @@ function CheckIns() {
 const styles = StyleSheet.create({
 	card: {
 		marginBottom: 16,
-		padding: 16,
+		padding: 20,
 		borderWidth: 1,
-		borderRadius: 16,
+		borderRadius: 24,
+	},
+	sectionHeading: {
+		marginBottom: 16,
+	},
+	eyebrow: {
+		fontSize: 11,
+		letterSpacing: 1.1,
+		fontWeight: "700",
+		marginBottom: 8,
 	},
 	title: {
-		fontSize: 16,
-		fontWeight: "bold",
-		marginBottom: 12,
+		fontSize: 22,
+		lineHeight: 28,
+		fontWeight: "600",
 	},
-	prompt: {
-		fontSize: 14,
-		marginBottom: 12,
+	reminder: {
+		padding: 14,
+		borderRadius: 15,
+		marginBottom: 14,
 	},
 	invitation: {
 		fontSize: 14,
-		marginBottom: 12,
+		lineHeight: 21,
+	},
+	message: {
+		padding: 14,
+		borderRadius: 15,
+		marginBottom: 14,
 	},
 	cameraDeniedText: {
 		fontSize: 14,
-		marginBottom: 12,
+		lineHeight: 21,
+	},
+	settingsButton: {
+		alignSelf: "flex-start",
+		marginTop: 10,
 	},
 	errorText: {
 		fontSize: 14,
-		marginBottom: 12,
+		lineHeight: 20,
+		marginBottom: 14,
 	},
-	button: {
-		padding: 12,
+	loading: {
+		flexDirection: "row",
 		alignItems: "center",
-		justifyContent: "center",
-		marginBottom: 12,
+		gap: 10,
+		paddingVertical: 12,
 	},
-	buttonText: {
-		color: "#ffffff",
-		fontSize: 16,
+	emptyState: {
+		paddingVertical: 16,
+		marginBottom: 14,
+		borderTopWidth: StyleSheet.hairlineWidth,
+		borderBottomWidth: StyleSheet.hairlineWidth,
 	},
-	item: {
-		borderTopWidth: 1,
-		paddingTop: 12,
-		marginTop: 12,
+	emptyTitle: {
+		fontSize: 17,
+		fontWeight: "600",
+		marginBottom: 5,
+	},
+	supportingCopy: {
+		fontSize: 14,
+		lineHeight: 21,
+	},
+	primaryAction: {
+		alignSelf: "stretch",
+		marginBottom: 8,
+	},
+	photoPanel: {
+		borderTopWidth: StyleSheet.hairlineWidth,
+		paddingTop: 18,
+		marginTop: 10,
 	},
 	photo: {
 		width: "100%",
-		aspectRatio: 3 / 4,
-		borderRadius: 8,
-		backgroundColor: "#111111",
+		aspectRatio: 4 / 5,
+		borderRadius: 18,
+		backgroundColor: "#D8D8D0",
 	},
 	takenAt: {
-		fontSize: 12,
-		marginTop: 8,
-		opacity: 0.7,
+		fontSize: 13,
+		fontWeight: "500",
+		marginTop: 10,
 	},
-	deleteButton: {
-		marginTop: 8,
-		padding: 10,
-		alignItems: "center",
-		borderWidth: 1,
-	},
-	deleteButtonText: {
-		fontSize: 14,
+	deleteAction: {
+		alignSelf: "flex-start",
+		marginTop: 2,
 	},
 	comparison: {
-		borderTopWidth: 1,
-		paddingTop: 12,
-		marginTop: 12,
+		borderTopWidth: StyleSheet.hairlineWidth,
+		paddingTop: 18,
+		marginTop: 10,
+	},
+	comparisonHeading: {
+		marginBottom: 14,
 	},
 	sectionLabel: {
-		fontSize: 14,
-		fontWeight: "bold",
-		marginBottom: 8,
+		fontSize: 16,
+		fontWeight: "600",
+		marginBottom: 5,
 	},
 	sideBySide: {
 		flexDirection: "row",
-		gap: 8,
+		gap: 10,
 	},
 	half: {
 		flex: 1,
 	},
 	halfPhoto: {
 		width: "100%",
-		aspectRatio: 3 / 4,
-		borderRadius: 8,
-		backgroundColor: "#111111",
+		aspectRatio: 4 / 5,
+		borderRadius: 14,
+		backgroundColor: "#D8D8D0",
 	},
 	history: {
+		borderTopWidth: StyleSheet.hairlineWidth,
+		paddingTop: 18,
 		marginTop: 12,
 	},
 	historyItem: {
-		borderTopWidth: 1,
-		paddingTop: 12,
-		marginTop: 8,
+		borderTopWidth: StyleSheet.hairlineWidth,
+		paddingVertical: 12,
 		flexDirection: "row",
 		alignItems: "center",
-		gap: 12,
+		gap: 14,
 	},
 	historyThumb: {
-		width: 64,
-		height: 80,
-		borderRadius: 4,
-		backgroundColor: "#111111",
+		width: 62,
+		height: 76,
+		borderRadius: 10,
+		backgroundColor: "#D8D8D0",
+	},
+	historyCopy: {
+		gap: 4,
+	},
+	historyDate: {
+		fontSize: 14,
+		fontWeight: "600",
+	},
+	historyHint: {
+		fontSize: 13,
 	},
 	bands: {
-		borderTopWidth: 1,
-		paddingTop: 12,
+		borderTopWidth: StyleSheet.hairlineWidth,
+		paddingTop: 18,
 		marginTop: 12,
 	},
-	bandRow: {
+	segmentedControl: {
+		width: "100%",
+		marginTop: 12,
+	},
+	menuAction: {
+		alignSelf: "stretch",
+		marginTop: 18,
+	},
+	menuBack: {
+		alignSelf: "flex-start",
+		marginBottom: 12,
+	},
+	menuSteps: {
+		borderTopWidth: StyleSheet.hairlineWidth,
+		borderBottomWidth: StyleSheet.hairlineWidth,
+		paddingVertical: 6,
+		marginTop: 12,
+	},
+	menuStepRow: {
 		flexDirection: "row",
-		gap: 8,
+		alignItems: "flex-start",
+		gap: 12,
+		paddingVertical: 11,
 	},
-	bandButton: {
-		flex: 1,
-		paddingVertical: 12,
-		alignItems: "center",
-		borderWidth: 1,
-	},
-	bandButtonText: {
-		fontSize: 14,
-		fontWeight: "600",
-	},
-	menu: {
-		borderTopWidth: 1,
-		paddingTop: 12,
-		marginTop: 12,
-		gap: 8,
+	stepNumber: {
+		fontSize: 12,
+		fontWeight: "700",
+		marginTop: 3,
 	},
 	menuStep: {
-		fontSize: 14,
-		lineHeight: 20,
+		flex: 1,
+		fontSize: 15,
+		lineHeight: 22,
 	},
 	introduction: {
-		marginTop: 16,
+		marginTop: 18,
+	},
+	actionButton: {
+		alignSelf: "flex-start",
+		marginTop: 12,
 	},
 	paidLinkRow: {
-		marginTop: 4,
 		flexDirection: "row",
-		flexWrap: "wrap",
 		alignItems: "center",
-		gap: 8,
+		justifyContent: "space-between",
+		gap: 12,
+		borderTopWidth: StyleSheet.hairlineWidth,
+		paddingTop: 16,
+		marginTop: 18,
+	},
+	paidLinkCopy: {
+		flex: 1,
+		gap: 4,
 	},
 	paidLinkLabel: {
-		fontSize: 14,
+		fontSize: 15,
 		fontWeight: "600",
-	},
-	paidLinkDestination: {
-		fontSize: 14,
 	},
 });
 

@@ -10,6 +10,7 @@ import {
 	Icon,
 	ListItem,
 	OutlinedTextField,
+	PullToRefreshBox,
 	RNHostView,
 	Row,
 	SegmentedButton,
@@ -101,7 +102,11 @@ function rowShape(index: number, count: number) {
 	});
 }
 
-export function FormScreen({ children, primaryAction }: FormScreenProps) {
+export function FormScreen({
+	children,
+	primaryAction,
+	onRefresh,
+}: FormScreenProps) {
 	const { colorScheme, theme } = useColorScheme();
 
 	return (
@@ -110,16 +115,20 @@ export function FormScreen({ children, primaryAction }: FormScreenProps) {
 			colorScheme={colorScheme}
 			seedColor={theme.primary}
 		>
-			<ScreenBody primaryAction={primaryAction}>{children}</ScreenBody>
+			<ScreenBody primaryAction={primaryAction} onRefresh={onRefresh}>
+				{children}
+			</ScreenBody>
 		</Host>
 	);
 }
 
-function ScreenBody({ children, primaryAction }: FormScreenProps) {
+function ScreenBody({ children, primaryAction, onRefresh }: FormScreenProps) {
 	const colors = useMaterialColors();
+	const [isRefreshing, setIsRefreshing] = useState(false);
+	const modifiers = [fillMaxSize(), background(colors.surface)];
 
-	return (
-		<Box modifiers={[fillMaxSize(), background(colors.surface)]}>
+	const content = (
+		<>
 			<Column
 				verticalArrangement={{ spacedBy: 24 }}
 				modifiers={[
@@ -147,7 +156,22 @@ function ScreenBody({ children, primaryAction }: FormScreenProps) {
 					</ExtendedFloatingActionButton.Text>
 				</ExtendedFloatingActionButton>
 			) : null}
-		</Box>
+		</>
+	);
+
+	if (!onRefresh) return <Box modifiers={modifiers}>{content}</Box>;
+
+	return (
+		<PullToRefreshBox
+			isRefreshing={isRefreshing}
+			onRefresh={() => {
+				setIsRefreshing(true);
+				void onRefresh().finally(() => setIsRefreshing(false));
+			}}
+			modifiers={modifiers}
+		>
+			{content}
+		</PullToRefreshBox>
 	);
 }
 

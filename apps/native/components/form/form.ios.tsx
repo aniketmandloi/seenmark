@@ -36,6 +36,7 @@ import {
 	type ModifierConfig,
 	onSubmit,
 	pickerStyle,
+	refreshable,
 	submitLabel,
 	tag,
 	textContentType,
@@ -74,7 +75,11 @@ function useToneStyle(tone: Tone): ModifierConfig[] {
 	return [];
 }
 
-export function FormScreen({ children, primaryAction }: FormScreenProps) {
+export function FormScreen({
+	children,
+	primaryAction,
+	onRefresh,
+}: FormScreenProps) {
 	const { colorScheme, theme } = useColorScheme();
 
 	return (
@@ -95,7 +100,9 @@ export function FormScreen({ children, primaryAction }: FormScreenProps) {
 				colorScheme={colorScheme}
 				seedColor={theme.primary}
 			>
-				<Form>{children}</Form>
+				<Form modifiers={onRefresh ? [refreshable(onRefresh)] : undefined}>
+					{children}
+				</Form>
 			</Host>
 		</>
 	);

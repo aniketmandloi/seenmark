@@ -7,6 +7,7 @@ export type Tone = "default" | "accent" | "destructive";
 
 export type FormScreenProps = {
 	children: ReactNode;
+	onRefresh?: () => Promise<void>;
 	/** iOS: a navigation bar button. Android: an extended floating action button. */
 	primaryAction?: {
 		label: string;

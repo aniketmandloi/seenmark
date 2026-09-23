@@ -1,9 +1,11 @@
 import * as ExpoLinking from "expo-linking";
+import { useState } from "react";
 import {
 	ActivityIndicator,
 	Alert,
 	Image,
 	Pressable,
+	RefreshControl,
 	ScrollView,
 	StyleSheet,
 	Switch,
@@ -30,14 +32,30 @@ import type {
 } from "@/components/form/types";
 import { useColorScheme } from "@/lib/use-color-scheme";
 
-export function FormScreen({ children, primaryAction }: FormScreenProps) {
+export function FormScreen({
+	children,
+	primaryAction,
+	onRefresh,
+}: FormScreenProps) {
 	const { theme } = useColorScheme();
+	const [isRefreshing, setIsRefreshing] = useState(false);
 
 	return (
 		<ScrollView
 			style={{ backgroundColor: theme.background }}
 			contentContainerStyle={styles.screen}
 			keyboardShouldPersistTaps="handled"
+			refreshControl={
+				onRefresh ? (
+					<RefreshControl
+						refreshing={isRefreshing}
+						onRefresh={() => {
+							setIsRefreshing(true);
+							void onRefresh().finally(() => setIsRefreshing(false));
+						}}
+					/>
+				) : undefined
+			}
 		>
 			{primaryAction ? (
 				<FormButton

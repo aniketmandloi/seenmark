@@ -54,13 +54,14 @@ test("a member can record a check-in and read back that photo and time", async (
 
 	const listed = await memberCaller.checkIn.list();
 	expect(listed).toEqual([
-		{
-			id: recorded.id,
-			takenAt: "2024-03-15T10:00:00.000Z",
-			imageBase64: "aGFpcmxpbmU=",
-			mediaType: "image/png",
-		},
+		{ id: recorded.id, takenAt: "2024-03-15T10:00:00.000Z" },
 	]);
+	expect(await memberCaller.checkIn.photo({ id: recorded.id })).toEqual({
+		id: recorded.id,
+		takenAt: "2024-03-15T10:00:00.000Z",
+		imageBase64: "aGFpcmxpbmU=",
+		mediaType: "image/png",
+	});
 });
 
 test("two check-ins in the same month come back newest first", async () => {
@@ -92,22 +93,12 @@ test("two check-ins in the same month come back newest first", async () => {
 
 	const listed = await memberCaller.checkIn.list();
 	expect(listed).toEqual([
-		{
-			id: later.id,
-			takenAt: "2024-03-25T18:30:00.000Z",
-			imageBase64: "bGF0ZXI=",
-			mediaType: "image/png",
-		},
-		{
-			id: earlier.id,
-			takenAt: "2024-03-10T08:00:00.000Z",
-			imageBase64: "ZWFybGllcg==",
-			mediaType: "image/png",
-		},
+		{ id: later.id, takenAt: "2024-03-25T18:30:00.000Z" },
+		{ id: earlier.id, takenAt: "2024-03-10T08:00:00.000Z" },
 	]);
 });
 
-test("deleting a check-in removes its photo from the next list", async () => {
+test("deleting a check-in removes it from the next list", async () => {
 	const publicCaller = createPublicCaller(db, auth);
 	const opened = await publicCaller.member.openAccount({
 		name: "Casey Member",
@@ -138,12 +129,7 @@ test("deleting a check-in removes its photo from the next list", async () => {
 
 	const listed = await memberCaller.checkIn.list();
 	expect(listed).toEqual([
-		{
-			id: keep.id,
-			takenAt: "2024-04-01T09:00:00.000Z",
-			imageBase64: "a2VlcA==",
-			mediaType: "image/png",
-		},
+		{ id: keep.id, takenAt: "2024-04-01T09:00:00.000Z" },
 	]);
 });
 
@@ -188,12 +174,7 @@ test("a member cannot read another member's check-in or photo", async () => {
 
 	const firstList = await firstCaller.checkIn.list();
 	expect(firstList).toEqual([
-		{
-			id: firstCheckIn.id,
-			takenAt: "2024-05-01T12:00:00.000Z",
-			imageBase64: "ZHJldw==",
-			mediaType: "image/png",
-		},
+		{ id: firstCheckIn.id, takenAt: "2024-05-01T12:00:00.000Z" },
 	]);
 });
 
@@ -307,4 +288,56 @@ test("deleting the account removes that member's check-ins", async () => {
 		.from(checkIn)
 		.where(eq(checkIn.memberId, opened.id));
 	expect(remaining).toEqual([]);
+});
+
+test("a member reads one photo by id, and only their own photo that remains", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const first = await publicCaller.member.openAccount({
+		name: "Jules Member",
+		email: "jules@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	const second = await publicCaller.member.openAccount({
+		name: "Kai Member",
+		email: "kai@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+
+	const firstCaller = createMemberCaller(db, auth, {
+		userId: first.id,
+		name: "Jules Member",
+		email: "jules@example.com",
+	});
+	const secondCaller = createMemberCaller(db, auth, {
+		userId: second.id,
+		name: "Kai Member",
+		email: "kai@example.com",
+	});
+
+	const recorded = await firstCaller.checkIn.record({
+		imageBase64: "anVsZXM=",
+		mediaType: "image/png",
+		takenAt: "2024-08-01T10:00:00.000Z",
+	});
+
+	expect(await firstCaller.checkIn.photo({ id: recorded.id })).toEqual({
+		id: recorded.id,
+		takenAt: "2024-08-01T10:00:00.000Z",
+		imageBase64: "anVsZXM=",
+		mediaType: "image/png",
+	});
+
+	await expect(
+		secondCaller.checkIn.photo({ id: recorded.id }),
+	).rejects.toMatchObject({ code: "NOT_FOUND" });
+
+	await firstCaller.checkIn.delete({ id: recorded.id });
+
+	await expect(
+		firstCaller.checkIn.photo({ id: recorded.id }),
+	).rejects.toMatchObject({ code: "NOT_FOUND" });
 });

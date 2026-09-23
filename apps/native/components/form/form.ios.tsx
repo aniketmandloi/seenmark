@@ -181,7 +181,6 @@ export function FormRow({
 	subtitle,
 	value,
 	icon,
-	thumbnailUri,
 	tone = "default",
 	onPress,
 	showsChevron = false,
@@ -192,13 +191,7 @@ export function FormRow({
 
 	const content = (
 		<HStack spacing={12}>
-			{thumbnailUri ? (
-				<RNHostView matchContents>
-					<View pointerEvents="none">
-						<RNImage source={{ uri: thumbnailUri }} style={styles.thumbnail} />
-					</View>
-				</RNHostView>
-			) : icon ? (
+			{icon ? (
 				<Image
 					systemName={ICONS[icon].ios}
 					modifiers={[
@@ -525,11 +518,5 @@ const styles = StyleSheet.create({
 		width: 64,
 		height: 64,
 		borderRadius: 15,
-	},
-	thumbnail: {
-		width: 44,
-		height: 55,
-		borderRadius: 8,
-		backgroundColor: "#D8D8D0",
 	},
 });

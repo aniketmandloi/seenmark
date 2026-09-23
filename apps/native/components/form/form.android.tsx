@@ -276,7 +276,6 @@ export function FormRow({
 	subtitle,
 	value,
 	icon,
-	thumbnailUri,
 	tone = "default",
 	onPress,
 	showsChevron = false,
@@ -312,18 +311,7 @@ export function FormRow({
 					<Text color={colors.onSurfaceVariant}>{subtitle}</Text>
 				</ListItem.SupportingContent>
 			) : null}
-			{thumbnailUri ? (
-				<ListItem.LeadingContent>
-					<RNHostView matchContents>
-						<View pointerEvents="none">
-							<RNImage
-								source={{ uri: thumbnailUri }}
-								style={styles.thumbnail}
-							/>
-						</View>
-					</RNHostView>
-				</ListItem.LeadingContent>
-			) : icon ? (
+			{icon ? (
 				<ListItem.LeadingContent>
 					<Icon source={ICONS[icon].android} tint={iconColor} size={24} />
 				</ListItem.LeadingContent>
@@ -663,12 +651,6 @@ const styles = StyleSheet.create({
 		width: 64,
 		height: 64,
 		borderRadius: 16,
-	},
-	thumbnail: {
-		width: 44,
-		height: 55,
-		borderRadius: 8,
-		backgroundColor: "#D8D8D0",
 	},
 	photoRow: {
 		flexDirection: "row",

@@ -1,3 +1,4 @@
+import { useQueries } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { Linking } from "react-native";
 
@@ -14,28 +15,34 @@ import {
 } from "@/components/form/form";
 import {
 	BANDS,
+	checkInPhotoQuery,
 	checkInPhotoUri,
 	formatCheckInDate,
-	useMemberLoop,
+	useCheckIns,
+	useMemberActions,
 } from "@/lib/use-member-loop";
 
 export default function CheckInsScreen() {
-	const loop = useMemberLoop();
-	const latest = loop.items.slice(0, 2);
-	const takeCheckIn = () => void loop.takeCheckIn();
+	const loop = useCheckIns();
+	const actions = useMemberActions();
+	const latest = useQueries({
+		queries: loop.items.slice(0, 2).map((item) => checkInPhotoQuery(item.id)),
+	});
+	const latestPhotos = latest.flatMap(({ data }) => (data ? [data] : []));
+	const takeCheckIn = () => void actions.takeCheckIn();
 	const bandLabel = BANDS.find((band) => band.value === loop.band)?.label;
 
 	return (
 		<FormScreen
 			onRefresh={loop.refresh}
 			primaryAction={
-				loop.isEmpty || loop.cameraDenied
+				loop.isEmpty || actions.cameraDenied
 					? undefined
 					: {
 							label: "Take check-in",
 							icon: "camera",
 							onPress: takeCheckIn,
-							disabled: loop.isBusy,
+							disabled: actions.isBusy,
 						}
 			}
 		>
@@ -46,18 +53,18 @@ export default function CheckInsScreen() {
 						title={loop.reminder}
 						tone="accent"
 						onPress={takeCheckIn}
-						disabled={loop.isBusy}
+						disabled={actions.isBusy}
 					/>
 				</FormSection>
 			) : null}
 
-			{loop.error ? (
+			{actions.error ? (
 				<FormSection>
-					<FormRow icon="error" title={loop.error} tone="destructive" />
+					<FormRow icon="error" title={actions.error} tone="destructive" />
 				</FormSection>
 			) : null}
 
-			{loop.cameraDenied ? (
+			{actions.cameraDenied ? (
 				<FormSection
 					title="Camera access"
 					footer="Photos cannot be imported from your library."
@@ -71,17 +78,17 @@ export default function CheckInsScreen() {
 				</FormSection>
 			) : null}
 
-			{loop.isLoading || loop.isRecording ? (
+			{loop.isLoading || actions.isRecording ? (
 				<FormSection>
 					<FormProgress
 						label={
-							loop.isRecording ? "Saving check-in…" : "Loading your photos…"
+							actions.isRecording ? "Saving check-in…" : "Loading your photos…"
 						}
 					/>
 				</FormSection>
 			) : null}
 
-			{loop.isEmpty && !loop.cameraDenied ? (
+			{loop.isEmpty && !actions.cameraDenied ? (
 				<>
 					<FormEmptyState
 						icon="camera"
@@ -91,7 +98,7 @@ export default function CheckInsScreen() {
 					<FormButton
 						label="Take first check-in"
 						onPress={takeCheckIn}
-						disabled={loop.isBusy}
+						disabled={actions.isBusy}
 						prominent
 					/>
 				</>
@@ -106,17 +113,27 @@ export default function CheckInsScreen() {
 							: "Take another check-in later to compare."
 					}
 				>
-					<FormPhotos
-						photos={latest.map((item, index) => ({
-							id: item.id,
-							uri: checkInPhotoUri(item),
-							accessibilityLabel:
-								index === 0
-									? "Newest check-in photo"
-									: "Previous check-in photo",
-							caption: formatCheckInDate(item.takenAt),
-						}))}
-					/>
+					{latest.some((photo) => photo.isError) ? (
+						<FormRow
+							icon="error"
+							title="Your photos could not load."
+							tone="destructive"
+						/>
+					) : latestPhotos.length === latest.length ? (
+						<FormPhotos
+							photos={latestPhotos.map((photo, index) => ({
+								id: photo.id,
+								uri: checkInPhotoUri(photo),
+								accessibilityLabel:
+									index === 0
+										? "Newest check-in photo"
+										: "Previous check-in photo",
+								caption: formatCheckInDate(photo.takenAt),
+							}))}
+						/>
+					) : (
+						<FormProgress label="Loading your photos…" />
+					)}
 				</FormSection>
 			) : null}
 
@@ -128,13 +145,13 @@ export default function CheckInsScreen() {
 					<FormChoice
 						options={BANDS}
 						selection={loop.band}
-						onSelectionChange={(band) => void loop.chooseBand(band)}
-						disabled={loop.isBusy}
+						onSelectionChange={(band) => void actions.chooseBand(band)}
+						disabled={actions.isBusy}
 					/>
 				</FormSection>
 			) : null}
 
-			{loop.menu ? (
+			{loop.band ? (
 				<FormSection>
 					<FormRow
 						icon="steps"
@@ -156,7 +173,7 @@ export default function CheckInsScreen() {
 					{loop.items.map((item, index) => (
 						<FormRow
 							key={item.id}
-							thumbnailUri={checkInPhotoUri(item)}
+							icon="camera"
 							title={formatCheckInDate(item.takenAt)}
 							subtitle={index === 0 ? "Newest" : undefined}
 							showsChevron

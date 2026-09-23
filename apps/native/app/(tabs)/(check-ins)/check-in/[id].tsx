@@ -1,5 +1,5 @@
+import { useQuery } from "@tanstack/react-query";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
 
 import {
 	FormConfirmButton,
@@ -11,24 +11,23 @@ import {
 	FormSection,
 } from "@/components/form/form";
 import {
+	checkInPhotoQuery,
 	checkInPhotoUri,
 	formatCheckInDate,
-	useMemberLoop,
+	useMemberActions,
 } from "@/lib/use-member-loop";
 
 export default function CheckInScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
-	const loop = useMemberLoop();
-	const found = loop.items.find((item) => item.id === id);
-	// Keep showing the photo while the screen pops after a delete removes it from the list.
-	const [lastSeen, setLastSeen] = useState(found);
-	if (found && found !== lastSeen) setLastSeen(found);
-	const checkIn = found ?? lastSeen;
+	const actions = useMemberActions();
+	// A delete leaves this cached photo in place, so it stays on screen while the screen pops.
+	const photo = useQuery(checkInPhotoQuery(id));
+	const checkIn = photo.data;
 
 	if (!checkIn) {
 		return (
 			<FormScreen>
-				{loop.isLoading ? (
+				{photo.isLoading ? (
 					<FormSection>
 						<FormProgress label="Loading your photo…" />
 					</FormSection>
@@ -49,9 +48,9 @@ export default function CheckInScreen() {
 		<>
 			<Stack.Screen options={{ title: takenOn }} />
 			<FormScreen>
-				{loop.error ? (
+				{actions.error ? (
 					<FormSection>
-						<FormRow icon="error" title={loop.error} tone="destructive" />
+						<FormRow icon="error" title={actions.error} tone="destructive" />
 					</FormSection>
 				) : null}
 				<FormSection footer="Only you can see this photo.">
@@ -75,9 +74,9 @@ export default function CheckInScreen() {
 						confirmLabel="Delete photo"
 						cancelLabel="Keep photo"
 						onConfirm={async () => {
-							if (await loop.deleteCheckIn(checkIn.id)) router.back();
+							if (await actions.deleteCheckIn(checkIn.id)) router.back();
 						}}
-						disabled={loop.isBusy}
+						disabled={actions.isBusy}
 					/>
 				</FormSection>
 			</FormScreen>

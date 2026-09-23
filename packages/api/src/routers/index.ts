@@ -4,7 +4,6 @@ import { introductionRouter } from "./introduction";
 import { memberRouter } from "./member";
 import { menuRouter } from "./menu";
 import { scoreRouter } from "./score";
-import { todoRouter } from "./todo";
 
 export const appRouter = router({
 	healthCheck: publicProcedure.query(() => {
@@ -16,7 +15,6 @@ export const appRouter = router({
 			user: ctx.session.user,
 		};
 	}),
-	todo: todoRouter,
 	member: memberRouter,
 	checkIn: checkInRouter,
 	score: scoreRouter,

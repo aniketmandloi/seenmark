@@ -308,3 +308,55 @@ test("deleting the account removes that member's check-ins", async () => {
 		.where(eq(checkIn.memberId, opened.id));
 	expect(remaining).toEqual([]);
 });
+
+test("a member reads one photo by id, and only their own photo that remains", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const first = await publicCaller.member.openAccount({
+		name: "Jules Member",
+		email: "jules@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	const second = await publicCaller.member.openAccount({
+		name: "Kai Member",
+		email: "kai@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+
+	const firstCaller = createMemberCaller(db, auth, {
+		userId: first.id,
+		name: "Jules Member",
+		email: "jules@example.com",
+	});
+	const secondCaller = createMemberCaller(db, auth, {
+		userId: second.id,
+		name: "Kai Member",
+		email: "kai@example.com",
+	});
+
+	const recorded = await firstCaller.checkIn.record({
+		imageBase64: "anVsZXM=",
+		mediaType: "image/png",
+		takenAt: "2024-08-01T10:00:00.000Z",
+	});
+
+	expect(await firstCaller.checkIn.photo({ id: recorded.id })).toEqual({
+		id: recorded.id,
+		takenAt: "2024-08-01T10:00:00.000Z",
+		imageBase64: "anVsZXM=",
+		mediaType: "image/png",
+	});
+
+	await expect(
+		secondCaller.checkIn.photo({ id: recorded.id }),
+	).rejects.toMatchObject({ code: "NOT_FOUND" });
+
+	await firstCaller.checkIn.delete({ id: recorded.id });
+
+	await expect(
+		firstCaller.checkIn.photo({ id: recorded.id }),
+	).rejects.toMatchObject({ code: "NOT_FOUND" });
+});

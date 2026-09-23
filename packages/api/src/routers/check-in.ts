@@ -1,4 +1,5 @@
 import { checkIn } from "@seenmark/db/schema/check-in";
+import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
@@ -63,6 +64,32 @@ export const checkInRouter = router({
 			mediaType: row.mediaType,
 		}));
 	}),
+
+	photo: memberProcedure
+		.input(z.object({ id: z.string().min(1) }))
+		.query(async ({ input, ctx }) => {
+			const [row] = await ctx.db
+				.select()
+				.from(checkIn)
+				.where(
+					and(eq(checkIn.id, input.id), eq(checkIn.memberId, ctx.member.id)),
+				)
+				.limit(1);
+
+			if (!row) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "This check-in is no longer here",
+				});
+			}
+
+			return {
+				id: row.id,
+				takenAt: row.takenAt.toISOString(),
+				imageBase64: encodeBase64(row.imageBytes),
+				mediaType: row.mediaType,
+			};
+		}),
 
 	reminder: memberProcedure.query(async ({ ctx }) => {
 		const [newest] = await ctx.db

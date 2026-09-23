@@ -19,40 +19,61 @@ export default function UserMenu() {
   const { data: session, isPending } = authClient.useSession();
 
   if (isPending) {
-    return <Skeleton className="h-9 w-24" />;
+    return <Skeleton aria-label="Loading account" className="h-10 w-20 rounded-xl" />;
   }
 
   if (!session) {
     return (
-      <Link href="/login">
-        <Button variant="outline">Sign In</Button>
+      <Link
+        href="/login"
+        className="inline-flex h-10 items-center justify-center rounded-xl px-4 text-sm font-semibold text-foreground transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        Sign in
       </Link>
     );
   }
 
+  const initial = session.user.name.trim().charAt(0).toUpperCase() || "S";
+
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="outline" />}>
-        {session.user.name}
+      <DropdownMenuTrigger
+        aria-label="Open account menu"
+        render={<Button variant="ghost" className="h-10 gap-2 px-2.5" />}
+      >
+        <span className="grid size-7 place-items-center rounded-full bg-accent text-xs font-semibold text-accent-foreground">
+          {initial}
+        </span>
+        <span className="hidden max-w-28 truncate text-sm sm:inline">{session.user.name}</span>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="bg-card">
+      <DropdownMenuContent align="end" className="min-w-56 rounded-xl bg-card p-1.5">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuLabel className="px-3 py-2 font-normal">
+            <span className="block truncate text-sm font-medium text-foreground">
+              {session.user.name}
+            </span>
+            <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+              {session.user.email}
+            </span>
+          </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>{session.user.email}</DropdownMenuItem>
           <DropdownMenuItem
-            variant="destructive"
+            onClick={() => router.push("/dashboard")}
+            className="cursor-pointer rounded-lg px-3 py-2"
+          >
+            Your check-ins
+          </DropdownMenuItem>
+          <DropdownMenuItem
             onClick={() => {
               authClient.signOut({
                 fetchOptions: {
-                  onSuccess: () => {
-                    router.push("/");
-                  },
+                  onSuccess: () => router.push("/"),
                 },
               });
             }}
+            className="cursor-pointer rounded-lg px-3 py-2"
           >
-            Sign Out
+            Sign out
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

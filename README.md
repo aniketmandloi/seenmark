@@ -76,6 +76,15 @@ import { Button } from "@seenmark/ui/components/button";
 
 If you want to add app-specific blocks instead of shared primitives, run the shadcn CLI from `apps/web`.
 
+### Native app UI
+
+`apps/native` renders with the platform's own toolkit through [Expo UI](https://docs.expo.dev/versions/latest/sdk/ui/): SwiftUI on iOS and Jetpack Compose (Material 3) on Android.
+
+- Navigation is expo-router `NativeTabs` with a native `Stack` per tab (`app/(tabs)`); signed-out screens live in `app/(auth)` behind `Stack.Protected`.
+- Screens are built from the primitives in `components/form` (`FormScreen`, `FormSection`, `FormRow`, `FormTextField`, …). Each primitive has `.ios.tsx`, `.android.tsx` and a plain React Native `.tsx` for web, and each screen mounts a single `Host` through `FormScreen`.
+- Icons are named once in `lib/icons.ts`: an SF Symbol for iOS and a Material Icons vector (`assets/icons/*.xml`) for Android.
+- Header and tab bar colors come from `lib/native-chrome.ts`; Android derives them from the same seeded Material palette as the Compose content.
+
 ## Environment Configuration
 
 Each app owns its environment schema in `.env.schema`. Varlock generates `src/env.ts` during installation; run `pnpm run env:generate` after changing a schema. Commit schemas, and keep secrets in ignored env files or your deployment platform.

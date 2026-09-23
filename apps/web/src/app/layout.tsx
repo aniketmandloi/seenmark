@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import "../index.css";
@@ -30,6 +30,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
   },
+};
+
+// Matches the light and dark --background tokens so mobile browser chrome blends into the page.
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#FAFBF4" },
+    { media: "(prefers-color-scheme: dark)", color: "#0A140F" },
+  ],
 };
 
 export default function RootLayout({

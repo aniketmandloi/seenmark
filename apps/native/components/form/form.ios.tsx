@@ -39,6 +39,7 @@ import {
 	padding,
 	pickerStyle,
 	refreshable,
+	scrollDismissesKeyboard,
 	submitLabel,
 	tag,
 	textContentType,
@@ -106,7 +107,12 @@ export function FormScreen({
 				colorScheme={colorScheme}
 				seedColor={theme.primary}
 			>
-				<Form modifiers={onRefresh ? [refreshable(onRefresh)] : undefined}>
+				<Form
+					modifiers={[
+						scrollDismissesKeyboard("interactively"),
+						...(onRefresh ? [refreshable(onRefresh)] : []),
+					]}
+				>
 					{children}
 				</Form>
 			</Host>

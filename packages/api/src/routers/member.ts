@@ -5,7 +5,12 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import type { Context } from "../context";
-import { memberProcedure, publicProcedure, router } from "../index";
+import {
+	memberProcedure,
+	protectedProcedure,
+	publicProcedure,
+	router,
+} from "../index";
 
 /**
  * The auth account is written before the member row, so onboarding can stop
@@ -113,7 +118,8 @@ export const memberRouter = router({
 		};
 	}),
 
-	deleteAccount: memberProcedure.mutation(async ({ ctx }) => {
+	// Signed in is enough: an account whose onboarding never finished can still be removed.
+	deleteAccount: protectedProcedure.mutation(async ({ ctx }) => {
 		await ctx.db.delete(user).where(eq(user.id, ctx.session.user.id));
 		return { ok: true as const };
 	}),

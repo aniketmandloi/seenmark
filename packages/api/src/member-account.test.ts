@@ -1,6 +1,8 @@
 import type { PGlite } from "@electric-sql/pglite";
 import type { Database } from "@seenmark/db";
+import * as authSchema from "@seenmark/db/schema/auth";
 import * as memberSchema from "@seenmark/db/schema/member";
+import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, expect, test } from "vitest";
 
 import {
@@ -101,7 +103,7 @@ test("a signed-out caller is refused by the member-loop gate", async () => {
 	});
 });
 
-test("a session without a member row is refused by the member-loop gate", async () => {
+test("a session without a member row is refused by the member-loop gate but can delete itself", async () => {
 	const authUser = await auth.api.signUpEmail({
 		body: {
 			name: "Drew Auth-Only",
@@ -119,9 +121,13 @@ test("a session without a member row is refused by the member-loop gate", async 
 	await expect(caller.member.current()).rejects.toMatchObject({
 		code: "FORBIDDEN",
 	});
-	await expect(caller.member.deleteAccount()).rejects.toMatchObject({
-		code: "FORBIDDEN",
-	});
+	expect(await caller.member.deleteAccount()).toEqual({ ok: true });
+
+	const remaining = await db
+		.select({ id: authSchema.user.id })
+		.from(authSchema.user)
+		.where(eq(authSchema.user.id, authUser.user.id));
+	expect(remaining).toEqual([]);
 });
 
 test("a caller missing either affirmation is refused", async () => {

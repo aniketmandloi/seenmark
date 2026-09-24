@@ -229,9 +229,16 @@ export function useMemberActions() {
 		} catch (cause) {
 			setError(messageFrom(cause, "Failed to save your band"));
 			// Back to the last confirmed band first, so a failed recovery read cannot leave
-			// the rejected band selected.
-			queryClient.setQueryData(bandKey, confirmed);
-			await refresh(bandKey);
+			// the rejected band selected. setQueryData ignores undefined, so a band that was
+			// never read is reset instead.
+			if (confirmed === undefined) {
+				queryClient.removeQueries({ queryKey: bandKey, exact: true });
+			} else {
+				queryClient.setQueryData(bandKey, confirmed);
+			}
+			// The change may still have been saved before the reply was lost, so both the
+			// band and its menu are read again.
+			await Promise.all([refresh(bandKey), forgetMenu()]);
 		}
 	}
 

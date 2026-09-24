@@ -72,7 +72,7 @@ function forgetMenu() {
 	return queryClient.resetQueries({ queryKey: menuKey });
 }
 
-/** The check-ins screen: the photo record, the reminder and the chosen band. */
+/** The check-ins screen: the photo record, the reminder, the chosen band and whether an introduction is saved. */
 export function useCheckIns() {
 	const checkIns = useInfiniteQuery(
 		trpc.checkIn.list.infiniteQueryOptions(
@@ -82,6 +82,7 @@ export function useCheckIns() {
 	);
 	const reminder = useQuery(trpc.checkIn.reminder.queryOptions());
 	const band = useQuery(trpc.score.current.queryOptions());
+	const introduction = useQuery(trpc.introduction.current.queryOptions());
 	const items = checkIns.data?.pages.flat() ?? [];
 
 	return {
@@ -93,7 +94,8 @@ export function useCheckIns() {
 		isEmpty: !checkIns.isLoading && items.length === 0,
 		reminder: reminder.data?.due ? reminder.data.invitation : null,
 		band: band.data ?? null,
-		refresh: () => refresh(checkInsKey, reminderKey, bandKey),
+		hasIntroduction: Boolean(introduction.data),
+		refresh: () => refresh(checkInsKey, reminderKey, bandKey, introductionKey),
 	};
 }
 

@@ -32,17 +32,8 @@ export default function NextStepsScreen() {
 		);
 	}
 
-	if (!menu) {
-		return (
-			<FormScreen onRefresh={steps.refresh}>
-				<FormEmptyState
-					icon="steps"
-					title="Your menu waits for a band."
-					description="Choose the band that feels right on your check-ins, and the next steps for it appear here."
-				/>
-			</FormScreen>
-		);
-	}
+	// Filing needs the late band; a request already saved stays reachable on any band.
+	const showsIntroduction = menu?.band === "late" || steps.introduction;
 
 	return (
 		<FormScreen onRefresh={steps.refresh}>
@@ -52,18 +43,28 @@ export default function NextStepsScreen() {
 				</FormSection>
 			) : null}
 
-			<FormSection title={bandLabel ? `${bandLabel} band` : undefined}>
-				{menu.steps.map((step, index) => (
-					<FormText key={step}>{`${index + 1}. ${step}`}</FormText>
-				))}
-			</FormSection>
+			{menu ? (
+				<FormSection title={bandLabel ? `${bandLabel} band` : undefined}>
+					{menu.steps.map((step, index) => (
+						<FormText key={step}>{`${index + 1}. ${step}`}</FormText>
+					))}
+				</FormSection>
+			) : (
+				<FormEmptyState
+					icon="steps"
+					title="Your menu waits for a band."
+					description="Choose the band that feels right on your check-ins, and the next steps for it appear here."
+				/>
+			)}
 
-			{menu.band === "late" ? (
+			{showsIntroduction ? (
 				<FormSection
 					title="Introduction"
 					footer={
 						steps.introduction
-							? "Your request is saved here. Nothing has been sent."
+							? menu?.band === "late"
+								? "Your request is saved here. Nothing has been sent."
+								: "You asked on the late band. Your request is still saved here, and nothing has been sent."
 							: "If you want, you can request an introduction. It will not book anything or send until you choose to continue."
 					}
 				>

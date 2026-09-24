@@ -151,13 +151,15 @@ export default function CheckInsScreen() {
 				</FormSection>
 			) : null}
 
-			{loop.band ? (
+			{loop.band || loop.hasIntroduction ? (
 				<FormSection>
 					<FormRow
 						icon="steps"
 						title="Next steps"
 						subtitle={
-							bandLabel ? `For the ${bandLabel.toLowerCase()} band` : undefined
+							bandLabel
+								? `For the ${bandLabel.toLowerCase()} band`
+								: "Your introduction request"
 						}
 						showsChevron
 						onPress={() => router.push("/next-steps")}

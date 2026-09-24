@@ -1,3 +1,4 @@
+import { MAX_PHOTO_BASE64_LENGTH } from "@seenmark/api/photo";
 import { afterEach, beforeEach, expect, test } from "vitest";
 
 import { openTestServer, type TestServer } from "./test-server";
@@ -77,4 +78,13 @@ test("opening accounts over HTTP is limited per client address", async () => {
   expect((await open("max", "203.0.113.7")).status).toBe(200);
   expect((await open("noa", "203.0.113.7, 10.0.0.1")).status).toBe(429);
   expect((await open("noa", "198.51.100.4")).status).toBe(200);
+});
+
+test("a body larger than any photo is refused before it reaches a procedure", async () => {
+  const response = await server.trpcMutation("checkIn.record", {
+    imageBase64: "A".repeat(MAX_PHOTO_BASE64_LENGTH + 128 * 1024),
+    mediaType: "image/png",
+    takenAt: "2024-09-01T10:00:00.000Z",
+  });
+  expect(response.status).toBe(413);
 });

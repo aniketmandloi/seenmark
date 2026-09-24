@@ -1,13 +1,18 @@
 import { trpcServer } from "@hono/trpc-server";
 import type { Auth } from "@seenmark/api/context";
+import { MAX_PHOTO_BASE64_LENGTH } from "@seenmark/api/photo";
 import { appRouter } from "@seenmark/api/routers/index";
 import { createSignUpLimit } from "@seenmark/api/sign-up-limit";
 import type { Database } from "@seenmark/db";
 import { Hono } from "hono";
+import { bodyLimit } from "hono/body-limit";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 
 import { createContext } from "./context";
+
+// A check-in photo is the largest body any route takes; the rest is JSON framing.
+const MAX_BODY_BYTES = MAX_PHOTO_BASE64_LENGTH + 64 * 1024;
 
 export type AppServices = {
   auth: Auth;
@@ -30,6 +35,14 @@ export function createApp({ auth, db, corsOrigin, logRequests = true }: AppServi
       allowMethods: ["GET", "POST", "OPTIONS"],
       allowHeaders: ["Content-Type", "Authorization"],
       credentials: true,
+    }),
+  );
+
+  app.use(
+    "/*",
+    bodyLimit({
+      maxSize: MAX_BODY_BYTES,
+      onError: (c) => c.text("Request body is too large", 413),
     }),
   );
 

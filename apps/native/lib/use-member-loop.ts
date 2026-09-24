@@ -1,4 +1,7 @@
-import { isPhotoMediaType } from "@seenmark/api/photo";
+import {
+	isPhotoMediaType,
+	MAX_PHOTO_BASE64_LENGTH,
+} from "@seenmark/api/photo";
 import { type QueryKey, useMutation, useQuery } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
@@ -123,6 +126,8 @@ export function useMemberActions() {
 				mediaTypes: ["images"],
 				allowsEditing: false,
 				base64: true,
+				// Full-quality camera JPEGs can pass the upload limit; this keeps detail for comparing.
+				quality: 0.6,
 			});
 			if (result.canceled) return;
 
@@ -134,6 +139,10 @@ export function useMemberActions() {
 			const mediaType = asset.mimeType ?? "image/jpeg";
 			if (!isPhotoMediaType(mediaType)) {
 				setError("The camera returned a photo format Seenmark cannot keep.");
+				return;
+			}
+			if (asset.base64.length > MAX_PHOTO_BASE64_LENGTH) {
+				setError("That photo is too large to keep. Please try again.");
 				return;
 			}
 

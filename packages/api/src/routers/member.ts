@@ -63,6 +63,13 @@ export const memberRouter = router({
 				});
 			}
 
+			if (!ctx.signUpLimit.admit(ctx.clientAddress ?? "unknown")) {
+				throw new TRPCError({
+					code: "TOO_MANY_REQUESTS",
+					message: "Too many attempts. Try again in a few seconds.",
+				});
+			}
+
 			let userId: string;
 			let resumed = false;
 			try {

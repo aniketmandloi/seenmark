@@ -5,6 +5,7 @@ import * as memberSchema from "@seenmark/db/schema/member";
 import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, expect, test } from "vitest";
 
+import { createSignUpLimit } from "./sign-up-limit";
 import {
 	createMemberCaller,
 	createPublicCaller,
@@ -280,4 +281,29 @@ test("opening an account that is already finished is refused", async () => {
 	await publicCaller.member.openAccount(input);
 
 	await expect(publicCaller.member.openAccount(input)).rejects.toThrow();
+});
+
+test("opening accounts is limited to three attempts per address in ten seconds", async () => {
+	let clock = 0;
+	const caller = createPublicCaller(db, auth, {
+		signUpLimit: createSignUpLimit(() => clock),
+	});
+	const open = (name: string) =>
+		caller.member.openAccount({
+			name,
+			email: `${name}@example.com`,
+			password: "password123",
+			affirmedAtLeast18: true,
+			affirmedInUnitedStates: true,
+		});
+
+	await open("kai");
+	await open("lee");
+	await open("max");
+	await expect(open("noa")).rejects.toMatchObject({
+		code: "TOO_MANY_REQUESTS",
+	});
+
+	clock += 10_000;
+	await open("noa");
 });

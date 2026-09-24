@@ -1,3 +1,4 @@
+import { isPhotoMediaType } from "@seenmark/api/photo";
 import { type QueryKey, useMutation, useQuery } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
@@ -130,10 +131,15 @@ export function useMemberActions() {
 				setError("The camera did not return a photo. Please try again.");
 				return;
 			}
+			const mediaType = asset.mimeType ?? "image/jpeg";
+			if (!isPhotoMediaType(mediaType)) {
+				setError("The camera returned a photo format Seenmark cannot keep.");
+				return;
+			}
 
 			await record.mutateAsync({
 				imageBase64: asset.base64,
-				mediaType: asset.mimeType ?? "image/jpeg",
+				mediaType,
 				takenAt: new Date().toISOString(),
 			});
 			await refresh(checkInsKey, reminderKey);

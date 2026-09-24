@@ -1,5 +1,6 @@
 "use client";
 
+import { isPhotoMediaType } from "@seenmark/api/photo";
 import { Button } from "@seenmark/ui/components/button";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, Camera, Check, Clock3, ImagePlus, LockKeyhole, Trash2 } from "lucide-react";
@@ -146,8 +147,9 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
       return;
     }
 
-    if (!file.type.startsWith("image/")) {
-      setErrorMessage("Choose an image file to add a check-in.");
+    const mediaType = file.type;
+    if (!isPhotoMediaType(mediaType)) {
+      setErrorMessage("Choose a JPEG, PNG, or WebP photo to add a check-in.");
       return;
     }
 
@@ -157,7 +159,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
     try {
       await record.mutateAsync({
         imageBase64: await readPhoto(file),
-        mediaType: file.type || "image/jpeg",
+        mediaType,
         takenAt: new Date().toISOString(),
       });
     } catch (cause) {

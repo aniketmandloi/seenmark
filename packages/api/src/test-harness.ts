@@ -16,6 +16,15 @@ const authEnv = {
 
 export type TestAuth = ReturnType<typeof createAuth>;
 
+const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+
+/** A PNG-signed photo whose body is the label, so each test photo is distinct. */
+export function testPhoto(label: string) {
+	return Buffer.from([...PNG_SIGNATURE, ...Buffer.from(label)]).toString(
+		"base64",
+	);
+}
+
 export async function openTestDatabase(): Promise<{
 	client: PGlite;
 	db: Database;

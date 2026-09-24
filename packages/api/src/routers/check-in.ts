@@ -5,6 +5,12 @@ import { and, desc, eq, ne, notExists } from "drizzle-orm";
 import { z } from "zod";
 
 import { memberProcedure, router } from "../index";
+import {
+	isBase64,
+	MAX_PHOTO_BASE64_LENGTH,
+	PHOTO_MEDIA_TYPES,
+	sniffPhotoType,
+} from "../photo";
 
 function decodeBase64(value: string): Uint8Array {
 	const binary = atob(value);
@@ -27,19 +33,31 @@ export const checkInRouter = router({
 	record: memberProcedure
 		.input(
 			z.object({
-				imageBase64: z.string().min(1),
-				mediaType: z.string().regex(/^image\//),
+				imageBase64: z
+					.string()
+					.min(1)
+					.max(MAX_PHOTO_BASE64_LENGTH, "This photo is too large")
+					.refine(isBase64, "This photo could not be read"),
+				mediaType: z.enum(PHOTO_MEDIA_TYPES),
 				takenAt: z.string().datetime(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
+			const imageBytes = decodeBase64(input.imageBase64);
+			if (sniffPhotoType(imageBytes) !== input.mediaType) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "This photo is not a JPEG, PNG, or WebP image",
+				});
+			}
+
 			const id = crypto.randomUUID();
 			const takenAt = new Date(input.takenAt);
 
 			await ctx.db.insert(checkIn).values({
 				id,
 				memberId: ctx.member.id,
-				imageBytes: decodeBase64(input.imageBase64),
+				imageBytes,
 				mediaType: input.mediaType,
 				takenAt,
 			});

@@ -8,6 +8,7 @@ import {
 	createPublicCaller,
 	openTestDatabase,
 	type TestAuth,
+	testPhoto,
 } from "./test-harness";
 
 let client: PGlite;
@@ -70,14 +71,14 @@ test("the early menu is the habits copy, the same for every member", async () =>
 	});
 
 	await firstCaller.checkIn.record({
-		imageBase64: "Ymxha2U=",
+		imageBase64: testPhoto("Ymxha2U="),
 		mediaType: "image/png",
 		takenAt: "2024-03-15T10:00:00.000Z",
 	});
 	await firstCaller.score.choose("early");
 
 	await secondCaller.checkIn.record({
-		imageBase64: "Y2FzZXk=",
+		imageBase64: testPhoto("Y2FzZXk="),
 		mediaType: "image/png",
 		takenAt: "2024-03-16T11:00:00.000Z",
 	});
@@ -120,7 +121,7 @@ test("the early menu includes one Paid link only when a destination is configure
 	);
 
 	await memberCaller.checkIn.record({
-		imageBase64: "ZHJldw==",
+		imageBase64: testPhoto("ZHJldw=="),
 		mediaType: "image/png",
 		takenAt: "2024-05-01T12:00:00.000Z",
 	});
@@ -168,7 +169,7 @@ test("the mid menu has no paid link", async () => {
 	);
 
 	await memberCaller.checkIn.record({
-		imageBase64: "ZWRlbg==",
+		imageBase64: testPhoto("ZWRlbg=="),
 		mediaType: "image/png",
 		takenAt: "2024-06-01T09:00:00.000Z",
 	});
@@ -204,7 +205,7 @@ test("the late menu states the verified-clinic check and has no paid link", asyn
 	);
 
 	await memberCaller.checkIn.record({
-		imageBase64: "ZnJhbg==",
+		imageBase64: testPhoto("ZnJhbg=="),
 		mediaType: "image/png",
 		takenAt: "2024-07-01T10:00:00.000Z",
 	});
@@ -248,7 +249,7 @@ test("changing from early to late changes the menu", async () => {
 	});
 
 	await memberCaller.checkIn.record({
-		imageBase64: "Z2xlbg==",
+		imageBase64: testPhoto("Z2xlbg=="),
 		mediaType: "image/png",
 		takenAt: "2024-08-01T10:00:00.000Z",
 	});

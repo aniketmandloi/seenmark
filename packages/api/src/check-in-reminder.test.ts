@@ -7,6 +7,7 @@ import {
 	createPublicCaller,
 	openTestDatabase,
 	type TestAuth,
+	testPhoto,
 } from "./test-harness";
 
 const CLOCK_NOW = new Date("2024-08-01T00:00:00.000Z");
@@ -70,7 +71,7 @@ test("a check-in taken exactly 30 days ago means the reminder is due", async () 
 	);
 
 	await memberCaller.checkIn.record({
-		imageBase64: "aGFpcmxpbmU=",
+		imageBase64: testPhoto("aGFpcmxpbmU="),
 		mediaType: "image/png",
 		takenAt: "2024-07-02T00:00:00.000Z",
 	});
@@ -104,7 +105,7 @@ test("a check-in taken 29 days ago means the reminder is not due", async () => {
 	);
 
 	await memberCaller.checkIn.record({
-		imageBase64: "aGFpcmxpbmU=",
+		imageBase64: testPhoto("aGFpcmxpbmU="),
 		mediaType: "image/png",
 		takenAt: "2024-07-03T00:00:00.000Z",
 	});
@@ -135,12 +136,12 @@ test("a newer check-in keeps the reminder from being due", async () => {
 	);
 
 	await memberCaller.checkIn.record({
-		imageBase64: "b2xkZXI=",
+		imageBase64: testPhoto("b2xkZXI="),
 		mediaType: "image/png",
 		takenAt: "2024-06-01T00:00:00.000Z",
 	});
 	await memberCaller.checkIn.record({
-		imageBase64: "bmV3ZXI=",
+		imageBase64: testPhoto("bmV3ZXI="),
 		mediaType: "image/png",
 		takenAt: "2024-07-20T00:00:00.000Z",
 	});

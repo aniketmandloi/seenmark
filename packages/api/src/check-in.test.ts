@@ -4,11 +4,14 @@ import { checkIn } from "@seenmark/db/schema/check-in";
 import * as memberSchema from "@seenmark/db/schema/member";
 import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, expect, test } from "vitest";
+
+import { MAX_PHOTO_BASE64_LENGTH } from "./photo";
 import {
 	createMemberCaller,
 	createPublicCaller,
 	openTestDatabase,
 	type TestAuth,
+	testPhoto,
 } from "./test-harness";
 
 let client: PGlite;
@@ -40,7 +43,7 @@ test("a member can record a check-in and read back that photo and time", async (
 	});
 
 	const recorded = await memberCaller.checkIn.record({
-		imageBase64: "aGFpcmxpbmU=",
+		imageBase64: testPhoto("aGFpcmxpbmU="),
 		mediaType: "image/png",
 		takenAt: "2024-03-15T10:00:00.000Z",
 	});
@@ -59,7 +62,7 @@ test("a member can record a check-in and read back that photo and time", async (
 	expect(await memberCaller.checkIn.photo({ id: recorded.id })).toEqual({
 		id: recorded.id,
 		takenAt: "2024-03-15T10:00:00.000Z",
-		imageBase64: "aGFpcmxpbmU=",
+		imageBase64: testPhoto("aGFpcmxpbmU="),
 		mediaType: "image/png",
 	});
 });
@@ -81,12 +84,12 @@ test("two check-ins in the same month come back newest first", async () => {
 	});
 
 	const earlier = await memberCaller.checkIn.record({
-		imageBase64: "ZWFybGllcg==",
+		imageBase64: testPhoto("ZWFybGllcg=="),
 		mediaType: "image/png",
 		takenAt: "2024-03-10T08:00:00.000Z",
 	});
 	const later = await memberCaller.checkIn.record({
-		imageBase64: "bGF0ZXI=",
+		imageBase64: testPhoto("bGF0ZXI="),
 		mediaType: "image/png",
 		takenAt: "2024-03-25T18:30:00.000Z",
 	});
@@ -115,12 +118,12 @@ test("deleting a check-in removes it from the next list", async () => {
 	});
 
 	const keep = await memberCaller.checkIn.record({
-		imageBase64: "a2VlcA==",
+		imageBase64: testPhoto("a2VlcA=="),
 		mediaType: "image/png",
 		takenAt: "2024-04-01T09:00:00.000Z",
 	});
 	const remove = await memberCaller.checkIn.record({
-		imageBase64: "cmVtb3Zl",
+		imageBase64: testPhoto("cmVtb3Zl"),
 		mediaType: "image/png",
 		takenAt: "2024-04-02T09:00:00.000Z",
 	});
@@ -162,7 +165,7 @@ test("a member cannot read another member's check-in or photo", async () => {
 	});
 
 	const firstCheckIn = await firstCaller.checkIn.record({
-		imageBase64: "ZHJldw==",
+		imageBase64: testPhoto("ZHJldw=="),
 		mediaType: "image/png",
 		takenAt: "2024-05-01T12:00:00.000Z",
 	});
@@ -183,7 +186,7 @@ test("a signed-out caller and a caller missing either affirmation cannot record"
 
 	await expect(
 		publicCaller.checkIn.record({
-			imageBase64: "aGFpcmxpbmU=",
+			imageBase64: testPhoto("aGFpcmxpbmU="),
 			mediaType: "image/png",
 			takenAt: "2024-06-01T10:00:00.000Z",
 		}),
@@ -208,7 +211,7 @@ test("a signed-out caller and a caller missing either affirmation cannot record"
 	});
 	await expect(
 		underageCaller.checkIn.record({
-			imageBase64: "aGFpcmxpbmU=",
+			imageBase64: testPhoto("aGFpcmxpbmU="),
 			mediaType: "image/png",
 			takenAt: "2024-06-01T10:00:00.000Z",
 		}),
@@ -233,7 +236,7 @@ test("a signed-out caller and a caller missing either affirmation cannot record"
 	});
 	await expect(
 		abroadCaller.checkIn.record({
-			imageBase64: "aGFpcmxpbmU=",
+			imageBase64: testPhoto("aGFpcmxpbmU="),
 			mediaType: "image/png",
 			takenAt: "2024-06-01T10:00:00.000Z",
 		}),
@@ -257,7 +260,7 @@ test("deleting the account removes that member's check-ins", async () => {
 	});
 
 	await memberCaller.checkIn.record({
-		imageBase64: "aGFycGVy",
+		imageBase64: testPhoto("aGFycGVy"),
 		mediaType: "image/png",
 		takenAt: "2024-07-01T10:00:00.000Z",
 	});
@@ -319,7 +322,7 @@ test("a member reads one photo by id, and only their own photo that remains", as
 	});
 
 	const recorded = await firstCaller.checkIn.record({
-		imageBase64: "anVsZXM=",
+		imageBase64: testPhoto("anVsZXM="),
 		mediaType: "image/png",
 		takenAt: "2024-08-01T10:00:00.000Z",
 	});
@@ -327,7 +330,7 @@ test("a member reads one photo by id, and only their own photo that remains", as
 	expect(await firstCaller.checkIn.photo({ id: recorded.id })).toEqual({
 		id: recorded.id,
 		takenAt: "2024-08-01T10:00:00.000Z",
-		imageBase64: "anVsZXM=",
+		imageBase64: testPhoto("anVsZXM="),
 		mediaType: "image/png",
 	});
 
@@ -340,4 +343,64 @@ test("a member reads one photo by id, and only their own photo that remains", as
 	await expect(
 		firstCaller.checkIn.photo({ id: recorded.id }),
 	).rejects.toMatchObject({ code: "NOT_FOUND" });
+});
+
+test("a check-in must be a readable JPEG, PNG, or WebP photo within the size limit", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const opened = await publicCaller.member.openAccount({
+		name: "Lee Member",
+		email: "lee@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	const memberCaller = createMemberCaller(db, auth, {
+		userId: opened.id,
+		name: "Lee Member",
+		email: "lee@example.com",
+	});
+	const takenAt = "2024-09-01T10:00:00.000Z";
+
+	await expect(
+		memberCaller.checkIn.record({
+			imageBase64: "!",
+			mediaType: "image/png",
+			takenAt,
+		}),
+	).rejects.toMatchObject({ code: "BAD_REQUEST" });
+
+	await expect(
+		memberCaller.checkIn.record({
+			imageBase64: Buffer.from("not a photo").toString("base64"),
+			mediaType: "image/png",
+			takenAt,
+		}),
+	).rejects.toMatchObject({ code: "BAD_REQUEST" });
+
+	await expect(
+		memberCaller.checkIn.record({
+			imageBase64: testPhoto("gif"),
+			// @ts-expect-error GIF is not an accepted media type.
+			mediaType: "image/gif",
+			takenAt,
+		}),
+	).rejects.toMatchObject({ code: "BAD_REQUEST" });
+
+	await expect(
+		memberCaller.checkIn.record({
+			imageBase64: testPhoto("png"),
+			mediaType: "image/jpeg",
+			takenAt,
+		}),
+	).rejects.toMatchObject({ code: "BAD_REQUEST" });
+
+	await expect(
+		memberCaller.checkIn.record({
+			imageBase64: "A".repeat(MAX_PHOTO_BASE64_LENGTH + 4),
+			mediaType: "image/png",
+			takenAt,
+		}),
+	).rejects.toMatchObject({ code: "BAD_REQUEST" });
+
+	expect(await memberCaller.checkIn.list()).toEqual([]);
 });

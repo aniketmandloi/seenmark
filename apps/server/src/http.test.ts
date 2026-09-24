@@ -35,3 +35,25 @@ test("member reads without a session cookie are refused", async () => {
   const current = await server.trpcQuery("member.current");
   expect(current.status).toBe(401);
 });
+
+test("the raw auth sign-up route is closed, so every account has its affirmations", async () => {
+  const signUp = await server.request("/api/auth/sign-up/email", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: "Blake Member",
+      email: "blake@example.com",
+      password: "password123",
+    }),
+  });
+  expect(signUp.status).toBe(404);
+
+  const opened = await server.trpcMutation("member.openAccount", {
+    name: "Blake Member",
+    email: "blake@example.com",
+    password: "password123",
+    affirmedAtLeast18: true,
+    affirmedInUnitedStates: true,
+  });
+  expect(opened.status).toBe(200);
+});

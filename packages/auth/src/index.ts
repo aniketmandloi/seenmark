@@ -28,6 +28,9 @@ export function createAuth(
 			"http://localhost:8081",
 		],
 		emailAndPassword: { enabled: true },
+		// Accounts open only through member.openAccount, which records the
+		// affirmations; the raw route would create an account with no member.
+		disabledPaths: ["/sign-up/email"],
 		secret: env.BETTER_AUTH_SECRET,
 		baseURL: env.BETTER_AUTH_URL,
 		advanced: {

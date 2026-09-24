@@ -9,6 +9,7 @@ import type * as React from "react";
 
 function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
+    // biome-ignore lint/a11y/useSemanticElements: a fieldset's default layout and disabled cascade do not fit one inline control.
     <div
       data-slot="input-group"
       role="group"
@@ -51,6 +52,8 @@ function InputGroupAddon({
   ...props
 }: React.ComponentProps<"div"> & VariantProps<typeof inputGroupAddonVariants>) {
   return (
+    // biome-ignore lint/a11y/useSemanticElements: same as InputGroup; this groups an addon with its control.
+    // biome-ignore lint/a11y/useKeyWithClickEvents: the click only moves focus to the input, which keyboard users reach directly.
     <div
       role="group"
       data-slot="input-group-addon"

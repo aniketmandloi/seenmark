@@ -482,7 +482,10 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
               ) : null}
             </div>
 
-            <div className="mt-6 grid grid-cols-3 gap-2" role="group" aria-label="Choose your band">
+            <fieldset
+              aria-labelledby="band-heading"
+              className="mt-6 grid min-w-0 grid-cols-3 gap-2"
+            >
               {bands.map((band) => {
                 const selected = currentBand.data === band.value;
                 return (
@@ -502,7 +505,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
                   </button>
                 );
               })}
-            </div>
+            </fieldset>
             <p className="mt-3 text-muted-foreground text-xs leading-5">
               You can change your choice whenever you want.
             </p>

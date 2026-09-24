@@ -149,7 +149,14 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
     trpc.checkIn.delete.mutationOptions({ onSuccess: invalidateMemberLoop }),
   );
   const chooseBand = useMutation(
-    trpc.score.choose.mutationOptions({ onSuccess: invalidateMemberLoop }),
+    trpc.score.choose.mutationOptions({
+      onSuccess: async (chosen) => {
+        // The saved band is confirmed by this reply, and the old band's menu no longer applies.
+        queryClient.setQueryData(trpc.score.current.queryKey(), chosen.band);
+        await queryClient.resetQueries({ queryKey: trpc.menu.current.queryKey() });
+        await invalidateMemberLoop();
+      },
+    }),
   );
   const fileIntroduction = useMutation(
     trpc.introduction.file.mutationOptions({ onSuccess: invalidateMemberLoop }),

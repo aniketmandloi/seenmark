@@ -528,13 +528,16 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
             </section>
           ) : null}
 
-          {currentBand.data === "late" ? (
+          {/* Filing needs the late band; a request already recorded stays reachable on any band. */}
+          {currentBand.data === "late" || introduction.data ? (
             <section aria-labelledby="introduction-heading" className="rounded-[1.75rem] bg-accent/55 p-6 sm:p-8">
               <h2 id="introduction-heading" className="text-xl font-semibold tracking-tight">
-                Ask for an introduction
+                {currentBand.data === "late" ? "Ask for an introduction" : "Your introduction request"}
               </h2>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Your request is recorded for you. It is not sent to a clinic.
+                {currentBand.data === "late"
+                  ? "Your request is recorded for you. It is not sent to a clinic."
+                  : "You asked on the late band. It is still recorded for you, and it is not sent to a clinic."}
               </p>
               {introduction.isError ? (
                 <div role="alert" className="mt-4 rounded-xl bg-destructive/10 p-4 text-sm text-destructive">

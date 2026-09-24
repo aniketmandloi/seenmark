@@ -384,3 +384,35 @@ test("two requests filed at once both return the first recorded request", async 
 	expect(first).toEqual(second);
 	expect(await caller(FILED_AT).introduction.current()).toEqual(first);
 });
+
+test("a request kept after leaving the late band can still be read and deleted", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const opened = await publicCaller.member.openAccount({
+		name: "Lee Member",
+		email: "lee@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	const memberCaller = createMemberCaller(
+		db,
+		auth,
+		{ userId: opened.id, name: "Lee Member", email: "lee@example.com" },
+		{ now: () => new Date(FILED_AT) },
+	);
+
+	const recorded = await memberCaller.checkIn.record({
+		imageBase64: testPhoto("lee"),
+		mediaType: "image/png",
+		takenAt: "2024-08-01T12:00:00.000Z",
+	});
+	await memberCaller.score.choose("late");
+	const filed = await memberCaller.introduction.file();
+
+	await memberCaller.checkIn.delete({ id: recorded.id });
+	expect(await memberCaller.score.current()).toBeNull();
+	expect(await memberCaller.introduction.current()).toEqual(filed);
+
+	await memberCaller.introduction.delete();
+	expect(await memberCaller.introduction.current()).toBeNull();
+});

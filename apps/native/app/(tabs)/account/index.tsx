@@ -10,7 +10,8 @@ import {
 	FormSection,
 } from "@/components/form/form";
 import { authClient } from "@/lib/auth-client";
-import { queryClient, trpc } from "@/utils/trpc";
+import { forgetMemberData } from "@/lib/member-session";
+import { trpc } from "@/utils/trpc";
 
 export default function AccountScreen() {
 	const { data: session } = authClient.useSession();
@@ -22,16 +23,18 @@ export default function AccountScreen() {
 	if (!session?.user) return null;
 
 	async function signOut() {
-		await authClient.signOut();
-		queryClient.clear();
+		setError(null);
+		const { error: signOutError } = await authClient.signOut();
+		await forgetMemberData();
+		if (signOutError) setError("Failed to sign out. Try again.");
 	}
 
 	async function confirmDelete() {
 		setError(null);
 		try {
 			await deleteAccount.mutateAsync();
-			await authClient.signOut();
-			queryClient.clear();
+			await authClient.signOut().catch(() => undefined);
+			await forgetMemberData();
 		} catch (cause) {
 			setError(
 				cause instanceof Error ? cause.message : "Failed to delete account",

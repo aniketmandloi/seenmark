@@ -13,6 +13,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { authClient } from "@/lib/auth-client";
 import { NAV_THEME } from "@/lib/constants";
+import { claimMemberCache } from "@/lib/member-session";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { queryClient } from "@/utils/trpc";
 
@@ -32,6 +33,8 @@ export default function RootLayout() {
 	const { isDarkColorScheme } = useColorScheme();
 	const { data: session, isPending } = authClient.useSession();
 	const isSignedIn = Boolean(session?.user);
+	// Before the member screens render, so none reads a previous member's cache.
+	if (!isPending) claimMemberCache(session?.user.id ?? null);
 
 	useEffect(() => {
 		if (!isPending) SplashScreen.hide();

@@ -1,6 +1,6 @@
 "use client";
 
-import { isPhotoMediaType } from "@seenmark/api/photo";
+import { MAX_PHOTO_BASE64_LENGTH } from "@seenmark/api/photo";
 import { Button } from "@seenmark/ui/components/button";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, Camera, Check, Clock3, ImagePlus, LockKeyhole, Trash2 } from "lucide-react";
@@ -62,28 +62,35 @@ function Photo({ item, alt }: { item: CheckIn; alt: string }) {
   );
 }
 
-function readPhoto(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
+// Long enough to compare hairlines, small enough to stay under the photo limit as JPEG.
+const MAX_PHOTO_EDGE = 2048;
 
-    reader.onerror = () => reject(new Error("We could not read that photo."));
-    reader.onload = () => {
-      if (typeof reader.result !== "string") {
-        reject(new Error("We could not read that photo."));
-        return;
-      }
+async function preparePhoto(file: File) {
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    throw new Error("We could not read that photo.");
+  }
 
-      const separator = reader.result.indexOf(",");
-      if (separator < 0) {
-        reject(new Error("We could not read that photo."));
-        return;
-      }
+  const scale = Math.min(1, MAX_PHOTO_EDGE / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  const context = canvas.getContext("2d");
+  if (!context) {
+    bitmap.close();
+    throw new Error("We could not read that photo.");
+  }
+  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
 
-      resolve(reader.result.slice(separator + 1));
-    };
-
-    reader.readAsDataURL(file);
-  });
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+  const imageBase64 = dataUrl.slice(dataUrl.indexOf(",") + 1);
+  if (imageBase64.length > MAX_PHOTO_BASE64_LENGTH) {
+    throw new Error("That photo is too large to keep. Try a smaller one.");
+  }
+  return { imageBase64, mediaType: "image/jpeg" as const };
 }
 
 async function invalidateMemberLoop() {
@@ -102,6 +109,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   const [accountError, setAccountError] = useState<string | null>(null);
   const [openedId, setOpenedId] = useState<string | null>(null);
   const [confirmAccountDeletion, setConfirmAccountDeletion] = useState(false);
+  const [isPreparingPhoto, setIsPreparingPhoto] = useState(false);
 
   const checkIns = useQuery(trpc.checkIn.list.queryOptions());
   const currentBand = useQuery(trpc.score.current.queryOptions());
@@ -131,6 +139,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   const currentMenu = menu.data?.menu ?? null;
   const paidLink = currentMenu && "paidLink" in currentMenu ? currentMenu.paidLink : undefined;
   const isBusy =
+    isPreparingPhoto ||
     record.isPending ||
     removeCheckIn.isPending ||
     chooseBand.isPending ||
@@ -147,23 +156,24 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
       return;
     }
 
-    const mediaType = file.type;
-    if (!isPhotoMediaType(mediaType)) {
-      setErrorMessage("Choose a JPEG, PNG, or WebP photo to add a check-in.");
+    if (!file.type.startsWith("image/")) {
+      setErrorMessage("Choose an image file to add a check-in.");
       return;
     }
 
     setErrorMessage(null);
     setOpenedId(null);
+    setIsPreparingPhoto(true);
 
     try {
       await record.mutateAsync({
-        imageBase64: await readPhoto(file),
-        mediaType,
+        ...(await preparePhoto(file)),
         takenAt: new Date().toISOString(),
       });
     } catch (cause) {
       setErrorMessage(cause instanceof Error ? cause.message : "We could not save that check-in.");
+    } finally {
+      setIsPreparingPhoto(false);
     }
   }
 

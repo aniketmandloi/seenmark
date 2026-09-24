@@ -1,6 +1,8 @@
 import type { PGlite } from "@electric-sql/pglite";
 import type { Database } from "@seenmark/db";
+import { checkIn } from "@seenmark/db/schema/check-in";
 import * as memberSchema from "@seenmark/db/schema/member";
+import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, expect, test } from "vitest";
 
 import {
@@ -244,4 +246,36 @@ test("deleting the account removes the score", async () => {
 		email: "iris@example.com",
 	});
 	expect(await otherCaller.score.current()).toBe(null);
+});
+
+test("the score goes with the last check-in however that check-in is deleted", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const opened = await publicCaller.member.openAccount({
+		name: "Jules Member",
+		email: "jules@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	const memberCaller = createMemberCaller(db, auth, {
+		userId: opened.id,
+		name: "Jules Member",
+		email: "jules@example.com",
+	});
+
+	await memberCaller.checkIn.record({
+		imageBase64: testPhoto("first"),
+		mediaType: "image/png",
+		takenAt: "2024-03-10T08:00:00.000Z",
+	});
+	await memberCaller.checkIn.record({
+		imageBase64: testPhoto("second"),
+		mediaType: "image/png",
+		takenAt: "2024-03-25T18:30:00.000Z",
+	});
+	await memberCaller.score.choose("mid");
+
+	await db.delete(checkIn).where(eq(checkIn.memberId, opened.id));
+
+	expect(await memberCaller.score.current()).toBe(null);
 });

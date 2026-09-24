@@ -1,7 +1,7 @@
 import { introduction } from "@seenmark/db/schema/introduction";
 import { score } from "@seenmark/db/schema/score";
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 import { memberProcedure, router } from "../index";
 
@@ -43,23 +43,25 @@ export const introductionRouter = router({
 			});
 		}
 
-		const [existing] = await ctx.db
-			.select()
-			.from(introduction)
-			.where(eq(introduction.memberId, ctx.member.id))
-			.limit(1);
+		// The no-op update makes the insert return the first request when one exists,
+		// so a retry or a simultaneous file gets the same answer in one statement.
+		const [filed] = await ctx.db
+			.insert(introduction)
+			.values({ memberId: ctx.member.id, filedAt: ctx.now() })
+			.onConflictDoUpdate({
+				target: introduction.memberId,
+				set: { filedAt: sql`${introduction.filedAt}` },
+			})
+			.returning();
 
-		if (existing) {
-			return toIntroduction(existing.memberId, existing.filedAt);
+		if (!filed) {
+			throw new TRPCError({
+				code: "INTERNAL_SERVER_ERROR",
+				message: "The introduction was not recorded",
+			});
 		}
 
-		const filedAt = ctx.now();
-		await ctx.db.insert(introduction).values({
-			memberId: ctx.member.id,
-			filedAt,
-		});
-
-		return toIntroduction(ctx.member.id, filedAt);
+		return toIntroduction(filed.memberId, filed.filedAt);
 	}),
 
 	delete: memberProcedure.mutation(async ({ ctx }) => {

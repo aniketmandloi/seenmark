@@ -351,3 +351,36 @@ test("deleting the account removes the check-in, score, and introduction", async
 	expect(await otherCaller.score.current()).toBeNull();
 	expect(await otherCaller.introduction.current()).toBeNull();
 });
+
+test("two requests filed at once both return the first recorded request", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const opened = await publicCaller.member.openAccount({
+		name: "Kai Member",
+		email: "kai@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	const caller = (filedAt: string) =>
+		createMemberCaller(
+			db,
+			auth,
+			{ userId: opened.id, name: "Kai Member", email: "kai@example.com" },
+			{ now: () => new Date(filedAt) },
+		);
+
+	await caller(FILED_AT).checkIn.record({
+		imageBase64: testPhoto("kai"),
+		mediaType: "image/png",
+		takenAt: "2024-08-01T12:00:00.000Z",
+	});
+	await caller(FILED_AT).score.choose("late");
+
+	const [first, second] = await Promise.all([
+		caller(FILED_AT).introduction.file(),
+		caller("2024-09-01T12:00:05.000Z").introduction.file(),
+	]);
+
+	expect(first).toEqual(second);
+	expect(await caller(FILED_AT).introduction.current()).toEqual(first);
+});

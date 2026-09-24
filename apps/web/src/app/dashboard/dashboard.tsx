@@ -163,7 +163,10 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   const opened = openedId ? (items.find((item) => item.id === openedId) ?? null) : null;
   const selectedBand = bands.find((band) => band.value === currentBand.data)?.label;
   const currentMenu = menu.data?.menu ?? null;
-  const paidLink = currentMenu && "paidLink" in currentMenu ? currentMenu.paidLink : undefined;
+  // The score and the menu are separate reads that can land in either order after a change,
+  // so steps show only under the heading of the band they belong to.
+  const shownMenu = currentMenu?.band === currentBand.data ? currentMenu : null;
+  const paidLink = shownMenu && "paidLink" in shownMenu ? shownMenu.paidLink : undefined;
   const isBusy =
     isPreparingPhoto ||
     record.isPending ||
@@ -478,28 +481,28 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
                 A short menu to read at your pace. These are not a treatment plan.
               </p>
 
-              {menu.isLoading ? (
-                <div className="mt-6 space-y-3" role="status" aria-label="Loading next steps">
-                  <div className="h-4 animate-pulse rounded bg-muted motion-reduce:animate-none" />
-                  <div className="h-4 w-4/5 animate-pulse rounded bg-muted motion-reduce:animate-none" />
-                </div>
-              ) : menu.isError ? (
+              {menu.isError ? (
                 <div role="alert" className="mt-5 rounded-xl bg-destructive/10 p-4 text-sm text-destructive">
                   <p>We could not load your next steps.</p>
                   <Button variant="outline" size="sm" className="mt-3" onClick={() => menu.refetch()}>
                     Try again
                   </Button>
                 </div>
-              ) : currentMenu ? (
+              ) : !shownMenu ? (
+                <div className="mt-6 space-y-3" role="status" aria-label="Loading next steps">
+                  <div className="h-4 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+                  <div className="h-4 w-4/5 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+                </div>
+              ) : (
                 <ol className="mt-6 space-y-4">
-                  {currentMenu.steps.map((step) => (
+                  {shownMenu.steps.map((step) => (
                     <li key={step} className="flex gap-3 text-sm leading-6">
                       <Check aria-hidden="true" className="mt-1 size-4 shrink-0 text-primary" />
                       <span>{step}</span>
                     </li>
                   ))}
                 </ol>
-              ) : null}
+              )}
 
               {paidLink ? (
                 <p className="mt-6 border-t border-border/70 pt-4 text-sm leading-6">

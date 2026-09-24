@@ -34,11 +34,13 @@ This project uses PostgreSQL with Drizzle ORM.
 1. Make sure you have a PostgreSQL database set up.
 2. Update your `apps/server/.env` file with your PostgreSQL connection details.
 
-3. Apply the schema to your database:
+3. Apply the committed migrations to your database:
 
 ```bash
-pnpm run db:push
+pnpm run db:migrate
 ```
+
+Schema changes ship as reviewed migrations in `packages/db/src/migrations`. After editing `packages/db/src/schema`, run `pnpm run db:generate`, review the generated SQL, and commit it with the schema change. Tests build their database from the same migrations. `db:push` is only for throwaway databases: a database created with it has no migration history, so `db:migrate` cannot upgrade it until it is recreated from the migrations.
 
 Then, run the development server:
 
@@ -141,9 +143,9 @@ seenmark/
 - `pnpm run dev:server`: Start only the server
 - `pnpm run check-types`: Check TypeScript types across all apps
 - `pnpm run dev:native`: Start the React Native/Expo development server
-- `pnpm run db:push`: Push schema changes to database
-- `pnpm run db:generate`: Generate database client/types
-- `pnpm run db:migrate`: Run database migrations
+- `pnpm run db:migrate`: Apply committed migrations to the database
+- `pnpm run db:generate`: Generate a migration from schema changes
+- `pnpm run db:push`: Push the schema to a throwaway database without a migration
 - `pnpm run db:studio`: Open database studio UI
 - `pnpm run check`: Run Biome formatting and linting
 - `pnpm run deploy:setup`: Link this repo to a Vercel project (first-time setup)

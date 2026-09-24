@@ -18,6 +18,6 @@ export default async function DashboardPage() {
   }
 
   return (
-    <Dashboard session={session} />
+    <Dashboard key={session.user.id} session={session} />
   );
 }

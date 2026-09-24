@@ -4,6 +4,7 @@ import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
 import { toast } from "sonner";
 
+import { createMemberCacheClaim } from "@/lib/member-session";
 import { resolveServerUrl } from "@/lib/server-url";
 
 export const queryClient = new QueryClient({
@@ -20,6 +21,8 @@ export const queryClient = new QueryClient({
     },
   }),
 });
+
+export const claimMemberCache = createMemberCacheClaim(queryClient);
 
 const trpcClient = createTRPCClient<AppRouter>({
   links: [

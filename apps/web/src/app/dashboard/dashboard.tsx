@@ -11,7 +11,7 @@ import { useState, type ChangeEvent } from "react";
 
 import { authClient } from "@/lib/auth-client";
 import { forgetMemberData } from "@/lib/member-session";
-import { queryClient, trpc } from "@/utils/trpc";
+import { claimMemberCache, queryClient, trpc } from "@/utils/trpc";
 
 type Band = "early" | "mid" | "late";
 type CheckIn = {
@@ -106,6 +106,8 @@ async function invalidateMemberLoop() {
 }
 
 export default function Dashboard({ session }: { session: typeof authClient.$Infer.Session }) {
+  // Before any read below, so a previous member's cached reads are never shown.
+  claimMemberCache(session.user.id);
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [accountError, setAccountError] = useState<string | null>(null);

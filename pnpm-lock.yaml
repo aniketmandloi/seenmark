@@ -483,9 +483,6 @@ importers:
       '@seenmark/config':
         specifier: workspace:*
         version: link:../config
-      drizzle-kit:
-        specifier: 1.0.0-rc.4
-        version: 1.0.0-rc.4
       typescript:
         specifier: ^6.0.3
         version: 6.0.3

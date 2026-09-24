@@ -1,23 +1,11 @@
 import { PGlite } from "@electric-sql/pglite";
 import { createAuth } from "@seenmark/auth";
 import type { Database } from "@seenmark/db";
-import * as authSchema from "@seenmark/db/schema/auth";
-import * as checkInSchema from "@seenmark/db/schema/check-in";
-import * as introductionSchema from "@seenmark/db/schema/introduction";
-import * as memberSchema from "@seenmark/db/schema/member";
-import * as scoreSchema from "@seenmark/db/schema/score";
-import { pushSchema } from "drizzle-kit/api-postgres";
+import { migrationsFolder } from "@seenmark/db/migrations-folder";
 import { drizzle } from "drizzle-orm/pglite";
+import { migrate } from "drizzle-orm/pglite/migrator";
 
 import { appRouter } from "./routers/index";
-
-const schema = {
-	...authSchema,
-	...memberSchema,
-	...checkInSchema,
-	...introductionSchema,
-	...scoreSchema,
-};
 
 const authEnv = {
 	BETTER_AUTH_URL: "http://localhost:3000",
@@ -34,8 +22,7 @@ export async function openTestDatabase(): Promise<{
 }> {
 	const client = new PGlite();
 	const db = drizzle({ client });
-	const push = await pushSchema(schema, db);
-	await push.apply();
+	await migrate(db, { migrationsFolder });
 	const auth = createAuth(authEnv, db);
 	return { client, db, auth };
 }

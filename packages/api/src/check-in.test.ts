@@ -404,3 +404,36 @@ test("a check-in must be a readable JPEG, PNG, or WebP photo within the size lim
 
 	expect(await memberCaller.checkIn.list()).toEqual([]);
 });
+
+test("history and the reminder read through the member and time index", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const opened = await publicCaller.member.openAccount({
+		name: "Max Member",
+		email: "max@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	const memberCaller = createMemberCaller(db, auth, {
+		userId: opened.id,
+		name: "Max Member",
+		email: "max@example.com",
+	});
+	await memberCaller.checkIn.record({
+		imageBase64: testPhoto("max"),
+		mediaType: "image/png",
+		takenAt: "2024-09-01T10:00:00.000Z",
+	});
+
+	// A handful of rows is cheapest to scan, so rule that out to see whether the
+	// index fits these reads at all.
+	await client.exec("SET enable_seqscan = off");
+	await memberCaller.checkIn.list();
+	await memberCaller.checkIn.reminder();
+	await client.query("SELECT pg_stat_force_next_flush()");
+
+	const scans = await client.query<{ idx_scan: number }>(
+		"SELECT idx_scan FROM pg_stat_user_indexes WHERE indexrelname = 'check_in_member_taken_at_idx'",
+	);
+	expect(Number(scans.rows[0]?.idx_scan)).toBe(2);
+});

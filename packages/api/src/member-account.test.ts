@@ -198,3 +198,80 @@ test("deleting the account removes the member record", async () => {
 		affirmedInUnitedStates: true,
 	});
 });
+
+test("an account whose onboarding stopped before the member record is finished by opening it again", async () => {
+	const interrupted = await auth.api.signUpEmail({
+		body: {
+			name: "Harper Member",
+			email: "harper@example.com",
+			password: "password123",
+		},
+	});
+	const caller = createMemberCaller(db, auth, {
+		userId: interrupted.user.id,
+		name: "Harper Member",
+		email: "harper@example.com",
+	});
+	await expect(caller.member.current()).rejects.toMatchObject({
+		code: "FORBIDDEN",
+	});
+
+	const publicCaller = createPublicCaller(db, auth);
+	const reopened = await publicCaller.member.openAccount({
+		name: "Harper Member",
+		email: "Harper@Example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+
+	expect(reopened.id).toBe(interrupted.user.id);
+	expect(await caller.member.current()).toEqual({
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+});
+
+test("an unfinished account is not finished without its password", async () => {
+	const interrupted = await auth.api.signUpEmail({
+		body: {
+			name: "Iris Member",
+			email: "iris@example.com",
+			password: "password123",
+		},
+	});
+
+	const publicCaller = createPublicCaller(db, auth);
+	await expect(
+		publicCaller.member.openAccount({
+			name: "Iris Member",
+			email: "iris@example.com",
+			password: "not-the-password",
+			affirmedAtLeast18: true,
+			affirmedInUnitedStates: true,
+		}),
+	).rejects.toThrow();
+
+	const caller = createMemberCaller(db, auth, {
+		userId: interrupted.user.id,
+		name: "Iris Member",
+		email: "iris@example.com",
+	});
+	await expect(caller.member.current()).rejects.toMatchObject({
+		code: "FORBIDDEN",
+	});
+});
+
+test("opening an account that is already finished is refused", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const input = {
+		name: "Jules Member",
+		email: "jules@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	};
+	await publicCaller.member.openAccount(input);
+
+	await expect(publicCaller.member.openAccount(input)).rejects.toThrow();
+});

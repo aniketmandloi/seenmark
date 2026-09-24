@@ -1,10 +1,48 @@
-import { user } from "@seenmark/db/schema/auth";
+import { account, user } from "@seenmark/db/schema/auth";
 import { member } from "@seenmark/db/schema/member";
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { memberProcedure, publicProcedure, router } from "../index";
+import type { Context } from "../context";
+import {
+	memberProcedure,
+	protectedProcedure,
+	publicProcedure,
+	router,
+} from "../index";
+
+/**
+ * The auth account is written before the member row, so onboarding can stop
+ * between them. Whoever knows that account's password can finish it.
+ */
+async function findUnfinishedAccount(
+	ctx: Context,
+	email: string,
+	password: string,
+): Promise<string | null> {
+	const [found] = await ctx.db
+		.select({ id: user.id, memberId: member.id, hash: account.password })
+		.from(user)
+		.leftJoin(member, eq(member.id, user.id))
+		.innerJoin(
+			account,
+			and(eq(account.userId, user.id), eq(account.providerId, "credential")),
+		)
+		.where(eq(user.email, email.toLowerCase()))
+		.limit(1);
+
+	if (!found || found.memberId !== null || !found.hash) {
+		return null;
+	}
+
+	const authContext = await ctx.auth.$context;
+	const matches = await authContext.password.verify({
+		hash: found.hash,
+		password,
+	});
+	return matches ? found.id : null;
+}
 
 export const memberRouter = router({
 	openAccount: publicProcedure
@@ -25,27 +63,56 @@ export const memberRouter = router({
 				});
 			}
 
-			const result = await ctx.auth.api.signUpEmail({
-				body: {
-					name: input.name,
-					email: input.email,
-					password: input.password,
-				},
-			});
+			if (!ctx.signUpLimit.admit(ctx.clientAddress ?? "unknown")) {
+				throw new TRPCError({
+					code: "TOO_MANY_REQUESTS",
+					message: "Too many attempts. Try again in a few seconds.",
+				});
+			}
+
+			let userId: string;
+			let resumed = false;
+			try {
+				const result = await ctx.auth.api.signUpEmail({
+					body: {
+						name: input.name,
+						email: input.email,
+						password: input.password,
+					},
+				});
+				userId = result.user.id;
+			} catch (cause) {
+				const unfinished = await findUnfinishedAccount(
+					ctx,
+					input.email,
+					input.password,
+				);
+				if (!unfinished) {
+					throw cause;
+				}
+				userId = unfinished;
+				resumed = true;
+			}
 
 			try {
-				await ctx.db.insert(member).values({
-					id: result.user.id,
-					affirmedAtLeast18: true,
-					affirmedInUnitedStates: true,
-				});
+				await ctx.db
+					.insert(member)
+					.values({
+						id: userId,
+						affirmedAtLeast18: true,
+						affirmedInUnitedStates: true,
+					})
+					.onConflictDoNothing();
 			} catch (cause) {
-				await ctx.db.delete(user).where(eq(user.id, result.user.id));
+				// A resumed account stays in place so it can be finished again.
+				if (!resumed) {
+					await ctx.db.delete(user).where(eq(user.id, userId));
+				}
 				throw cause;
 			}
 
 			return {
-				id: result.user.id,
+				id: userId,
 				affirmedAtLeast18: true as const,
 				affirmedInUnitedStates: true as const,
 			};
@@ -58,7 +125,8 @@ export const memberRouter = router({
 		};
 	}),
 
-	deleteAccount: memberProcedure.mutation(async ({ ctx }) => {
+	// Signed in is enough: an account whose onboarding never finished can still be removed.
+	deleteAccount: protectedProcedure.mutation(async ({ ctx }) => {
 		await ctx.db.delete(user).where(eq(user.id, ctx.session.user.id));
 		return { ok: true as const };
 	}),

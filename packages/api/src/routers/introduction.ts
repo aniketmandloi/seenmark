@@ -1,7 +1,7 @@
 import { introduction } from "@seenmark/db/schema/introduction";
 import { score } from "@seenmark/db/schema/score";
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
 import { memberProcedure, router } from "../index";
 
@@ -30,36 +30,38 @@ export const introductionRouter = router({
 	}),
 
 	file: memberProcedure.mutation(async ({ ctx }) => {
-		const [band] = await ctx.db
-			.select({ band: score.band })
-			.from(score)
-			.where(eq(score.memberId, ctx.member.id))
-			.limit(1);
+		// One statement files only from a late score, so a band change cannot slip in
+		// between the check and the write. The no-op update makes the insert return
+		// the first request when one exists, so a retry gets the same answer.
+		const [filed] = await ctx.db
+			.insert(introduction)
+			.select(
+				ctx.db
+					.select({
+						memberId: score.memberId,
+						filedAt: sql<Date>`${ctx.now().toISOString()}::timestamp`.as(
+							"filed_at",
+						),
+					})
+					.from(score)
+					.where(
+						and(eq(score.memberId, ctx.member.id), eq(score.band, "late")),
+					),
+			)
+			.onConflictDoUpdate({
+				target: introduction.memberId,
+				set: { filedAt: sql`${introduction.filedAt}` },
+			})
+			.returning();
 
-		if (band?.band !== "late") {
+		if (!filed) {
 			throw new TRPCError({
 				code: "BAD_REQUEST",
 				message: "An introduction can be filed only on the late band",
 			});
 		}
 
-		const [existing] = await ctx.db
-			.select()
-			.from(introduction)
-			.where(eq(introduction.memberId, ctx.member.id))
-			.limit(1);
-
-		if (existing) {
-			return toIntroduction(existing.memberId, existing.filedAt);
-		}
-
-		const filedAt = ctx.now();
-		await ctx.db.insert(introduction).values({
-			memberId: ctx.member.id,
-			filedAt,
-		});
-
-		return toIntroduction(ctx.member.id, filedAt);
+		return toIntroduction(filed.memberId, filed.filedAt);
 	}),
 
 	delete: memberProcedure.mutation(async ({ ctx }) => {

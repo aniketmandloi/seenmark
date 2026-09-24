@@ -10,7 +10,7 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "check-types": "turbo run check-types",
-    "test": "pnpm --filter @seenmark/api test",
+    "test": "turbo run test",
     "dev:native": "turbo run dev -F native --",
     "dev:web": "turbo run dev -F web --",
     "dev:server": "turbo run dev -F server --",
@@ -28,7 +28,9 @@
     "env:generate": "varlock codegen --path ./apps/web/ && varlock codegen --path ./apps/server/ && varlock codegen --path ./apps/native/ && varlock codegen --path ./packages/db/",
     "postinstall": "varlock codegen --path ./apps/web/ && varlock codegen --path ./apps/server/ && varlock codegen --path ./apps/native/ && varlock codegen --path ./packages/db/",
     "auth:generate": "cd apps/server && pnpm run auth:generate",
-    "check": "biome check --write ."
+    "check": "biome check .",
+    "fix": "biome check --write .",
+    "verify": "pnpm run check && pnpm run check-types && pnpm run test"
   },
   "dependencies": {
     "zod": "catalog:"

@@ -1,18 +1,13 @@
 import { drizzleAdapter } from "@better-auth/drizzle-adapter/relations-v2";
 import { expo } from "@better-auth/expo";
-import { checkout, polar, portal } from "@polar-sh/better-auth";
 import type { Database } from "@seenmark/db";
 import * as schema from "@seenmark/db/schema/auth";
 import { betterAuth } from "better-auth";
-
-import { createPolarClient } from "./lib/payments";
 
 export type AuthConfig = {
 	BETTER_AUTH_URL: string;
 	BETTER_AUTH_SECRET: string;
 	CORS_ORIGIN: string;
-	POLAR_ACCESS_TOKEN: string;
-	POLAR_SUCCESS_URL: string;
 };
 
 export function createAuth(
@@ -33,6 +28,9 @@ export function createAuth(
 			"http://localhost:8081",
 		],
 		emailAndPassword: { enabled: true },
+		// Accounts open only through member.openAccount, which records the
+		// affirmations; the raw route would create an account with no member.
+		disabledPaths: ["/sign-up/email"],
 		secret: env.BETTER_AUTH_SECRET,
 		baseURL: env.BETTER_AUTH_URL,
 		advanced: {
@@ -42,21 +40,7 @@ export function createAuth(
 				httpOnly: true,
 			},
 		},
-		plugins: [
-			polar({
-				client: createPolarClient(env),
-				createCustomerOnSignUp: false,
-				use: [
-					checkout({
-						products: [{ productId: "your-product-id", slug: "pro" }],
-						successUrl: env.POLAR_SUCCESS_URL,
-						authenticatedUsersOnly: true,
-					}),
-					portal(),
-				],
-			}),
-			expo(),
-		],
+		plugins: [expo()],
 	});
 }
 

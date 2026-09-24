@@ -1,6 +1,8 @@
 import type { PGlite } from "@electric-sql/pglite";
 import type { Database } from "@seenmark/db";
+import { checkIn } from "@seenmark/db/schema/check-in";
 import * as memberSchema from "@seenmark/db/schema/member";
+import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, expect, test } from "vitest";
 
 import {
@@ -8,6 +10,7 @@ import {
 	createPublicCaller,
 	openTestDatabase,
 	type TestAuth,
+	testPhoto,
 } from "./test-harness";
 
 let client: PGlite;
@@ -64,7 +67,7 @@ test("the stored score is the band the member submitted", async () => {
 	});
 
 	await memberCaller.checkIn.record({
-		imageBase64: "aGFpcmxpbmU=",
+		imageBase64: testPhoto("aGFpcmxpbmU="),
 		mediaType: "image/png",
 		takenAt: "2024-03-15T10:00:00.000Z",
 	});
@@ -95,12 +98,12 @@ test("deleting the last check-in clears the score; deleting an earlier one does 
 	});
 
 	const older = await memberCaller.checkIn.record({
-		imageBase64: "b2xkZXI=",
+		imageBase64: testPhoto("b2xkZXI="),
 		mediaType: "image/png",
 		takenAt: "2024-03-10T08:00:00.000Z",
 	});
 	const newer = await memberCaller.checkIn.record({
-		imageBase64: "bmV3ZXI=",
+		imageBase64: testPhoto("bmV3ZXI="),
 		mediaType: "image/png",
 		takenAt: "2024-03-25T18:30:00.000Z",
 	});
@@ -144,7 +147,7 @@ test("another member, a signed-out caller, and a caller missing an affirmation c
 	});
 
 	await firstCaller.checkIn.record({
-		imageBase64: "ZHJldw==",
+		imageBase64: testPhoto("ZHJldw=="),
 		mediaType: "image/png",
 		takenAt: "2024-05-01T12:00:00.000Z",
 	});
@@ -217,7 +220,7 @@ test("deleting the account removes the score", async () => {
 	});
 
 	await memberCaller.checkIn.record({
-		imageBase64: "aGFycGVy",
+		imageBase64: testPhoto("aGFycGVy"),
 		mediaType: "image/png",
 		takenAt: "2024-07-01T10:00:00.000Z",
 	});
@@ -243,4 +246,36 @@ test("deleting the account removes the score", async () => {
 		email: "iris@example.com",
 	});
 	expect(await otherCaller.score.current()).toBe(null);
+});
+
+test("the score goes with the last check-in however that check-in is deleted", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const opened = await publicCaller.member.openAccount({
+		name: "Jules Member",
+		email: "jules@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	const memberCaller = createMemberCaller(db, auth, {
+		userId: opened.id,
+		name: "Jules Member",
+		email: "jules@example.com",
+	});
+
+	await memberCaller.checkIn.record({
+		imageBase64: testPhoto("first"),
+		mediaType: "image/png",
+		takenAt: "2024-03-10T08:00:00.000Z",
+	});
+	await memberCaller.checkIn.record({
+		imageBase64: testPhoto("second"),
+		mediaType: "image/png",
+		takenAt: "2024-03-25T18:30:00.000Z",
+	});
+	await memberCaller.score.choose("mid");
+
+	await db.delete(checkIn).where(eq(checkIn.memberId, opened.id));
+
+	expect(await memberCaller.score.current()).toBe(null);
 });

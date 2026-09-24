@@ -36,7 +36,7 @@ export default function CheckInsScreen() {
 		<FormScreen
 			onRefresh={loop.refresh}
 			primaryAction={
-				loop.isEmpty || actions.cameraDenied
+				loop.isEmpty
 					? undefined
 					: {
 							label: "Take check-in",
@@ -69,12 +69,26 @@ export default function CheckInsScreen() {
 					title="Camera access"
 					footer="Photos cannot be imported from your library."
 				>
-					<FormText>Camera access is needed for a check-in.</FormText>
+					<FormText>
+						Camera access is needed for a check-in. After allowing it in
+						settings, take the check-in again.
+					</FormText>
 					<FormButton
 						label="Open device settings"
 						icon="external"
 						onPress={() => void Linking.openSettings()}
 					/>
+				</FormSection>
+			) : null}
+
+			{loop.loadFailed ? (
+				<FormSection footer="Nothing was changed. Pull down or try again.">
+					<FormRow
+						icon="error"
+						title="Your check-ins could not load."
+						tone="destructive"
+					/>
+					<FormButton label="Try again" onPress={() => void loop.refresh()} />
 				</FormSection>
 			) : null}
 
@@ -88,7 +102,7 @@ export default function CheckInsScreen() {
 				</FormSection>
 			) : null}
 
-			{loop.isEmpty && !actions.cameraDenied ? (
+			{loop.isEmpty ? (
 				<>
 					<FormEmptyState
 						icon="camera"
@@ -114,11 +128,17 @@ export default function CheckInsScreen() {
 					}
 				>
 					{latest.some((photo) => photo.isError) ? (
-						<FormRow
-							icon="error"
-							title="Your photos could not load."
-							tone="destructive"
-						/>
+						<>
+							<FormRow
+								icon="error"
+								title="Your photos could not load."
+								tone="destructive"
+							/>
+							<FormButton
+								label="Try again"
+								onPress={() => void loop.refresh()}
+							/>
+						</>
 					) : latestPhotos.length === latest.length ? (
 						<FormPhotos
 							photos={latestPhotos.map((photo, index) => ({
@@ -151,13 +171,15 @@ export default function CheckInsScreen() {
 				</FormSection>
 			) : null}
 
-			{loop.band ? (
+			{loop.band || loop.hasIntroduction ? (
 				<FormSection>
 					<FormRow
 						icon="steps"
 						title="Next steps"
 						subtitle={
-							bandLabel ? `For the ${bandLabel.toLowerCase()} band` : undefined
+							bandLabel
+								? `For the ${bandLabel.toLowerCase()} band`
+								: "Your introduction request"
 						}
 						showsChevron
 						onPress={() => router.push("/next-steps")}
@@ -185,6 +207,15 @@ export default function CheckInsScreen() {
 							}
 						/>
 					))}
+					{loop.hasEarlier ? (
+						<FormButton
+							label={
+								loop.isLoadingEarlier ? "Loading…" : "Show earlier check-ins"
+							}
+							onPress={loop.loadEarlier}
+							disabled={loop.isLoadingEarlier}
+						/>
+					) : null}
 				</FormSection>
 			) : null}
 		</FormScreen>

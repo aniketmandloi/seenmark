@@ -1,10 +1,16 @@
 import { checkIn } from "@seenmark/db/schema/check-in";
-import { score } from "@seenmark/db/schema/score";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, ne, notExists } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
+import { HISTORY_PAGE_SIZE } from "../history";
 import { memberProcedure, router } from "../index";
+import {
+	isBase64,
+	MAX_PHOTO_BASE64_LENGTH,
+	PHOTO_MEDIA_TYPES,
+	sniffPhotoType,
+} from "../photo";
 
 function decodeBase64(value: string): Uint8Array {
 	const binary = atob(value);
@@ -27,19 +33,31 @@ export const checkInRouter = router({
 	record: memberProcedure
 		.input(
 			z.object({
-				imageBase64: z.string().min(1),
-				mediaType: z.string().regex(/^image\//),
+				imageBase64: z
+					.string()
+					.min(1)
+					.max(MAX_PHOTO_BASE64_LENGTH, "This photo is too large")
+					.refine(isBase64, "This photo could not be read"),
+				mediaType: z.enum(PHOTO_MEDIA_TYPES),
 				takenAt: z.string().datetime(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
+			const imageBytes = decodeBase64(input.imageBase64);
+			if (sniffPhotoType(imageBytes) !== input.mediaType) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "This photo is not a JPEG, PNG, or WebP image",
+				});
+			}
+
 			const id = crypto.randomUUID();
 			const takenAt = new Date(input.takenAt);
 
 			await ctx.db.insert(checkIn).values({
 				id,
 				memberId: ctx.member.id,
-				imageBytes: decodeBase64(input.imageBase64),
+				imageBytes,
 				mediaType: input.mediaType,
 				takenAt,
 			});
@@ -50,18 +68,40 @@ export const checkInRouter = router({
 			};
 		}),
 
-	list: memberProcedure.query(async ({ ctx }) => {
-		const rows = await ctx.db
-			.select({ id: checkIn.id, takenAt: checkIn.takenAt })
-			.from(checkIn)
-			.where(eq(checkIn.memberId, ctx.member.id))
-			.orderBy(desc(checkIn.takenAt));
+	list: memberProcedure
+		.input(
+			z
+				.object({
+					limit: z.number().int().min(1).max(100).optional(),
+					cursor: z
+						.object({ takenAt: z.string().datetime(), id: z.string().min(1) })
+						.nullish(),
+				})
+				.optional(),
+		)
+		.query(async ({ input, ctx }) => {
+			const cursor = input?.cursor;
+			// The id breaks ties between check-ins taken at the same instant, so pages
+			// never repeat or skip one.
+			const rows = await ctx.db
+				.select({ id: checkIn.id, takenAt: checkIn.takenAt })
+				.from(checkIn)
+				.where(
+					and(
+						eq(checkIn.memberId, ctx.member.id),
+						cursor
+							? sql`(${checkIn.takenAt}, ${checkIn.id}) < (${cursor.takenAt}::timestamp, ${cursor.id})`
+							: undefined,
+					),
+				)
+				.orderBy(desc(checkIn.takenAt), desc(checkIn.id))
+				.limit(input?.limit ?? HISTORY_PAGE_SIZE);
 
-		return rows.map((row) => ({
-			id: row.id,
-			takenAt: row.takenAt.toISOString(),
-		}));
-	}),
+			return rows.map((row) => ({
+				id: row.id,
+				takenAt: row.takenAt.toISOString(),
+			}));
+		}),
 
 	photo: memberProcedure
 		.input(z.object({ id: z.string().min(1) }))
@@ -117,35 +157,11 @@ export const checkInRouter = router({
 	delete: memberProcedure
 		.input(z.object({ id: z.string().min(1) }))
 		.mutation(async ({ input, ctx }) => {
-			const removed = ctx.db.$with("removed").as(
-				ctx.db
-					.delete(checkIn)
-					.where(
-						and(eq(checkIn.id, input.id), eq(checkIn.memberId, ctx.member.id)),
-					)
-					.returning({ id: checkIn.id }),
-			);
-
-			// One statement, so the score is never left without a check-in. Both deletes
-			// read the same snapshot, so the remaining check-ins must exclude this one.
+			// The check_in_forgets_score trigger clears the score with the last check-in.
 			await ctx.db
-				.with(removed)
-				.delete(score)
+				.delete(checkIn)
 				.where(
-					and(
-						eq(score.memberId, ctx.member.id),
-						notExists(
-							ctx.db
-								.select({ id: checkIn.id })
-								.from(checkIn)
-								.where(
-									and(
-										eq(checkIn.memberId, ctx.member.id),
-										ne(checkIn.id, input.id),
-									),
-								),
-						),
-					),
+					and(eq(checkIn.id, input.id), eq(checkIn.memberId, ctx.member.id)),
 				);
 
 			return { ok: true as const };

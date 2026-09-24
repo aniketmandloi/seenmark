@@ -13,6 +13,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { authClient } from "@/lib/auth-client";
 import { NAV_THEME } from "@/lib/constants";
+import { claimMemberCache } from "@/lib/member-session";
+import { connectQueryLifecycle } from "@/lib/query-lifecycle";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { queryClient } from "@/utils/trpc";
 
@@ -27,11 +29,14 @@ const DARK_THEME = {
 
 // Held until the stored session is read, so a signed-in member never sees the welcome screen flash.
 void SplashScreen.preventAutoHideAsync();
+connectQueryLifecycle();
 
 export default function RootLayout() {
 	const { isDarkColorScheme } = useColorScheme();
 	const { data: session, isPending } = authClient.useSession();
 	const isSignedIn = Boolean(session?.user);
+	// Before the member screens render, so none reads a previous member's cache.
+	if (!isPending) claimMemberCache(session?.user.id ?? null);
 
 	useEffect(() => {
 		if (!isPending) SplashScreen.hide();

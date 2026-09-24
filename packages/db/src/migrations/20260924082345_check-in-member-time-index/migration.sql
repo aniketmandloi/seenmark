@@ -1,0 +1,1 @@
+CREATE INDEX "check_in_member_taken_at_idx" ON "check_in" ("member_id","taken_at","id");

@@ -40,7 +40,9 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
           affirmedInUnitedStates: value.affirmedInUnitedStates,
         });
       } catch (cause) {
-        setErrorMessage(cause instanceof Error ? cause.message : "We could not create your account.");
+        setErrorMessage(
+          cause instanceof Error ? cause.message : "We could not create your account.",
+        );
         return;
       }
 
@@ -77,8 +79,8 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
   return (
     <div>
       <div className="mb-7">
-        <h2 className="text-2xl font-semibold tracking-[-0.04em]">Create your account</h2>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+        <h2 className="font-semibold text-2xl tracking-[-0.04em]">Create your account</h2>
+        <p className="mt-2 text-muted-foreground text-sm leading-6">
           Your check-ins stay private to you.
         </p>
       </div>
@@ -92,7 +94,10 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
         className="space-y-4"
       >
         {errorMessage ? (
-          <p role="alert" className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <p
+            role="alert"
+            className="rounded-xl bg-destructive/10 px-4 py-3 text-destructive text-sm"
+          >
             {errorMessage}
           </p>
         ) : null}
@@ -100,7 +105,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
         <form.Field name="name">
           {(field) => (
             <div className="space-y-2">
-              <Label htmlFor={field.name} className="text-sm font-medium">
+              <Label htmlFor={field.name} className="font-medium text-sm">
                 Name
               </Label>
               <Input
@@ -114,7 +119,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
                 aria-invalid={field.state.meta.errors.length > 0}
               />
               {field.state.meta.errors.map((error) => (
-                <p key={error?.message} className="text-sm text-destructive">
+                <p key={error?.message} className="text-destructive text-sm">
                   {error?.message}
                 </p>
               ))}
@@ -125,7 +130,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
         <form.Field name="email">
           {(field) => (
             <div className="space-y-2">
-              <Label htmlFor={field.name} className="text-sm font-medium">
+              <Label htmlFor={field.name} className="font-medium text-sm">
                 Email
               </Label>
               <Input
@@ -141,7 +146,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
                 aria-invalid={field.state.meta.errors.length > 0}
               />
               {field.state.meta.errors.map((error) => (
-                <p key={error?.message} className="text-sm text-destructive">
+                <p key={error?.message} className="text-destructive text-sm">
                   {error?.message}
                 </p>
               ))}
@@ -152,7 +157,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
         <form.Field name="password">
           {(field) => (
             <div className="space-y-2">
-              <Label htmlFor={field.name} className="text-sm font-medium">
+              <Label htmlFor={field.name} className="font-medium text-sm">
                 Password
               </Label>
               <Input
@@ -166,9 +171,9 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
                 onChange={(event) => field.handleChange(event.target.value)}
                 aria-invalid={field.state.meta.errors.length > 0}
               />
-              <p className="text-xs text-muted-foreground">At least 8 characters.</p>
+              <p className="text-muted-foreground text-xs">At least 8 characters.</p>
               {field.state.meta.errors.map((error) => (
-                <p key={error?.message} className="text-sm text-destructive">
+                <p key={error?.message} className="text-destructive text-sm">
                   {error?.message}
                 </p>
               ))}
@@ -176,7 +181,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
           )}
         </form.Field>
 
-        <div className="space-y-3 border-t border-border/70 pt-4">
+        <div className="space-y-3 border-border/70 border-t pt-4">
           <form.Field name="affirmedAtLeast18">
             {(field) => (
               <div className="flex items-start gap-3">
@@ -186,7 +191,10 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
                   onCheckedChange={(checked) => field.handleChange(checked === true)}
                   aria-invalid={field.state.meta.errors.length > 0}
                 />
-                <Label htmlFor={field.name} className="cursor-pointer text-sm leading-5 text-muted-foreground">
+                <Label
+                  htmlFor={field.name}
+                  className="cursor-pointer text-muted-foreground text-sm leading-5"
+                >
                   I confirm that I am 18 or older.
                 </Label>
               </div>
@@ -202,7 +210,10 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
                   onCheckedChange={(checked) => field.handleChange(checked === true)}
                   aria-invalid={field.state.meta.errors.length > 0}
                 />
-                <Label htmlFor={field.name} className="cursor-pointer text-sm leading-5 text-muted-foreground">
+                <Label
+                  htmlFor={field.name}
+                  className="cursor-pointer text-muted-foreground text-sm leading-5"
+                >
                   I confirm that I live in the United States.
                 </Label>
               </div>
@@ -221,13 +232,13 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
         </form.Subscribe>
       </form>
 
-      <div className="mt-6 border-t border-border/70 pt-5 text-center">
-        <p className="text-sm text-muted-foreground">Already have an account?</p>
+      <div className="mt-6 border-border/70 border-t pt-5 text-center">
+        <p className="text-muted-foreground text-sm">Already have an account?</p>
         <Button
           type="button"
           variant="link"
           onClick={onSwitchToSignIn}
-          className="mt-1 h-auto px-2 py-1 text-sm font-semibold"
+          className="mt-1 h-auto px-2 py-1 font-semibold text-sm"
         >
           Sign in
         </Button>

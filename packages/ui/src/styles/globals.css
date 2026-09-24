@@ -154,6 +154,7 @@
     scroll-behavior: auto;
   }
 
+  /* biome-ignore-start lint/complexity/noImportantStyles: reduced motion has to override every component's own transitions and animations. */
   *,
   *::before,
   *::after {
@@ -162,4 +163,5 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+  /* biome-ignore-end lint/complexity/noImportantStyles: reduced motion has to override every component's own transitions and animations. */
 }

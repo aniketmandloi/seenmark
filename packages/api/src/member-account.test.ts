@@ -1,8 +1,11 @@
 import type { PGlite } from "@electric-sql/pglite";
 import type { Database } from "@seenmark/db";
+import * as authSchema from "@seenmark/db/schema/auth";
 import * as memberSchema from "@seenmark/db/schema/member";
+import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, expect, test } from "vitest";
 
+import { createSignUpLimit } from "./sign-up-limit";
 import {
 	createMemberCaller,
 	createPublicCaller,
@@ -101,7 +104,7 @@ test("a signed-out caller is refused by the member-loop gate", async () => {
 	});
 });
 
-test("a session without a member row is refused by the member-loop gate", async () => {
+test("a session without a member row is refused by the member-loop gate but can delete itself", async () => {
 	const authUser = await auth.api.signUpEmail({
 		body: {
 			name: "Drew Auth-Only",
@@ -119,9 +122,13 @@ test("a session without a member row is refused by the member-loop gate", async 
 	await expect(caller.member.current()).rejects.toMatchObject({
 		code: "FORBIDDEN",
 	});
-	await expect(caller.member.deleteAccount()).rejects.toMatchObject({
-		code: "FORBIDDEN",
-	});
+	expect(await caller.member.deleteAccount()).toEqual({ ok: true });
+
+	const remaining = await db
+		.select({ id: authSchema.user.id })
+		.from(authSchema.user)
+		.where(eq(authSchema.user.id, authUser.user.id));
+	expect(remaining).toEqual([]);
 });
 
 test("a caller missing either affirmation is refused", async () => {
@@ -197,4 +204,106 @@ test("deleting the account removes the member record", async () => {
 		affirmedAtLeast18: true,
 		affirmedInUnitedStates: true,
 	});
+});
+
+test("an account whose onboarding stopped before the member record is finished by opening it again", async () => {
+	const interrupted = await auth.api.signUpEmail({
+		body: {
+			name: "Harper Member",
+			email: "harper@example.com",
+			password: "password123",
+		},
+	});
+	const caller = createMemberCaller(db, auth, {
+		userId: interrupted.user.id,
+		name: "Harper Member",
+		email: "harper@example.com",
+	});
+	await expect(caller.member.current()).rejects.toMatchObject({
+		code: "FORBIDDEN",
+	});
+
+	const publicCaller = createPublicCaller(db, auth);
+	const reopened = await publicCaller.member.openAccount({
+		name: "Harper Member",
+		email: "Harper@Example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+
+	expect(reopened.id).toBe(interrupted.user.id);
+	expect(await caller.member.current()).toEqual({
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+});
+
+test("an unfinished account is not finished without its password", async () => {
+	const interrupted = await auth.api.signUpEmail({
+		body: {
+			name: "Iris Member",
+			email: "iris@example.com",
+			password: "password123",
+		},
+	});
+
+	const publicCaller = createPublicCaller(db, auth);
+	await expect(
+		publicCaller.member.openAccount({
+			name: "Iris Member",
+			email: "iris@example.com",
+			password: "not-the-password",
+			affirmedAtLeast18: true,
+			affirmedInUnitedStates: true,
+		}),
+	).rejects.toThrow();
+
+	const caller = createMemberCaller(db, auth, {
+		userId: interrupted.user.id,
+		name: "Iris Member",
+		email: "iris@example.com",
+	});
+	await expect(caller.member.current()).rejects.toMatchObject({
+		code: "FORBIDDEN",
+	});
+});
+
+test("opening an account that is already finished is refused", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const input = {
+		name: "Jules Member",
+		email: "jules@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	};
+	await publicCaller.member.openAccount(input);
+
+	await expect(publicCaller.member.openAccount(input)).rejects.toThrow();
+});
+
+test("opening accounts is limited to three attempts per address in ten seconds", async () => {
+	let clock = 0;
+	const caller = createPublicCaller(db, auth, {
+		signUpLimit: createSignUpLimit(() => clock),
+	});
+	const open = (name: string) =>
+		caller.member.openAccount({
+			name,
+			email: `${name}@example.com`,
+			password: "password123",
+			affirmedAtLeast18: true,
+			affirmedInUnitedStates: true,
+		});
+
+	await open("kai");
+	await open("lee");
+	await open("max");
+	await expect(open("noa")).rejects.toMatchObject({
+		code: "TOO_MANY_REQUESTS",
+	});
+
+	clock += 10_000;
+	await open("noa");
 });

@@ -1,33 +1,29 @@
 import { PGlite } from "@electric-sql/pglite";
 import { createAuth } from "@seenmark/auth";
 import type { Database } from "@seenmark/db";
-import * as authSchema from "@seenmark/db/schema/auth";
-import * as checkInSchema from "@seenmark/db/schema/check-in";
-import * as introductionSchema from "@seenmark/db/schema/introduction";
-import * as memberSchema from "@seenmark/db/schema/member";
-import * as scoreSchema from "@seenmark/db/schema/score";
-import { pushSchema } from "drizzle-kit/api-postgres";
+import { migrationsFolder } from "@seenmark/db/migrations-folder";
 import { drizzle } from "drizzle-orm/pglite";
+import { migrate } from "drizzle-orm/pglite/migrator";
 
 import { appRouter } from "./routers/index";
-
-const schema = {
-	...authSchema,
-	...memberSchema,
-	...checkInSchema,
-	...introductionSchema,
-	...scoreSchema,
-};
+import { createSignUpLimit, type SignUpLimit } from "./sign-up-limit";
 
 const authEnv = {
 	BETTER_AUTH_URL: "http://localhost:3000",
 	BETTER_AUTH_SECRET: "test-secret-at-least-32-characters-long",
 	CORS_ORIGIN: "http://localhost:3000",
-	POLAR_ACCESS_TOKEN: "",
-	POLAR_SUCCESS_URL: "http://localhost:3000/success",
 };
 
 export type TestAuth = ReturnType<typeof createAuth>;
+
+const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+
+/** A PNG-signed photo whose body is the label, so each test photo is distinct. */
+export function testPhoto(label: string) {
+	return Buffer.from([...PNG_SIGNATURE, ...Buffer.from(label)]).toString(
+		"base64",
+	);
+}
 
 export async function openTestDatabase(): Promise<{
 	client: PGlite;
@@ -36,8 +32,7 @@ export async function openTestDatabase(): Promise<{
 }> {
 	const client = new PGlite();
 	const db = drizzle({ client });
-	const push = await pushSchema(schema, db);
-	await push.apply();
+	await migrate(db, { migrationsFolder });
 	const auth = createAuth(authEnv, db);
 	return { client, db, auth };
 }
@@ -45,6 +40,7 @@ export async function openTestDatabase(): Promise<{
 type CallerOptions = {
 	paidLinkDestination?: string | null;
 	now?: () => Date;
+	signUpLimit?: SignUpLimit;
 };
 
 export function createPublicCaller(
@@ -58,6 +54,8 @@ export function createPublicCaller(
 		auth,
 		paidLinkDestination: options.paidLinkDestination ?? null,
 		now: options.now ?? (() => new Date()),
+		clientAddress: null,
+		signUpLimit: options.signUpLimit ?? createSignUpLimit(),
 	});
 }
 
@@ -94,5 +92,7 @@ export function createMemberCaller(
 		auth,
 		paidLinkDestination: options.paidLinkDestination ?? null,
 		now: options.now ?? (() => new Date()),
+		clientAddress: null,
+		signUpLimit: options.signUpLimit ?? createSignUpLimit(),
 	});
 }

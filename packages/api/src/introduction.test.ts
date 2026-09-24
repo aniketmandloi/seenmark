@@ -8,6 +8,7 @@ import {
 	createPublicCaller,
 	openTestDatabase,
 	type TestAuth,
+	testPhoto,
 } from "./test-harness";
 
 const FILED_AT = "2024-09-01T12:00:00.000Z";
@@ -45,7 +46,7 @@ test("filing on the late band stores who asked and when, with no clinic", async 
 	);
 
 	await memberCaller.checkIn.record({
-		imageBase64: "aGFpcmxpbmU=",
+		imageBase64: testPhoto("aGFpcmxpbmU="),
 		mediaType: "image/png",
 		takenAt: "2024-08-01T12:00:00.000Z",
 	});
@@ -86,7 +87,7 @@ test("a second file returns the same request", async () => {
 	);
 
 	await memberCaller.checkIn.record({
-		imageBase64: "Ymxha2U=",
+		imageBase64: testPhoto("Ymxha2U="),
 		mediaType: "image/png",
 		takenAt: "2024-08-01T12:00:00.000Z",
 	});
@@ -127,7 +128,7 @@ test("filing is rejected when the score is not late", async () => {
 	});
 
 	await memberCaller.checkIn.record({
-		imageBase64: "Y2FzZXk=",
+		imageBase64: testPhoto("Y2FzZXk="),
 		mediaType: "image/png",
 		takenAt: "2024-08-01T12:00:00.000Z",
 	});
@@ -165,7 +166,7 @@ test("leaving the late band keeps the introduction unsent", async () => {
 	);
 
 	await memberCaller.checkIn.record({
-		imageBase64: "ZHJldw==",
+		imageBase64: testPhoto("ZHJldw=="),
 		mediaType: "image/png",
 		takenAt: "2024-08-01T12:00:00.000Z",
 	});
@@ -201,7 +202,7 @@ test("the member can delete their introduction", async () => {
 	);
 
 	await memberCaller.checkIn.record({
-		imageBase64: "ZWRlbg==",
+		imageBase64: testPhoto("ZWRlbg=="),
 		mediaType: "image/png",
 		takenAt: "2024-08-01T12:00:00.000Z",
 	});
@@ -256,7 +257,7 @@ test("another member cannot read the introduction", async () => {
 	});
 
 	await firstCaller.checkIn.record({
-		imageBase64: "ZnJhbg==",
+		imageBase64: testPhoto("ZnJhbg=="),
 		mediaType: "image/png",
 		takenAt: "2024-08-01T12:00:00.000Z",
 	});
@@ -312,7 +313,7 @@ test("deleting the account removes the check-in, score, and introduction", async
 	});
 
 	await memberCaller.checkIn.record({
-		imageBase64: "aXJpcw==",
+		imageBase64: testPhoto("aXJpcw=="),
 		mediaType: "image/png",
 		takenAt: "2024-08-01T12:00:00.000Z",
 	});
@@ -349,4 +350,69 @@ test("deleting the account removes the check-in, score, and introduction", async
 	expect(await otherCaller.checkIn.list()).toEqual([]);
 	expect(await otherCaller.score.current()).toBeNull();
 	expect(await otherCaller.introduction.current()).toBeNull();
+});
+
+test("two requests filed at once both return the first recorded request", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const opened = await publicCaller.member.openAccount({
+		name: "Kai Member",
+		email: "kai@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	const caller = (filedAt: string) =>
+		createMemberCaller(
+			db,
+			auth,
+			{ userId: opened.id, name: "Kai Member", email: "kai@example.com" },
+			{ now: () => new Date(filedAt) },
+		);
+
+	await caller(FILED_AT).checkIn.record({
+		imageBase64: testPhoto("kai"),
+		mediaType: "image/png",
+		takenAt: "2024-08-01T12:00:00.000Z",
+	});
+	await caller(FILED_AT).score.choose("late");
+
+	const [first, second] = await Promise.all([
+		caller(FILED_AT).introduction.file(),
+		caller("2024-09-01T12:00:05.000Z").introduction.file(),
+	]);
+
+	expect(first).toEqual(second);
+	expect(await caller(FILED_AT).introduction.current()).toEqual(first);
+});
+
+test("a request kept after leaving the late band can still be read and deleted", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const opened = await publicCaller.member.openAccount({
+		name: "Lee Member",
+		email: "lee@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	const memberCaller = createMemberCaller(
+		db,
+		auth,
+		{ userId: opened.id, name: "Lee Member", email: "lee@example.com" },
+		{ now: () => new Date(FILED_AT) },
+	);
+
+	const recorded = await memberCaller.checkIn.record({
+		imageBase64: testPhoto("lee"),
+		mediaType: "image/png",
+		takenAt: "2024-08-01T12:00:00.000Z",
+	});
+	await memberCaller.score.choose("late");
+	const filed = await memberCaller.introduction.file();
+
+	await memberCaller.checkIn.delete({ id: recorded.id });
+	expect(await memberCaller.score.current()).toBeNull();
+	expect(await memberCaller.introduction.current()).toEqual(filed);
+
+	await memberCaller.introduction.delete();
+	expect(await memberCaller.introduction.current()).toBeNull();
 });

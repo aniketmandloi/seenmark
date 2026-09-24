@@ -7,11 +7,10 @@
     "build": "next build",
     "check-types": "tsc --noEmit",
     "start": "next start",
-    "env:generate": "varlock codegen"
+    "env:generate": "varlock codegen",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@polar-sh/better-auth": "catalog:",
-    "@polar-sh/sdk": "catalog:",
     "@seenmark/api": "workspace:*",
     "@seenmark/ui": "workspace:*",
     "@swc/helpers": "^0.5.23",
@@ -40,6 +39,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "catalog:",
     "tailwindcss": "catalog:",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.1"
   }
 }

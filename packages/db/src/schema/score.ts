@@ -12,9 +12,6 @@ export const score = pgTable(
 		band: text("band").notNull(),
 	},
 	(table) => [
-		check(
-			"score_band",
-			sql`${table.band} in ('early', 'mid', 'late')`,
-		),
+		check("score_band", sql`${table.band} in ('early', 'mid', 'late')`),
 	],
 );

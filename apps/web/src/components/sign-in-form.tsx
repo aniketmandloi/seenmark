@@ -34,7 +34,9 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
             toast.success("Welcome back");
           },
           onError: (error) => {
-            setErrorMessage(error.error.message || error.error.statusText || "We could not sign you in.");
+            setErrorMessage(
+              error.error.message || error.error.statusText || "We could not sign you in.",
+            );
           },
         },
       );
@@ -54,8 +56,8 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
   return (
     <div>
       <div className="mb-7">
-        <h2 className="text-2xl font-semibold tracking-[-0.04em]">Welcome back</h2>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+        <h2 className="font-semibold text-2xl tracking-[-0.04em]">Welcome back</h2>
+        <p className="mt-2 text-muted-foreground text-sm leading-6">
           Sign in to see your private check-ins.
         </p>
       </div>
@@ -69,14 +71,17 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
         className="space-y-5"
       >
         {errorMessage ? (
-          <p role="alert" className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <p
+            role="alert"
+            className="rounded-xl bg-destructive/10 px-4 py-3 text-destructive text-sm"
+          >
             {errorMessage}
           </p>
         ) : null}
         <form.Field name="email">
           {(field) => (
             <div className="space-y-2">
-              <Label htmlFor={field.name} className="text-sm font-medium">
+              <Label htmlFor={field.name} className="font-medium text-sm">
                 Email
               </Label>
               <Input
@@ -95,7 +100,7 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
                 aria-invalid={field.state.meta.errors.length > 0}
               />
               {field.state.meta.errors.map((error) => (
-                <p key={error?.message} className="text-sm text-destructive">
+                <p key={error?.message} className="text-destructive text-sm">
                   {error?.message}
                 </p>
               ))}
@@ -106,7 +111,7 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
         <form.Field name="password">
           {(field) => (
             <div className="space-y-2">
-              <Label htmlFor={field.name} className="text-sm font-medium">
+              <Label htmlFor={field.name} className="font-medium text-sm">
                 Password
               </Label>
               <Input
@@ -124,7 +129,7 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
                 aria-invalid={field.state.meta.errors.length > 0}
               />
               {field.state.meta.errors.map((error) => (
-                <p key={error?.message} className="text-sm text-destructive">
+                <p key={error?.message} className="text-destructive text-sm">
                   {error?.message}
                 </p>
               ))}
@@ -143,13 +148,13 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
         </form.Subscribe>
       </form>
 
-      <div className="mt-6 border-t border-border/70 pt-5 text-center">
-        <p className="text-sm text-muted-foreground">New to Seenmark?</p>
+      <div className="mt-6 border-border/70 border-t pt-5 text-center">
+        <p className="text-muted-foreground text-sm">New to Seenmark?</p>
         <Button
           type="button"
           variant="link"
           onClick={onSwitchToSignUp}
-          className="mt-1 h-auto px-2 py-1 text-sm font-semibold"
+          className="mt-1 h-auto px-2 py-1 font-semibold text-sm"
         >
           Create an account
         </Button>

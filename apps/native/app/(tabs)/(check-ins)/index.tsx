@@ -185,6 +185,15 @@ export default function CheckInsScreen() {
 							}
 						/>
 					))}
+					{loop.hasEarlier ? (
+						<FormButton
+							label={
+								loop.isLoadingEarlier ? "Loading…" : "Show earlier check-ins"
+							}
+							onPress={loop.loadEarlier}
+							disabled={loop.isLoadingEarlier}
+						/>
+					) : null}
 				</FormSection>
 			) : null}
 		</FormScreen>

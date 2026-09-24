@@ -1,8 +1,14 @@
+import { HISTORY_PAGE_SIZE, nextHistoryCursor } from "@seenmark/api/history";
 import {
 	isPhotoMediaType,
 	MAX_PHOTO_BASE64_LENGTH,
 } from "@seenmark/api/photo";
-import { type QueryKey, useMutation, useQuery } from "@tanstack/react-query";
+import {
+	type QueryKey,
+	useInfiniteQuery,
+	useMutation,
+	useQuery,
+} from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 
@@ -51,7 +57,7 @@ async function refresh(...queryKeys: QueryKey[]) {
 	);
 }
 
-const checkInsKey = trpc.checkIn.list.queryKey();
+const checkInsKey = trpc.checkIn.list.pathKey();
 const reminderKey = trpc.checkIn.reminder.queryKey();
 const bandKey = trpc.score.current.queryKey();
 const menuKey = trpc.menu.current.queryKey();
@@ -64,13 +70,21 @@ function forgetMenu() {
 
 /** The check-ins screen: the photo record, the reminder and the chosen band. */
 export function useCheckIns() {
-	const checkIns = useQuery(trpc.checkIn.list.queryOptions());
+	const checkIns = useInfiniteQuery(
+		trpc.checkIn.list.infiniteQueryOptions(
+			{ limit: HISTORY_PAGE_SIZE },
+			{ getNextPageParam: nextHistoryCursor },
+		),
+	);
 	const reminder = useQuery(trpc.checkIn.reminder.queryOptions());
 	const band = useQuery(trpc.score.current.queryOptions());
-	const items = checkIns.data ?? [];
+	const items = checkIns.data?.pages.flat() ?? [];
 
 	return {
 		items,
+		hasEarlier: checkIns.hasNextPage,
+		isLoadingEarlier: checkIns.isFetchingNextPage,
+		loadEarlier: () => void checkIns.fetchNextPage(),
 		isLoading: checkIns.isLoading,
 		isEmpty: !checkIns.isLoading && items.length === 0,
 		reminder: reminder.data?.due ? reminder.data.invitation : null,

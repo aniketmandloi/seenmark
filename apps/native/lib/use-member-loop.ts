@@ -221,12 +221,16 @@ export function useMemberActions() {
 	async function chooseBand(band: Band) {
 		setError(null);
 		await queryClient.cancelQueries({ queryKey: bandKey });
+		const confirmed = queryClient.getQueryData<Band | null>(bandKey);
 		queryClient.setQueryData(bandKey, band);
 		try {
 			await choose.mutateAsync(band);
 			await forgetMenu();
 		} catch (cause) {
 			setError(messageFrom(cause, "Failed to save your band"));
+			// Back to the last confirmed band first, so a failed recovery read cannot leave
+			// the rejected band selected.
+			queryClient.setQueryData(bandKey, confirmed);
 			await refresh(bandKey);
 		}
 	}

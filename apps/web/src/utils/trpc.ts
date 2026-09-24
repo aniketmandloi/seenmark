@@ -1,5 +1,4 @@
 import type { AppRouter } from "@seenmark/api/routers/index";
-import { QueryCache, QueryClient } from "@tanstack/react-query";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
 import { toast } from "sonner";
@@ -7,19 +6,10 @@ import { toast } from "sonner";
 import { createMemberCacheClaim } from "@/lib/member-session";
 import { resolveServerUrl } from "@/lib/server-url";
 
-export const queryClient = new QueryClient({
-  queryCache: new QueryCache({
-    onError: (error, query) => {
-      toast.error(error.message, {
-        action: {
-          label: "retry",
-          onClick: () => {
-            query.invalidate();
-          },
-        },
-      });
-    },
-  }),
+import { createQueryClient } from "./query-client";
+
+export const queryClient = createQueryClient((message, retry) => {
+  toast.error(message, { action: { label: "retry", onClick: retry } });
 });
 
 export const claimMemberCache = createMemberCacheClaim(queryClient);

@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent } from "react";
 
 import { authClient } from "@/lib/auth-client";
+import { forgetMemberData } from "@/lib/member-session";
 import { queryClient, trpc } from "@/utils/trpc";
 
 type Band = "early" | "mid" | "late";
@@ -222,7 +223,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
     try {
       await deleteAccount.mutateAsync();
       await authClient.signOut().catch(() => undefined);
-      queryClient.clear();
+      await forgetMemberData(queryClient);
       router.replace("/");
     } catch (cause) {
       setAccountError(cause instanceof Error ? cause.message : "We could not delete your account.");

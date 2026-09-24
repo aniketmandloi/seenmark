@@ -11,8 +11,11 @@ import {
 import { Skeleton } from "@seenmark/ui/components/skeleton";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 import { authClient } from "@/lib/auth-client";
+import { forgetMemberData } from "@/lib/member-session";
+import { queryClient } from "@/utils/trpc";
 
 export default function UserMenu() {
   const router = useRouter();
@@ -64,12 +67,14 @@ export default function UserMenu() {
             Your check-ins
           </DropdownMenuItem>
           <DropdownMenuItem
-            onClick={() => {
-              authClient.signOut({
-                fetchOptions: {
-                  onSuccess: () => router.push("/"),
-                },
-              });
+            onClick={async () => {
+              const { error } = await authClient.signOut();
+              await forgetMemberData(queryClient);
+              if (error) {
+                toast.error("We could not sign you out. Try again.");
+                return;
+              }
+              router.push("/");
             }}
             className="cursor-pointer rounded-lg px-3 py-2"
           >

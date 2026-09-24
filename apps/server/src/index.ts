@@ -23,27 +23,6 @@ app.use(
 
 app.on(["POST", "GET"], "/api/auth/*", async (c) => auth.handler(c.req.raw));
 
-const nativeAppUrl = "seenmark://";
-const allowedNativeProtocols = new Set(["exp:", new URL(nativeAppUrl).protocol]);
-
-app.get("/polar/success", (c) => {
-  const requestUrl = new URL(c.req.url);
-  const returnUrl = requestUrl.searchParams.get("returnUrl") || nativeAppUrl;
-
-  let redirectUrl: URL;
-  try {
-    redirectUrl = new URL(returnUrl);
-  } catch {
-    return c.text("Invalid return URL", 400);
-  }
-
-  if (!allowedNativeProtocols.has(redirectUrl.protocol)) {
-    return c.text("Invalid return URL", 400);
-  }
-
-  return c.redirect(redirectUrl.toString(), 302);
-});
-
 app.use(
   "/trpc/*",
   trpcServer({

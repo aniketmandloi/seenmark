@@ -11,8 +11,6 @@
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.5",
     "@better-auth/expo": "catalog:",
-    "@polar-sh/better-auth": "catalog:",
-    "@polar-sh/sdk": "catalog:",
     "@seenmark/db": "workspace:*",
     "better-auth": "catalog:",
     "drizzle-orm": "catalog:",

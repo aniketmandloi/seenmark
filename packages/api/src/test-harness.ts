@@ -23,8 +23,6 @@ const authEnv = {
 	BETTER_AUTH_URL: "http://localhost:3000",
 	BETTER_AUTH_SECRET: "test-secret-at-least-32-characters-long",
 	CORS_ORIGIN: "http://localhost:3000",
-	POLAR_ACCESS_TOKEN: "",
-	POLAR_SUCCESS_URL: "http://localhost:3000/success",
 };
 
 export type TestAuth = ReturnType<typeof createAuth>;

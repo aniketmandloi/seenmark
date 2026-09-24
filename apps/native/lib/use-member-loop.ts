@@ -121,6 +121,7 @@ export function useNextSteps() {
 
 	return {
 		isLoading: menu.isLoading || introduction.isLoading,
+		loadFailed: menu.isError || introduction.isError,
 		menu: currentMenu,
 		paidLink:
 			currentMenu && "paidLink" in currentMenu

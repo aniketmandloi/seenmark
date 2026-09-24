@@ -43,7 +43,16 @@ export default function NextStepsScreen() {
 				</FormSection>
 			) : null}
 
-			{menu ? (
+			{steps.loadFailed ? (
+				<FormSection footer="Nothing was changed. Pull down or try again.">
+					<FormRow
+						icon="error"
+						title="Your next steps could not load."
+						tone="destructive"
+					/>
+					<FormButton label="Try again" onPress={() => void steps.refresh()} />
+				</FormSection>
+			) : menu ? (
 				<FormSection title={bandLabel ? `${bandLabel} band` : undefined}>
 					{menu.steps.map((step, index) => (
 						<FormText key={step}>{`${index + 1}. ${step}`}</FormText>

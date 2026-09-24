@@ -6,6 +6,7 @@ import { Button } from "@seenmark/ui/components/button";
 import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, Camera, Check, Clock3, ImagePlus, LockKeyhole, Trash2 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent } from "react";
 
@@ -173,7 +174,6 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   // The score and the menu are separate reads that can land in either order after a change,
   // so steps show only under the heading of the band they belong to.
   const shownMenu = currentMenu?.band === currentBand.data ? currentMenu : null;
-  const paidLink = shownMenu && "paidLink" in shownMenu ? shownMenu.paidLink : undefined;
   const isBusy =
     isPreparingPhoto ||
     record.isPending ||
@@ -511,20 +511,14 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
                 </ol>
               )}
 
-              {paidLink ? (
-                <p className="mt-6 border-t border-border/70 pt-4 text-sm leading-6">
-                  <span className="font-semibold">Paid link</span>
-                  <span className="mx-2 text-muted-foreground">·</span>
-                  <a
-                    href={paidLink.destination}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1 font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    Visit link <ArrowUpRight aria-hidden="true" className="size-3.5" />
-                  </a>
-                </p>
-              ) : null}
+              <p className="mt-6 border-t border-border/70 pt-4 text-sm leading-6">
+                <Link
+                  href="/dashboard/next-steps"
+                  className="inline-flex items-center gap-1 font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  Open your next steps <ArrowUpRight aria-hidden="true" className="size-3.5" />
+                </Link>
+              </p>
             </section>
           ) : null}
 

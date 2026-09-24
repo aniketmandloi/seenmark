@@ -40,14 +40,31 @@ function Photo({ item, alt }: { item: CheckIn; alt: string }) {
     staleTime: Number.POSITIVE_INFINITY,
   });
 
+  if (photo.isError && !photo.data) {
+    return (
+      <div className="grid aspect-[3/4] w-full place-items-center rounded-2xl bg-muted p-4 text-center">
+        <div role="alert">
+          <p className="text-sm text-muted-foreground">This photo could not load.</p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-3"
+            disabled={photo.isFetching}
+            onClick={() => photo.refetch()}
+          >
+            {photo.isFetching ? "Trying…" : "Try again"}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (!photo.data) {
     return (
       <div
         role="status"
-        aria-label={photo.isError ? "This photo could not load" : "Loading photo"}
-        className={`aspect-[3/4] w-full rounded-2xl bg-muted ${
-          photo.isError ? "" : "animate-pulse motion-reduce:animate-none"
-        }`}
+        aria-label="Loading photo"
+        className="aspect-[3/4] w-full animate-pulse rounded-2xl bg-muted motion-reduce:animate-none"
       />
     );
   }

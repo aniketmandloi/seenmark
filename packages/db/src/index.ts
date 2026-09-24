@@ -10,8 +10,13 @@ import { relations } from "./relations";
 /**
  * Structural database surface shared by Neon (production) and PGlite (tests).
  * Query-result HKT differs per driver; callers only need insert/select/delete.
+ * Neon's HTTP driver cannot run interactive transactions, so they are left out:
+ * an invariant spanning statements belongs in one statement or in the schema.
  */
-export type Database = PgAsyncDatabase<PgQueryResultHKT, AnyRelations>;
+export type Database = Omit<
+	PgAsyncDatabase<PgQueryResultHKT, AnyRelations>,
+	"transaction"
+>;
 
 export function createDb(env: DatabaseConfig): Database {
 	const sql = neon(env.DATABASE_URL);

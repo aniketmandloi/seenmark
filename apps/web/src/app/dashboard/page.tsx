@@ -17,7 +17,5 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  return (
-    <Dashboard key={session.user.id} session={session} />
-  );
+  return <Dashboard key={session.user.id} session={session} />;
 }

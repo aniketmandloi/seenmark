@@ -1,8 +1,5 @@
 import { HISTORY_PAGE_SIZE, nextHistoryCursor } from "@seenmark/api/history";
-import {
-	isPhotoMediaType,
-	MAX_PHOTO_BASE64_LENGTH,
-} from "@seenmark/api/photo";
+import { isPhotoMediaType, MAX_PHOTO_BASE64_LENGTH } from "@seenmark/api/photo";
 import {
 	type QueryKey,
 	useInfiniteQuery,
@@ -211,7 +208,9 @@ export function useMemberActions() {
 			const pending = await ImagePicker.getPendingResultAsync();
 			if (!pending) return;
 			if ("code" in pending) {
-				setError(pending.message || "The camera could not finish. Please try again.");
+				setError(
+					pending.message || "The camera could not finish. Please try again.",
+				);
 				return;
 			}
 			await recordCapture(pending);

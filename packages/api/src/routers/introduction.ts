@@ -44,7 +44,9 @@ export const introductionRouter = router({
 						),
 					})
 					.from(score)
-					.where(and(eq(score.memberId, ctx.member.id), eq(score.band, "late"))),
+					.where(
+						and(eq(score.memberId, ctx.member.id), eq(score.band, "late")),
+					),
 			)
 			.onConflictDoUpdate({
 				target: introduction.memberId,

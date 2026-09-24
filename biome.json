@@ -94,7 +94,8 @@
         "packages/db/src/config.ts",
         "packages/db/src/relations.ts",
         "**/*.json",
-        "**/*.jsonc"
+        "**/*.jsonc",
+        "!apps/native/app.json"
       ],
       "formatter": {
         "indentStyle": "space",

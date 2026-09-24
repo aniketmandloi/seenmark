@@ -25,8 +25,7 @@ export const metadata: Metadata = {
     "Keep private hairline check-ins, compare them over time, and choose a next step that feels right to you.",
   openGraph: {
     title: "Seenmark | Your hairline, over time",
-    description:
-      "A private record of your hairline check-ins and the next step you choose.",
+    description: "A private record of your hairline check-ins and the next step you choose.",
     type: "website",
     locale: "en_US",
   },

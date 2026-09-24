@@ -485,7 +485,9 @@ test("history comes back in bounded pages, newest first, each check-in once", as
 	}
 	expect(paged).toEqual(everything);
 
-	await expect(memberCaller.checkIn.list({ limit: 101 })).rejects.toMatchObject({
-		code: "BAD_REQUEST",
-	});
+	await expect(memberCaller.checkIn.list({ limit: 101 })).rejects.toMatchObject(
+		{
+			code: "BAD_REQUEST",
+		},
+	);
 });

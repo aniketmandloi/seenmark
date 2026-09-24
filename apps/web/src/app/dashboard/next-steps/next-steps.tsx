@@ -21,17 +21,17 @@ export default function NextSteps({ session }: { session: typeof authClient.$Inf
   const paidLink = currentMenu && "paidLink" in currentMenu ? currentMenu.paidLink : undefined;
 
   return (
-    <div className="mx-auto max-w-3xl px-5 pb-16 pt-10 sm:px-8 md:pt-14">
+    <div className="mx-auto max-w-3xl px-5 pt-10 pb-16 sm:px-8 md:pt-14">
       <Link
         href="/dashboard"
-        className="text-sm text-muted-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="text-muted-foreground text-sm underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         Back to your check-ins
       </Link>
-      <h1 className="mt-4 text-4xl font-semibold tracking-[-0.05em]">
+      <h1 className="mt-4 font-semibold text-4xl tracking-[-0.05em]">
         {currentMenu ? `Next steps for ${bandLabels[currentMenu.band]}` : "Next steps"}
       </h1>
-      <p className="mt-3 text-base leading-7 text-muted-foreground">
+      <p className="mt-3 text-base text-muted-foreground leading-7">
         A short menu to read at your pace. These are not a treatment plan.
       </p>
 
@@ -41,7 +41,10 @@ export default function NextSteps({ session }: { session: typeof authClient.$Inf
           <div className="h-4 w-4/5 animate-pulse rounded bg-muted motion-reduce:animate-none" />
         </div>
       ) : menu.isError ? (
-        <div role="alert" className="mt-8 rounded-xl bg-destructive/10 p-4 text-sm text-destructive">
+        <div
+          role="alert"
+          className="mt-8 rounded-xl bg-destructive/10 p-4 text-destructive text-sm"
+        >
           <p>We could not load your next steps.</p>
           <Button variant="outline" size="sm" className="mt-3" onClick={() => menu.refetch()}>
             Try again
@@ -57,13 +60,13 @@ export default function NextSteps({ session }: { session: typeof authClient.$Inf
           ))}
         </ol>
       ) : (
-        <p className="mt-8 text-sm leading-6 text-muted-foreground">
+        <p className="mt-8 text-muted-foreground text-sm leading-6">
           Choose the band that feels right on your check-ins, and the next steps for it appear here.
         </p>
       )}
 
       {paidLink ? (
-        <p className="mt-8 border-t border-border/70 pt-4 text-sm leading-6">
+        <p className="mt-8 border-border/70 border-t pt-4 text-sm leading-6">
           <span className="font-semibold">{paidLink.label}</span>
           <span className="mx-2 text-muted-foreground">·</span>
           <a

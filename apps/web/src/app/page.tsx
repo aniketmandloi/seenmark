@@ -13,43 +13,42 @@ const steps = [
   },
   {
     title: "Explore a next step",
-    description:
-      "Read a short menu for your band. An introduction is always your request.",
+    description: "Read a short menu for your band. An introduction is always your request.",
   },
 ];
 
 export default function Home() {
   return (
     <div>
-      <section className="mx-auto grid max-w-7xl items-center gap-12 px-5 pb-20 pt-12 sm:px-8 md:gap-14 md:pb-28 md:pt-16 lg:grid-cols-[0.9fr_1.1fr] lg:px-10">
+      <section className="mx-auto grid max-w-7xl items-center gap-12 px-5 pt-12 pb-20 sm:px-8 md:gap-14 md:pt-16 md:pb-28 lg:grid-cols-[0.9fr_1.1fr] lg:px-10">
         <div className="max-w-xl">
-          <p className="mb-5 text-sm font-semibold tracking-[0.12em] text-primary">
+          <p className="mb-5 font-semibold text-primary text-sm tracking-[0.12em]">
             YOUR HAIRLINE, YOUR CALL
           </p>
-          <h1 className="text-balance text-5xl font-semibold leading-[1.04] tracking-[-0.055em] sm:text-6xl lg:text-[4.4rem]">
+          <h1 className="text-balance font-semibold text-5xl leading-[1.04] tracking-[-0.055em] sm:text-6xl lg:text-[4.4rem]">
             Your hairline, over time.
           </h1>
-          <p className="mt-6 max-w-[34rem] text-lg leading-8 text-muted-foreground">
-            Keep private check-in photos, compare them over time, and choose a next step
-            that feels right to you.
+          <p className="mt-6 max-w-[34rem] text-lg text-muted-foreground leading-8">
+            Keep private check-in photos, compare them over time, and choose a next step that feels
+            right to you.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
               href="/login"
-              className="inline-flex min-h-12 items-center justify-center rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:translate-y-px"
+              className="inline-flex min-h-12 items-center justify-center rounded-xl bg-primary px-6 font-semibold text-primary-foreground text-sm transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:translate-y-px"
             >
               Create your account
             </Link>
             <Link
               href="#how-it-works"
-              className="inline-flex min-h-12 items-center justify-center rounded-xl px-5 text-sm font-semibold text-foreground transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="inline-flex min-h-12 items-center justify-center rounded-xl px-5 font-semibold text-foreground text-sm transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               How it works
             </Link>
           </div>
-          <p className="mt-6 max-w-md text-sm leading-6 text-muted-foreground">
-            No diagnosis from a photo. No clinic directory. Just a private record and
-            your own next step.
+          <p className="mt-6 max-w-md text-muted-foreground text-sm leading-6">
+            No diagnosis from a photo. No clinic directory. Just a private record and your own next
+            step.
           </p>
         </div>
 
@@ -68,24 +67,23 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="how-it-works" className="scroll-mt-24 border-y border-border/70 bg-card/60">
+      <section id="how-it-works" className="scroll-mt-24 border-border/70 border-y bg-card/60">
         <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 md:py-24 lg:px-10">
           <div className="max-w-2xl">
-            <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
+            <h2 className="mt-4 font-semibold text-3xl tracking-[-0.04em] sm:text-4xl">
               A little more perspective, over time.
             </h2>
           </div>
 
           <div className="mt-10 grid gap-0 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
-            <p className="max-w-sm text-base leading-7 text-muted-foreground">
-              No complicated routine to keep up with. Come back when you want to take
-              another look.
+            <p className="max-w-sm text-base text-muted-foreground leading-7">
+              No complicated routine to keep up with. Come back when you want to take another look.
             </p>
             <ol className="mt-8 divide-y divide-border/80 lg:mt-0">
               {steps.map((step) => (
                 <li key={step.title} className="grid gap-2 py-6 sm:grid-cols-[12rem_1fr] sm:gap-8">
-                  <h3 className="text-lg font-semibold tracking-tight">{step.title}</h3>
-                  <p className="max-w-xl text-sm leading-6 text-muted-foreground">
+                  <h3 className="font-semibold text-lg tracking-tight">{step.title}</h3>
+                  <p className="max-w-xl text-muted-foreground text-sm leading-6">
                     {step.description}
                   </p>
                 </li>
@@ -97,15 +95,14 @@ export default function Home() {
 
       <section className="mx-auto grid max-w-7xl gap-10 px-5 py-20 sm:px-8 md:grid-cols-[0.8fr_1.2fr] md:items-center md:py-28 lg:px-10">
         <div>
-          <h2 className="mt-4 max-w-lg text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
+          <h2 className="mt-4 max-w-lg font-semibold text-3xl tracking-[-0.04em] sm:text-4xl">
             Your photo is a record, not a diagnosis.
           </h2>
         </div>
-        <div className="max-w-2xl border-l-2 border-primary/50 pl-6 sm:pl-8">
-          <p className="text-lg leading-8 text-muted-foreground">
-            Seenmark stores your check-ins so you can look back. It does not analyze
-            your photos or tell you which band to choose. Clinics cannot see your
-            photos.
+        <div className="max-w-2xl border-primary/50 border-l-2 pl-6 sm:pl-8">
+          <p className="text-lg text-muted-foreground leading-8">
+            Seenmark stores your check-ins so you can look back. It does not analyze your photos or
+            tell you which band to choose. Clinics cannot see your photos.
           </p>
         </div>
       </section>

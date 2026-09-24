@@ -2,7 +2,11 @@
  * The photos a check-in accepts. Bytes are sniffed rather than trusted from the
  * declared media type, and the size is bounded before anything is decoded.
  */
-export const PHOTO_MEDIA_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+export const PHOTO_MEDIA_TYPES = [
+	"image/jpeg",
+	"image/png",
+	"image/webp",
+] as const;
 
 export type PhotoMediaType = (typeof PHOTO_MEDIA_TYPES)[number];
 
@@ -14,13 +18,18 @@ export const MAX_PHOTO_BYTES = 3 * 1024 * 1024;
 
 export const MAX_PHOTO_BASE64_LENGTH = Math.ceil(MAX_PHOTO_BYTES / 3) * 4;
 
-const BASE64 = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+const BASE64 =
+	/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
 
 export function isBase64(value: string) {
 	return BASE64.test(value);
 }
 
-function startsWith(bytes: Uint8Array, signature: readonly number[], offset = 0) {
+function startsWith(
+	bytes: Uint8Array,
+	signature: readonly number[],
+	offset = 0,
+) {
 	return signature.every((byte, index) => bytes[offset + index] === byte);
 }
 

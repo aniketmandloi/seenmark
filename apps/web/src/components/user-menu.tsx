@@ -29,7 +29,7 @@ export default function UserMenu() {
     return (
       <Link
         href="/login"
-        className="inline-flex h-10 items-center justify-center rounded-xl px-4 text-sm font-semibold text-foreground transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="inline-flex h-10 items-center justify-center rounded-xl px-4 font-semibold text-foreground text-sm transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         Sign in
       </Link>
@@ -44,7 +44,7 @@ export default function UserMenu() {
         aria-label="Open account menu"
         render={<Button variant="ghost" className="h-10 gap-2 px-2.5" />}
       >
-        <span className="grid size-7 place-items-center rounded-full bg-accent text-xs font-semibold text-accent-foreground">
+        <span className="grid size-7 place-items-center rounded-full bg-accent font-semibold text-accent-foreground text-xs">
           {initial}
         </span>
         <span className="hidden max-w-28 truncate text-sm sm:inline">{session.user.name}</span>
@@ -52,10 +52,10 @@ export default function UserMenu() {
       <DropdownMenuContent align="end" className="min-w-56 rounded-xl bg-card p-1.5">
         <DropdownMenuGroup>
           <DropdownMenuLabel className="px-3 py-2 font-normal">
-            <span className="block truncate text-sm font-medium text-foreground">
+            <span className="block truncate font-medium text-foreground text-sm">
               {session.user.name}
             </span>
-            <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+            <span className="mt-0.5 block truncate text-muted-foreground text-xs">
               {session.user.email}
             </span>
           </DropdownMenuLabel>

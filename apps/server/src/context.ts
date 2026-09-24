@@ -1,4 +1,4 @@
-import type { Auth, Context as ApiContext } from "@seenmark/api/context";
+import type { Context as ApiContext, Auth } from "@seenmark/api/context";
 import type { SignUpLimit } from "@seenmark/api/sign-up-limit";
 import type { Database } from "@seenmark/db";
 import type { Context as HonoContext } from "hono";

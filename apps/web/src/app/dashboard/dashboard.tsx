@@ -8,7 +8,7 @@ import { ArrowUpRight, Camera, Check, Clock3, ImagePlus, LockKeyhole, Trash2 } f
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type ChangeEvent } from "react";
+import { type ChangeEvent, useState } from "react";
 
 import { authClient } from "@/lib/auth-client";
 import { forgetMemberData } from "@/lib/member-session";
@@ -45,7 +45,7 @@ function Photo({ item, alt }: { item: CheckIn; alt: string }) {
     return (
       <div className="grid aspect-[3/4] w-full place-items-center rounded-2xl bg-muted p-4 text-center">
         <div role="alert">
-          <p className="text-sm text-muted-foreground">This photo could not load.</p>
+          <p className="text-muted-foreground text-sm">This photo could not load.</p>
           <Button
             variant="outline"
             size="sm"
@@ -226,7 +226,9 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
       await queryClient.cancelQueries({ queryKey: photoKey });
       queryClient.removeQueries({ queryKey: photoKey });
     } catch (cause) {
-      setErrorMessage(cause instanceof Error ? cause.message : "We could not delete that check-in.");
+      setErrorMessage(
+        cause instanceof Error ? cause.message : "We could not delete that check-in.",
+      );
     }
   }
 
@@ -265,14 +267,14 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-5 pb-16 pt-10 sm:px-8 md:pt-14 lg:px-10">
-      <header className="grid gap-7 border-b border-border/80 pb-8 md:grid-cols-[1fr_auto] md:items-end">
+    <div className="mx-auto max-w-7xl px-5 pt-10 pb-16 sm:px-8 md:pt-14 lg:px-10">
+      <header className="grid gap-7 border-border/80 border-b pb-8 md:grid-cols-[1fr_auto] md:items-end">
         <div>
-          <p className="text-sm text-muted-foreground">A private place for your check-ins</p>
-          <h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
+          <p className="text-muted-foreground text-sm">A private place for your check-ins</p>
+          <h1 className="mt-2 font-semibold text-4xl tracking-[-0.05em] sm:text-5xl">
             Your check-ins
           </h1>
-          <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
+          <p className="mt-3 max-w-2xl text-base text-muted-foreground leading-7">
             Welcome back, {session.user.name}. Take a photo when you want to look again.
           </p>
         </div>
@@ -287,34 +289,41 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
         <section aria-labelledby="timeline-heading" className="min-w-0">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h2 id="timeline-heading" className="text-2xl font-semibold tracking-[-0.04em]">
+              <h2 id="timeline-heading" className="font-semibold text-2xl tracking-[-0.04em]">
                 Your photo record
               </h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              <p className="mt-2 text-muted-foreground text-sm leading-6">
                 Similar light and angle can make it easier to compare later.
               </p>
             </div>
-            <span className="text-sm tabular-nums text-muted-foreground">
+            <span className="text-muted-foreground text-sm tabular-nums">
               {items.length}
               {checkIns.hasNextPage ? "+" : ""} {items.length === 1 ? "check-in" : "check-ins"}
             </span>
           </div>
 
           {errorMessage ? (
-            <p role="alert" className="mt-5 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            <p
+              role="alert"
+              className="mt-5 rounded-xl bg-destructive/10 px-4 py-3 text-destructive text-sm"
+            >
               {errorMessage}
             </p>
           ) : null}
 
           {checkIns.isLoading ? (
-            <div className="mt-6 grid grid-cols-2 gap-4" role="status" aria-label="Loading check-ins">
+            <div
+              className="mt-6 grid grid-cols-2 gap-4"
+              role="status"
+              aria-label="Loading check-ins"
+            >
               <div className="aspect-[3/4] animate-pulse rounded-2xl bg-muted motion-reduce:animate-none" />
               <div className="aspect-[3/4] animate-pulse rounded-2xl bg-muted motion-reduce:animate-none" />
             </div>
           ) : checkIns.isError ? (
             <div className="mt-6 rounded-2xl border border-border bg-card p-6">
               <h3 className="font-semibold">Your check-ins are unavailable</h3>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              <p className="mt-2 text-muted-foreground text-sm leading-6">
                 {checkIns.error.message || "Try again in a moment."}
               </p>
               <Button variant="outline" className="mt-5" onClick={() => checkIns.refetch()}>
@@ -322,15 +331,20 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
               </Button>
             </div>
           ) : items.length === 0 ? (
-            <div className="mt-6 rounded-[1.75rem] border border-dashed border-border bg-card/70 px-6 py-10 text-center sm:px-10 sm:py-14">
+            <div className="mt-6 rounded-[1.75rem] border border-border border-dashed bg-card/70 px-6 py-10 text-center sm:px-10 sm:py-14">
               <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-accent text-primary">
                 <Camera aria-hidden="true" className="size-6" />
               </span>
-              <h3 className="mt-5 text-xl font-semibold tracking-tight">Start with one photo</h3>
-              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-                Take a clear photo of your own hairline. You can add another check-in whenever you want.
+              <h3 className="mt-5 font-semibold text-xl tracking-tight">Start with one photo</h3>
+              <p className="mx-auto mt-2 max-w-md text-muted-foreground text-sm leading-6">
+                Take a clear photo of your own hairline. You can add another check-in whenever you
+                want.
               </p>
-              <PhotoPicker disabled={isBusy} onChange={handlePhotoSelected} label="Add your first check-in" />
+              <PhotoPicker
+                disabled={isBusy}
+                onChange={handlePhotoSelected}
+                label="Add your first check-in"
+              />
             </div>
           ) : opened ? (
             <div className="mt-6 max-w-xl">
@@ -339,7 +353,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
               </Button>
               <figure>
                 <Photo item={opened} alt={`Your check-in from ${formatDate(opened.takenAt)}`} />
-                <figcaption className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+                <figcaption className="mt-3 flex flex-wrap items-center justify-between gap-3 text-muted-foreground text-sm">
                   <span>{formatDate(opened.takenAt)}</span>
                   <DeleteCheckIn
                     id={opened.id}
@@ -352,7 +366,11 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
             </div>
           ) : (
             <div className="mt-6">
-              <PhotoPicker disabled={isBusy} onChange={handlePhotoSelected} label="Add a check-in photo" />
+              <PhotoPicker
+                disabled={isBusy}
+                onChange={handlePhotoSelected}
+                label="Add a check-in photo"
+              />
 
               {items.length >= 2 && items[0] && items[1] ? (
                 <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-5">
@@ -381,8 +399,11 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
                 <figure className="mt-5 max-w-md">
                   {items[0] ? (
                     <>
-                      <Photo item={items[0]} alt={`Check-in photo from ${formatDate(items[0].takenAt)}`} />
-                      <figcaption className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+                      <Photo
+                        item={items[0]}
+                        alt={`Check-in photo from ${formatDate(items[0].takenAt)}`}
+                      />
+                      <figcaption className="mt-3 flex flex-wrap items-center justify-between gap-3 text-muted-foreground text-sm">
                         <time dateTime={items[0].takenAt}>{formatDate(items[0].takenAt)}</time>
                         <DeleteCheckIn
                           id={items[0].id}
@@ -397,8 +418,11 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
               )}
 
               {items.length > 2 ? (
-                <section aria-labelledby="earlier-heading" className="mt-9 border-t border-border/80 pt-6">
-                  <h3 id="earlier-heading" className="text-lg font-semibold tracking-tight">
+                <section
+                  aria-labelledby="earlier-heading"
+                  className="mt-9 border-border/80 border-t pt-6"
+                >
+                  <h3 id="earlier-heading" className="font-semibold text-lg tracking-tight">
                     Earlier check-ins
                   </h3>
                   <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -408,7 +432,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
                         type="button"
                         aria-label={`Open check-in from ${formatDate(item.takenAt)}`}
                         onClick={() => setOpenedId(item.id)}
-                        className="flex min-w-0 items-center gap-2 rounded-xl border border-border bg-card px-3 py-3 text-left text-sm text-muted-foreground transition hover:border-primary/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        className="flex min-w-0 items-center gap-2 rounded-xl border border-border bg-card px-3 py-3 text-left text-muted-foreground text-sm transition hover:border-primary/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       >
                         <Camera aria-hidden="true" className="size-4 shrink-0 text-primary" />
                         <span className="truncate">{formatDate(item.takenAt)}</span>
@@ -440,17 +464,22 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
         </section>
 
         <aside className="space-y-8">
-          <section aria-labelledby="band-heading" className="rounded-[1.75rem] bg-card p-6 ring-1 ring-border/80 sm:p-8">
+          <section
+            aria-labelledby="band-heading"
+            className="rounded-[1.75rem] bg-card p-6 ring-1 ring-border/80 sm:p-8"
+          >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 id="band-heading" className="text-2xl font-semibold tracking-[-0.04em]">
+                <h2 id="band-heading" className="font-semibold text-2xl tracking-[-0.04em]">
                   Choose your band
                 </h2>
-                <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
+                <p className="mt-2 max-w-sm text-muted-foreground text-sm leading-6">
                   This is your choice after looking at your own check-ins. It is not a diagnosis.
                 </p>
               </div>
-              {currentBand.data ? <Check aria-hidden="true" className="mt-1 size-5 text-primary" /> : null}
+              {currentBand.data ? (
+                <Check aria-hidden="true" className="mt-1 size-5 text-primary" />
+              ) : null}
             </div>
 
             <div className="mt-6 grid grid-cols-3 gap-2" role="group" aria-label="Choose your band">
@@ -463,7 +492,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
                     aria-pressed={selected}
                     disabled={items.length === 0 || isBusy || currentBand.isLoading}
                     onClick={() => handleChooseBand(band.value)}
-                    className={`min-h-12 rounded-xl border px-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                    className={`min-h-12 rounded-xl border px-2 font-semibold text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
                       selected
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-border bg-background hover:border-primary/60 hover:bg-accent/50"
@@ -474,24 +503,35 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
                 );
               })}
             </div>
-            <p className="mt-3 text-xs leading-5 text-muted-foreground">
+            <p className="mt-3 text-muted-foreground text-xs leading-5">
               You can change your choice whenever you want.
             </p>
           </section>
 
           {currentBand.data ? (
-            <section aria-labelledby="menu-heading" className="rounded-[1.75rem] border border-border/80 bg-card p-6 sm:p-8">
-              <h2 id="menu-heading" className="text-2xl font-semibold tracking-[-0.04em]">
+            <section
+              aria-labelledby="menu-heading"
+              className="rounded-[1.75rem] border border-border/80 bg-card p-6 sm:p-8"
+            >
+              <h2 id="menu-heading" className="font-semibold text-2xl tracking-[-0.04em]">
                 Next steps for {selectedBand}
               </h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              <p className="mt-2 text-muted-foreground text-sm leading-6">
                 A short menu to read at your pace. These are not a treatment plan.
               </p>
 
               {menu.isError ? (
-                <div role="alert" className="mt-5 rounded-xl bg-destructive/10 p-4 text-sm text-destructive">
+                <div
+                  role="alert"
+                  className="mt-5 rounded-xl bg-destructive/10 p-4 text-destructive text-sm"
+                >
                   <p>We could not load your next steps.</p>
-                  <Button variant="outline" size="sm" className="mt-3" onClick={() => menu.refetch()}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-3"
+                    onClick={() => menu.refetch()}
+                  >
                     Try again
                   </Button>
                 </div>
@@ -511,7 +551,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
                 </ol>
               )}
 
-              <p className="mt-6 border-t border-border/70 pt-4 text-sm leading-6">
+              <p className="mt-6 border-border/70 border-t pt-4 text-sm leading-6">
                 <Link
                   href="/dashboard/next-steps"
                   className="inline-flex items-center gap-1 font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -524,25 +564,38 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
 
           {/* Filing needs the late band; a request already recorded stays reachable on any band. */}
           {currentBand.data === "late" || introduction.data ? (
-            <section aria-labelledby="introduction-heading" className="rounded-[1.75rem] bg-accent/55 p-6 sm:p-8">
-              <h2 id="introduction-heading" className="text-xl font-semibold tracking-tight">
-                {currentBand.data === "late" ? "Ask for an introduction" : "Your introduction request"}
+            <section
+              aria-labelledby="introduction-heading"
+              className="rounded-[1.75rem] bg-accent/55 p-6 sm:p-8"
+            >
+              <h2 id="introduction-heading" className="font-semibold text-xl tracking-tight">
+                {currentBand.data === "late"
+                  ? "Ask for an introduction"
+                  : "Your introduction request"}
               </h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              <p className="mt-2 text-muted-foreground text-sm leading-6">
                 {currentBand.data === "late"
                   ? "Your request is recorded for you. It is not sent to a clinic."
                   : "You asked on the late band. It is still recorded for you, and it is not sent to a clinic."}
               </p>
               {introduction.isError ? (
-                <div role="alert" className="mt-4 rounded-xl bg-destructive/10 p-4 text-sm text-destructive">
+                <div
+                  role="alert"
+                  className="mt-4 rounded-xl bg-destructive/10 p-4 text-destructive text-sm"
+                >
                   <p>We could not check your request status.</p>
-                  <Button variant="outline" size="sm" className="mt-3" onClick={() => introduction.refetch()}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-3"
+                    onClick={() => introduction.refetch()}
+                  >
                     Try again
                   </Button>
                 </div>
               ) : introduction.data ? (
                 <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-                  <p className="text-sm font-medium">Request recorded</p>
+                  <p className="font-medium text-sm">Request recorded</p>
                   <Button
                     variant="outline"
                     size="sm"
@@ -564,22 +617,27 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
             </section>
           ) : null}
 
-          <section aria-labelledby="account-privacy-heading" className="border-t border-border/80 pt-7">
-            <h2 id="account-privacy-heading" className="text-lg font-semibold tracking-tight">
+          <section
+            aria-labelledby="account-privacy-heading"
+            className="border-border/80 border-t pt-7"
+          >
+            <h2 id="account-privacy-heading" className="font-semibold text-lg tracking-tight">
               Account privacy
             </h2>
-            <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
+            <p className="mt-2 max-w-sm text-muted-foreground text-sm leading-6">
               You can remove your account and all of its check-in photos at any time.
             </p>
             {accountError ? (
-              <p role="alert" className="mt-4 text-sm text-destructive">
+              <p role="alert" className="mt-4 text-destructive text-sm">
                 {accountError}
               </p>
             ) : null}
             {confirmAccountDeletion ? (
               <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-                <p className="text-sm font-medium">Delete your account and every check-in photo?</p>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">This cannot be undone.</p>
+                <p className="font-medium text-sm">Delete your account and every check-in photo?</p>
+                <p className="mt-1 text-muted-foreground text-xs leading-5">
+                  This cannot be undone.
+                </p>
                 <div className="mt-4 flex flex-wrap justify-end gap-2">
                   <Button
                     type="button"
@@ -631,11 +689,15 @@ function PhotoPicker({
   return (
     <div>
       <label
-        className={`inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground transition hover:brightness-105 focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 ${
+        className={`inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-5 font-semibold text-primary-foreground text-sm transition focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 hover:brightness-105 ${
           disabled ? "pointer-events-none opacity-50" : ""
         }`}
       >
-        {disabled ? <ImagePlus aria-hidden="true" className="size-4" /> : <Camera aria-hidden="true" className="size-4" />}
+        {disabled ? (
+          <ImagePlus aria-hidden="true" className="size-4" />
+        ) : (
+          <Camera aria-hidden="true" className="size-4" />
+        )}
         {label}
         <input
           id="checkin-photo"
@@ -647,7 +709,7 @@ function PhotoPicker({
           onChange={onChange}
         />
       </label>
-      <p className="mt-3 text-xs leading-5 text-muted-foreground">
+      <p className="mt-3 text-muted-foreground text-xs leading-5">
         Choose a photo from your device. On mobile, you can take one now.
       </p>
     </div>
@@ -675,7 +737,7 @@ function DeleteCheckIn({
         aria-expanded={isConfirming}
         aria-controls={confirmationId}
         onClick={() => setIsConfirming(!isConfirming)}
-        className="flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-muted-foreground text-xs transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Trash2 aria-hidden="true" className="size-3.5" />
         Delete
@@ -685,14 +747,14 @@ function DeleteCheckIn({
           id={confirmationId}
           className="absolute right-0 z-10 mt-2 w-64 rounded-xl border border-border bg-card p-4 text-left shadow-xl"
         >
-          <p className="text-sm font-medium">Delete the check-in from {date}?</p>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+          <p className="font-medium text-sm">Delete the check-in from {date}?</p>
+          <p className="mt-1 text-muted-foreground text-xs leading-5">
             This also removes the photo from your record.
           </p>
           <div className="mt-3 flex justify-end gap-2">
             <button
               type="button"
-              className="rounded-lg px-3 py-2 text-xs font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="rounded-lg px-3 py-2 font-medium text-xs hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               onClick={() => setIsConfirming(false)}
             >
               Keep it

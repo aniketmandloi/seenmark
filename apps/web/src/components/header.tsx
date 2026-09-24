@@ -15,12 +15,12 @@ export default function Header() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/80 bg-background/90 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-border/80 border-b bg-background/90 backdrop-blur-xl">
       <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between gap-5 px-5 sm:px-8 lg:px-10">
         <Link
           href="/"
           aria-label="Seenmark home"
-          className="shrink-0 text-xl font-semibold tracking-[-0.06em] text-foreground"
+          className="shrink-0 font-semibold text-foreground text-xl tracking-[-0.06em]"
         >
           seenmark<span className="text-primary">.</span>
         </Link>

@@ -32,10 +32,14 @@ export function formatCheckInDate(value: string) {
 	}).format(date);
 }
 
-export function checkInPhotoUri(checkIn: {
+export type CheckInPhoto = {
+	id: string;
+	takenAt: string;
 	mediaType: string;
 	imageBase64: string;
-}) {
+};
+
+export function checkInPhotoUri(checkIn: CheckInPhoto) {
 	return `data:${checkIn.mediaType};base64,${checkIn.imageBase64}`;
 }
 
@@ -175,6 +179,11 @@ export function useMemberActions() {
 		setError(null);
 		try {
 			await remove.mutateAsync({ id });
+			// The photo never goes stale, so it stays readable until evicted; a read still
+			// in flight is cancelled so it cannot put the photo back.
+			const photoKey = trpc.checkIn.photo.queryKey({ id });
+			await queryClient.cancelQueries({ queryKey: photoKey });
+			queryClient.removeQueries({ queryKey: photoKey });
 			// Deleting the last check-in also clears the band.
 			await Promise.all([
 				refresh(checkInsKey, reminderKey, bandKey),

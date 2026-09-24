@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { router, Stack, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 
 import {
 	FormConfirmButton,
@@ -11,6 +12,7 @@ import {
 	FormSection,
 } from "@/components/form/form";
 import {
+	type CheckInPhoto,
 	checkInPhotoQuery,
 	checkInPhotoUri,
 	formatCheckInDate,
@@ -20,9 +22,10 @@ import {
 export default function CheckInScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
 	const actions = useMemberActions();
-	// A delete leaves this cached photo in place, so it stays on screen while the screen pops.
-	const photo = useQuery(checkInPhotoQuery(id));
-	const checkIn = photo.data;
+	// A delete evicts the cached photo; this screen keeps its own copy while it pops.
+	const [leaving, setLeaving] = useState<CheckInPhoto | null>(null);
+	const photo = useQuery({ ...checkInPhotoQuery(id), enabled: !leaving });
+	const checkIn = leaving ?? photo.data;
 
 	if (!checkIn) {
 		return (
@@ -74,7 +77,9 @@ export default function CheckInScreen() {
 						confirmLabel="Delete photo"
 						cancelLabel="Keep photo"
 						onConfirm={async () => {
+							setLeaving(checkIn);
 							if (await actions.deleteCheckIn(checkIn.id)) router.back();
+							else setLeaving(null);
 						}}
 						disabled={actions.isBusy}
 					/>

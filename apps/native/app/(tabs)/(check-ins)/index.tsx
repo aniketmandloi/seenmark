@@ -36,7 +36,7 @@ export default function CheckInsScreen() {
 		<FormScreen
 			onRefresh={loop.refresh}
 			primaryAction={
-				loop.isEmpty || actions.cameraDenied
+				loop.isEmpty
 					? undefined
 					: {
 							label: "Take check-in",
@@ -69,7 +69,10 @@ export default function CheckInsScreen() {
 					title="Camera access"
 					footer="Photos cannot be imported from your library."
 				>
-					<FormText>Camera access is needed for a check-in.</FormText>
+					<FormText>
+						Camera access is needed for a check-in. After allowing it in
+						settings, take the check-in again.
+					</FormText>
 					<FormButton
 						label="Open device settings"
 						icon="external"
@@ -99,7 +102,7 @@ export default function CheckInsScreen() {
 				</FormSection>
 			) : null}
 
-			{loop.isEmpty && !actions.cameraDenied ? (
+			{loop.isEmpty ? (
 				<>
 					<FormEmptyState
 						icon="camera"

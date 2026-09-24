@@ -1,4 +1,3 @@
-import { polarClient } from "@polar-sh/better-auth/client";
 import { createAuthClient } from "better-auth/react";
 
 function getServerUrl(url: string) {
@@ -37,5 +36,4 @@ function getServerUrl(url: string) {
 
 export const authClient = createAuthClient({
   baseURL: new URL("/api/auth", getServerUrl(process.env.NEXT_PUBLIC_SERVER_URL!)).toString(),
-  plugins: [polarClient()],
 });

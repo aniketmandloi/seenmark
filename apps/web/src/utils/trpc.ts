@@ -17,7 +17,7 @@ export const claimMemberCache = createMemberCacheClaim(queryClient);
 const trpcClient = createTRPCClient<AppRouter>({
   links: [
     httpBatchLink({
-      url: `${resolveServerUrl(process.env.NEXT_PUBLIC_SERVER_URL!)}/trpc`,
+      url: `${resolveServerUrl(process.env.NEXT_PUBLIC_SERVER_URL)}/trpc`,
       fetch(url, options) {
         return fetch(url, {
           ...options,

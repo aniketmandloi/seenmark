@@ -15,7 +15,7 @@ function withoutTrailingSlash(url: string) {
  * explicit SERVER_URL, then the Vercel deployment origin, then the local server.
  */
 export function resolveServerUrl(
-  configured: string,
+  configured: string | undefined,
   {
     env = (globalThis as { process?: { env?: Environment } }).process?.env,
     browserOrigin = typeof window === "undefined" ? null : window.location.origin,
@@ -25,6 +25,9 @@ export function resolveServerUrl(
     return withoutTrailingSlash(env.SERVER_URL);
   }
 
+  if (!configured) {
+    throw new Error("NEXT_PUBLIC_SERVER_URL is not set");
+  }
   const normalized = withoutTrailingSlash(configured);
   if (!normalized.startsWith("/")) {
     return normalized;

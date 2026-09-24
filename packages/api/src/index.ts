@@ -33,7 +33,7 @@ export const memberProcedure = protectedProcedure.use(async ({ ctx, next }) => {
 		.where(eq(member.id, ctx.session.user.id))
 		.limit(1);
 
-	if (!row || !row.affirmedAtLeast18 || !row.affirmedInUnitedStates) {
+	if (!row?.affirmedAtLeast18 || !row.affirmedInUnitedStates) {
 		throw new TRPCError({
 			code: "FORBIDDEN",
 			message: "Member affirmations are required",

@@ -47,3 +47,9 @@ test("on the Next server a relative URL falls back to the local server", () => {
     "http://localhost:3000/api",
   );
 });
+
+test("a missing configured URL is an error, not a guess", () => {
+  expect(() => resolveServerUrl(undefined, { env: {}, browserOrigin: null })).toThrow(
+    "NEXT_PUBLIC_SERVER_URL is not set",
+  );
+});

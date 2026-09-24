@@ -10,7 +10,8 @@ import {
 	useQuery,
 } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { AppState } from "react-native";
 
 import { queryClient, trpc } from "@/utils/trpc";
 
@@ -141,6 +142,19 @@ export function useNextSteps() {
 export function useMemberActions() {
 	const [error, setError] = useState<string | null>(null);
 	const [cameraDenied, setCameraDenied] = useState(false);
+
+	// Camera access is usually granted in the device settings, so coming back to the app
+	// checks again rather than waiting for another tap.
+	useEffect(() => {
+		if (!cameraDenied) return;
+		const subscription = AppState.addEventListener("change", (state) => {
+			if (state !== "active") return;
+			void ImagePicker.getCameraPermissionsAsync().then((permission) => {
+				if (permission.granted) setCameraDenied(false);
+			});
+		});
+		return () => subscription.remove();
+	}, [cameraDenied]);
 
 	const record = useMutation(trpc.checkIn.record.mutationOptions());
 	const remove = useMutation(trpc.checkIn.delete.mutationOptions());

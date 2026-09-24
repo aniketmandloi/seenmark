@@ -10,6 +10,12 @@ export type CreateContextOptions = {
   signUpLimit: SignUpLimit;
 };
 
+// Vercel and most proxies put the caller first in x-forwarded-for.
+function clientAddressOf(headers: Headers) {
+  const forwarded = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  return forwarded || headers.get("x-real-ip") || null;
+}
+
 export async function createContext({
   context,
   auth,
@@ -25,7 +31,7 @@ export async function createContext({
     auth,
     now: () => new Date(),
     paidLinkDestination: null,
-    clientAddress: null,
+    clientAddress: clientAddressOf(context.req.raw.headers),
     signUpLimit,
   };
 }

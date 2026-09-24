@@ -1,6 +1,6 @@
 import { checkIn } from "@seenmark/db/schema/check-in";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { memberProcedure, router } from "../index";
@@ -27,6 +27,9 @@ function encodeBase64(bytes: Uint8Array): string {
 	}
 	return btoa(binary);
 }
+
+/** Check-ins per history read; a client asks for the next page with the last item as cursor. */
+export const HISTORY_PAGE_SIZE = 30;
 
 export const checkInRouter = router({
 	record: memberProcedure
@@ -67,18 +70,40 @@ export const checkInRouter = router({
 			};
 		}),
 
-	list: memberProcedure.query(async ({ ctx }) => {
-		const rows = await ctx.db
-			.select({ id: checkIn.id, takenAt: checkIn.takenAt })
-			.from(checkIn)
-			.where(eq(checkIn.memberId, ctx.member.id))
-			.orderBy(desc(checkIn.takenAt));
+	list: memberProcedure
+		.input(
+			z
+				.object({
+					limit: z.number().int().min(1).max(100).optional(),
+					cursor: z
+						.object({ takenAt: z.string().datetime(), id: z.string().min(1) })
+						.nullish(),
+				})
+				.optional(),
+		)
+		.query(async ({ input, ctx }) => {
+			const cursor = input?.cursor;
+			// The id breaks ties between check-ins taken at the same instant, so pages
+			// never repeat or skip one.
+			const rows = await ctx.db
+				.select({ id: checkIn.id, takenAt: checkIn.takenAt })
+				.from(checkIn)
+				.where(
+					and(
+						eq(checkIn.memberId, ctx.member.id),
+						cursor
+							? sql`(${checkIn.takenAt}, ${checkIn.id}) < (${cursor.takenAt}::timestamp, ${cursor.id})`
+							: undefined,
+					),
+				)
+				.orderBy(desc(checkIn.takenAt), desc(checkIn.id))
+				.limit(input?.limit ?? HISTORY_PAGE_SIZE);
 
-		return rows.map((row) => ({
-			id: row.id,
-			takenAt: row.takenAt.toISOString(),
-		}));
-	}),
+			return rows.map((row) => ({
+				id: row.id,
+				takenAt: row.takenAt.toISOString(),
+			}));
+		}),
 
 	photo: memberProcedure
 		.input(z.object({ id: z.string().min(1) }))

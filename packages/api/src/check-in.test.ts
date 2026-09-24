@@ -437,3 +437,55 @@ test("history and the reminder read through the member and time index", async ()
 	);
 	expect(Number(scans.rows[0]?.idx_scan)).toBe(2);
 });
+
+test("history comes back in bounded pages, newest first, each check-in once", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const opened = await publicCaller.member.openAccount({
+		name: "Noa Member",
+		email: "noa@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	const memberCaller = createMemberCaller(db, auth, {
+		userId: opened.id,
+		name: "Noa Member",
+		email: "noa@example.com",
+	});
+
+	const takenAts = [
+		"2024-01-01T10:00:00.000Z",
+		"2024-02-01T10:00:00.000Z",
+		"2024-02-01T10:00:00.000Z",
+		"2024-03-01T10:00:00.000Z",
+		"2024-04-01T10:00:00.000Z",
+	];
+	for (const [index, takenAt] of takenAts.entries()) {
+		await memberCaller.checkIn.record({
+			imageBase64: testPhoto(`noa-${index}`),
+			mediaType: "image/png",
+			takenAt,
+		});
+	}
+
+	const everything = await memberCaller.checkIn.list();
+	expect(everything.map((item) => item.takenAt)).toEqual(
+		[...takenAts].reverse(),
+	);
+
+	const paged = [];
+	let cursor: { takenAt: string; id: string } | null = null;
+	for (;;) {
+		const page = await memberCaller.checkIn.list({ limit: 2, cursor });
+		expect(page.length).toBeLessThanOrEqual(2);
+		paged.push(...page);
+		const last = page.at(-1);
+		if (page.length < 2 || !last) break;
+		cursor = last;
+	}
+	expect(paged).toEqual(everything);
+
+	await expect(memberCaller.checkIn.list({ limit: 101 })).rejects.toMatchObject({
+		code: "BAD_REQUEST",
+	});
+});

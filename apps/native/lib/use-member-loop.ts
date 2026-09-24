@@ -138,6 +138,9 @@ export function useNextSteps() {
 	};
 }
 
+// Camera files already saved as check-ins in this run, so one capture is never recorded twice.
+const recordedCaptures = new Set<string>();
+
 /** The actions that change the member loop; each refreshes only the reads it can change. */
 export function useMemberActions() {
 	const [error, setError] = useState<string | null>(null);
@@ -166,6 +169,40 @@ export function useMemberActions() {
 		trpc.introduction.delete.mutationOptions(),
 	);
 
+	/** Records the photo from a finished camera session, once per captured file. */
+	async function recordCapture(result: ImagePicker.ImagePickerResult) {
+		if (result.canceled) return;
+
+		const asset = result.assets[0];
+		if (!asset?.base64) {
+			setError("The camera did not return a photo. Please try again.");
+			return;
+		}
+		if (recordedCaptures.has(asset.uri)) return;
+		const mediaType = asset.mimeType ?? "image/jpeg";
+		if (!isPhotoMediaType(mediaType)) {
+			setError("The camera returned a photo format Seenmark cannot keep.");
+			return;
+		}
+		if (asset.base64.length > MAX_PHOTO_BASE64_LENGTH) {
+			setError("That photo is too large to keep. Please try again.");
+			return;
+		}
+
+		recordedCaptures.add(asset.uri);
+		try {
+			await record.mutateAsync({
+				imageBase64: asset.base64,
+				mediaType,
+				takenAt: new Date().toISOString(),
+			});
+		} catch (cause) {
+			recordedCaptures.delete(asset.uri);
+			throw cause;
+		}
+		await refresh(checkInsKey, reminderKey);
+	}
+
 	async function takeCheckIn() {
 		setError(null);
 		setCameraDenied(false);
@@ -176,36 +213,15 @@ export function useMemberActions() {
 				return;
 			}
 
-			const result = await ImagePicker.launchCameraAsync({
-				mediaTypes: ["images"],
-				allowsEditing: false,
-				base64: true,
-				// Full-quality camera JPEGs can pass the upload limit; this keeps detail for comparing.
-				quality: 0.6,
-			});
-			if (result.canceled) return;
-
-			const asset = result.assets[0];
-			if (!asset?.base64) {
-				setError("The camera did not return a photo. Please try again.");
-				return;
-			}
-			const mediaType = asset.mimeType ?? "image/jpeg";
-			if (!isPhotoMediaType(mediaType)) {
-				setError("The camera returned a photo format Seenmark cannot keep.");
-				return;
-			}
-			if (asset.base64.length > MAX_PHOTO_BASE64_LENGTH) {
-				setError("That photo is too large to keep. Please try again.");
-				return;
-			}
-
-			await record.mutateAsync({
-				imageBase64: asset.base64,
-				mediaType,
-				takenAt: new Date().toISOString(),
-			});
-			await refresh(checkInsKey, reminderKey);
+			await recordCapture(
+				await ImagePicker.launchCameraAsync({
+					mediaTypes: ["images"],
+					allowsEditing: false,
+					base64: true,
+					// Full-quality camera JPEGs can exceed the upload limit; this keeps detail for comparing.
+					quality: 0.6,
+				}),
+			);
 		} catch (cause) {
 			setError(messageFrom(cause, "Failed to record check-in"));
 		}

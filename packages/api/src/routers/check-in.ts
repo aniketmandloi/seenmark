@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
+import { HISTORY_PAGE_SIZE } from "../history";
 import { memberProcedure, router } from "../index";
 import {
 	isBase64,
@@ -27,9 +28,6 @@ function encodeBase64(bytes: Uint8Array): string {
 	}
 	return btoa(binary);
 }
-
-/** Check-ins per history read; a client asks for the next page with the last item as cursor. */
-export const HISTORY_PAGE_SIZE = 30;
 
 export const checkInRouter = router({
 	record: memberProcedure

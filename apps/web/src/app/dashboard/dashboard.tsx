@@ -1,8 +1,9 @@
 "use client";
 
+import { HISTORY_PAGE_SIZE, nextHistoryCursor } from "@seenmark/api/history";
 import { MAX_PHOTO_BASE64_LENGTH } from "@seenmark/api/photo";
 import { Button } from "@seenmark/ui/components/button";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, Camera, Check, Clock3, ImagePlus, LockKeyhole, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -95,7 +96,7 @@ async function preparePhoto(file: File) {
 
 async function invalidateMemberLoop() {
   await Promise.all([
-    queryClient.invalidateQueries({ queryKey: trpc.checkIn.list.queryKey() }),
+    queryClient.invalidateQueries({ queryKey: trpc.checkIn.list.pathKey() }),
     queryClient.invalidateQueries({ queryKey: trpc.score.current.queryKey() }),
     queryClient.invalidateQueries({ queryKey: trpc.menu.current.queryKey() }),
     queryClient.invalidateQueries({ queryKey: trpc.checkIn.reminder.queryKey() }),
@@ -111,7 +112,12 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   const [confirmAccountDeletion, setConfirmAccountDeletion] = useState(false);
   const [isPreparingPhoto, setIsPreparingPhoto] = useState(false);
 
-  const checkIns = useQuery(trpc.checkIn.list.queryOptions());
+  const checkIns = useInfiniteQuery(
+    trpc.checkIn.list.infiniteQueryOptions(
+      { limit: HISTORY_PAGE_SIZE },
+      { getNextPageParam: nextHistoryCursor },
+    ),
+  );
   const currentBand = useQuery(trpc.score.current.queryOptions());
   const reminder = useQuery(trpc.checkIn.reminder.queryOptions());
   const menu = useQuery(trpc.menu.current.queryOptions());
@@ -133,7 +139,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   );
   const deleteAccount = useMutation(trpc.member.deleteAccount.mutationOptions());
 
-  const items: CheckIn[] = checkIns.data ?? [];
+  const items: CheckIn[] = checkIns.data?.pages.flat() ?? [];
   const opened = openedId ? (items.find((item) => item.id === openedId) ?? null) : null;
   const selectedBand = bands.find((band) => band.value === currentBand.data)?.label;
   const currentMenu = menu.data?.menu ?? null;
@@ -254,7 +260,8 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
               </p>
             </div>
             <span className="text-sm tabular-nums text-muted-foreground">
-              {items.length} {items.length === 1 ? "check-in" : "check-ins"}
+              {items.length}
+              {checkIns.hasNextPage ? "+" : ""} {items.length === 1 ? "check-in" : "check-ins"}
             </span>
           </div>
 
@@ -373,6 +380,17 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
                       </button>
                     ))}
                   </div>
+                  {checkIns.hasNextPage ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-4"
+                      disabled={checkIns.isFetchingNextPage}
+                      onClick={() => checkIns.fetchNextPage()}
+                    >
+                      {checkIns.isFetchingNextPage ? "Loading…" : "Show earlier check-ins"}
+                    </Button>
+                  ) : null}
                 </section>
               ) : null}
 

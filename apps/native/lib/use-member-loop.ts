@@ -10,7 +10,7 @@ import {
 	useQuery,
 } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 import { AppState } from "react-native";
 
 import { queryClient, trpc } from "@/utils/trpc";
@@ -140,6 +140,7 @@ export function useNextSteps() {
 
 // Camera files already saved as check-ins in this run, so one capture is never recorded twice.
 const recordedCaptures = new Set<string>();
+let pendingCaptureChecked = false;
 
 /** The actions that change the member loop; each refreshes only the reads it can change. */
 export function useMemberActions() {
@@ -202,6 +203,28 @@ export function useMemberActions() {
 		}
 		await refresh(checkInsKey, reminderKey);
 	}
+
+	// Android can destroy the app while the camera is open; the finished capture is then
+	// handed over on the next start instead of to launchCameraAsync.
+	const recoverPendingCapture = useEffectEvent(async () => {
+		try {
+			const pending = await ImagePicker.getPendingResultAsync();
+			if (!pending) return;
+			if ("code" in pending) {
+				setError(pending.message || "The camera could not finish. Please try again.");
+				return;
+			}
+			await recordCapture(pending);
+		} catch (cause) {
+			setError(messageFrom(cause, "Failed to record check-in"));
+		}
+	});
+
+	useEffect(() => {
+		if (pendingCaptureChecked) return;
+		pendingCaptureChecked = true;
+		void recoverPendingCapture();
+	}, []);
 
 	async function takeCheckIn() {
 		setError(null);

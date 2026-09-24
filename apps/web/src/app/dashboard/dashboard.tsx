@@ -193,6 +193,11 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
       if (openedId === id) {
         setOpenedId(null);
       }
+      // Photos never go stale, so a deleted one stays readable until evicted; a read still
+      // in flight is cancelled so it cannot put the photo back.
+      const photoKey = trpc.checkIn.photo.queryKey({ id });
+      await queryClient.cancelQueries({ queryKey: photoKey });
+      queryClient.removeQueries({ queryKey: photoKey });
     } catch (cause) {
       setErrorMessage(cause instanceof Error ? cause.message : "We could not delete that check-in.");
     }

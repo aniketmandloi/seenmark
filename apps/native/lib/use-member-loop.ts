@@ -45,10 +45,15 @@ export function checkInPhotoUri(checkIn: CheckInPhoto) {
 
 /** A recorded photo never changes, so once loaded it is never refetched. */
 export function checkInPhotoQuery(id: string) {
-	return {
-		...trpc.checkIn.photo.queryOptions({ id }),
-		staleTime: Number.POSITIVE_INFINITY,
-	};
+	return trpc.checkIn.photo.queryOptions(
+		{ id },
+		{
+			staleTime: Number.POSITIVE_INFINITY,
+			// A deleted photo stays deleted; only a failed read is worth repeating.
+			retry: (failures, error) =>
+				error.data?.code !== "NOT_FOUND" && failures < 3,
+		},
+	);
 }
 
 function messageFrom(cause: unknown, fallback: string) {

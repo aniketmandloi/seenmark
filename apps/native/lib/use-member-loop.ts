@@ -61,6 +61,14 @@ async function refresh(...queryKeys: QueryKey[]) {
 	);
 }
 
+// Loaded photos never go stale, so a refresh only sends again the ones that failed.
+function retryFailedPhotos() {
+	return queryClient.refetchQueries({
+		queryKey: trpc.checkIn.photo.pathKey(),
+		predicate: (query) => query.state.status === "error",
+	});
+}
+
 const checkInsKey = trpc.checkIn.list.pathKey();
 const reminderKey = trpc.checkIn.reminder.queryKey();
 const bandKey = trpc.score.current.queryKey();
@@ -87,15 +95,21 @@ export function useCheckIns() {
 
 	return {
 		items,
+		// A failed read is not an empty record: it must not invite a first photo or hide the band.
+		loadFailed: checkIns.isError || band.isError,
 		hasEarlier: checkIns.hasNextPage,
 		isLoadingEarlier: checkIns.isFetchingNextPage,
 		loadEarlier: () => void checkIns.fetchNextPage(),
 		isLoading: checkIns.isLoading,
-		isEmpty: !checkIns.isLoading && items.length === 0,
+		isEmpty: checkIns.isSuccess && items.length === 0,
 		reminder: reminder.data?.due ? reminder.data.invitation : null,
 		band: band.data ?? null,
 		hasIntroduction: Boolean(introduction.data),
-		refresh: () => refresh(checkInsKey, reminderKey, bandKey, introductionKey),
+		refresh: () =>
+			Promise.all([
+				refresh(checkInsKey, reminderKey, bandKey, introductionKey),
+				retryFailedPhotos(),
+			]).then(() => undefined),
 	};
 }
 

@@ -78,6 +78,17 @@ export default function CheckInsScreen() {
 				</FormSection>
 			) : null}
 
+			{loop.loadFailed ? (
+				<FormSection footer="Nothing was changed. Pull down or try again.">
+					<FormRow
+						icon="error"
+						title="Your check-ins could not load."
+						tone="destructive"
+					/>
+					<FormButton label="Try again" onPress={() => void loop.refresh()} />
+				</FormSection>
+			) : null}
+
 			{loop.isLoading || actions.isRecording ? (
 				<FormSection>
 					<FormProgress
@@ -114,11 +125,17 @@ export default function CheckInsScreen() {
 					}
 				>
 					{latest.some((photo) => photo.isError) ? (
-						<FormRow
-							icon="error"
-							title="Your photos could not load."
-							tone="destructive"
-						/>
+						<>
+							<FormRow
+								icon="error"
+								title="Your photos could not load."
+								tone="destructive"
+							/>
+							<FormButton
+								label="Try again"
+								onPress={() => void loop.refresh()}
+							/>
+						</>
 					) : latestPhotos.length === latest.length ? (
 						<FormPhotos
 							photos={latestPhotos.map((photo, index) => ({

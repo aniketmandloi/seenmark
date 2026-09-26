@@ -31,6 +31,7 @@ import {
 	fillMaxWidth,
 	graphicsLayer,
 	height,
+	type ModifierConfig,
 	onGloballyPositioned,
 	padding,
 	Shapes,
@@ -69,10 +70,12 @@ import type {
 	FormRowProps,
 	FormScreenProps,
 	FormSectionProps,
+	FormSkeletonProps,
 	FormTextFieldProps,
 	FormTextProps,
 	FormToggleProps,
 } from "@/components/form/types";
+import { SKELETON_COUNT } from "@/components/form/types";
 import { enter } from "@/lib/compose-motion";
 import { ICONS } from "@/lib/icons";
 import { staggerDelay, useMotion } from "@/lib/motion";
@@ -491,13 +494,16 @@ export function FormLink({ label, destination }: FormLinkProps) {
 	);
 }
 
+// Compose has no aspect-ratio modifier, so photos size from the window like the section around them.
+function usePhotoWidth(count: number) {
+	const { width } = useWindowDimensions();
+	const rowWidth = width - SCREEN_PADDING * 2 - ROW_PADDING * 2;
+	return count > 1 ? (rowWidth - PHOTO_GAP * (count - 1)) / count : rowWidth;
+}
+
 export function FormPhotos({ photos }: FormPhotosProps) {
 	const colors = useMaterialColors();
-	const { width } = useWindowDimensions();
-	// Compose has no aspect-ratio modifier, so size from the window like the section around it.
-	const rowWidth = width - SCREEN_PADDING * 2 - ROW_PADDING * 2;
-	const photoWidth =
-		photos.length > 1 ? (rowWidth - PHOTO_GAP) / photos.length : rowWidth;
+	const photoWidth = usePhotoWidth(photos.length);
 
 	return (
 		<Column
@@ -692,6 +698,109 @@ export function FormReveal({ children, index = 0 }: FormRevealProps) {
 		>
 			{children}
 		</Column>
+	);
+}
+
+function Placeholder({ modifiers }: { modifiers: ModifierConfig[] }) {
+	const colors = useMaterialColors();
+	return (
+		<Box
+			modifiers={[...modifiers, background(colors.surfaceContainerHighest)]}
+		/>
+	);
+}
+
+const line = (fraction: number, lineHeight = 14) => [
+	fillMaxWidth(fraction),
+	height(lineHeight),
+	clip(Shapes.RoundedCorner(4)),
+];
+
+/** Static blocks in the shape of the content, so it lands where they stood. */
+export function FormSkeleton({
+	shape,
+	count = SKELETON_COUNT[shape],
+	label,
+}: FormSkeletonProps) {
+	const photoWidth = usePhotoWidth(count);
+	const slots = Array.from({ length: count }, (_, index) => index);
+
+	const blocks =
+		shape === "photos" ? (
+			<Row
+				horizontalArrangement={{ spacedBy: PHOTO_GAP }}
+				modifiers={[
+					padding(ROW_PADDING, ROW_PADDING, ROW_PADDING, ROW_PADDING),
+				]}
+			>
+				{slots.map((index) => (
+					<Column key={index} verticalArrangement={{ spacedBy: 6 }}>
+						<Placeholder
+							modifiers={[
+								size(photoWidth, (photoWidth * 5) / 4),
+								clip(Shapes.RoundedCorner(count > 1 ? 12 : 16)),
+							]}
+						/>
+						<Placeholder
+							modifiers={[
+								size(photoWidth * 0.6, 12),
+								clip(Shapes.RoundedCorner(4)),
+							]}
+						/>
+					</Column>
+				))}
+			</Row>
+		) : shape === "choice" ? (
+			<Box
+				modifiers={[
+					fillMaxWidth(),
+					padding(ROW_PADDING, ROW_PADDING, ROW_PADDING, ROW_PADDING),
+				]}
+			>
+				<Placeholder
+					modifiers={[
+						fillMaxWidth(),
+						height(40),
+						clip(Shapes.RoundedCorner(20)),
+					]}
+				/>
+			</Box>
+		) : (
+			<Column modifiers={[fillMaxWidth()]}>
+				{slots.map((index) =>
+					shape === "rows" ? (
+						<Row
+							key={index}
+							verticalAlignment="center"
+							horizontalArrangement={{ spacedBy: 16 }}
+							modifiers={[fillMaxWidth(), padding(16, 18, 24, 18)]}
+						>
+							<Placeholder
+								modifiers={[size(24, 24), clip(Shapes.RoundedCorner(12))]}
+							/>
+							<Placeholder modifiers={line(0.6, 16)} />
+						</Row>
+					) : (
+						<Column
+							key={index}
+							verticalArrangement={{ spacedBy: 8 }}
+							modifiers={[fillMaxWidth(), padding(16, 14, 16, 14)]}
+						>
+							<Placeholder modifiers={line(1)} />
+							<Placeholder modifiers={line(0.7)} />
+						</Column>
+					),
+				)}
+			</Column>
+		);
+
+	// Compose here has no content description for a plain block, but TalkBack still reads
+	// text drawn at zero alpha, so the label rides on an invisible Text over the blocks.
+	return (
+		<Box modifiers={[fillMaxWidth()]}>
+			{blocks}
+			<Text modifiers={[align("center"), alpha(0)]}>{label}</Text>
+		</Box>
 	);
 }
 

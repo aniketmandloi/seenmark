@@ -11,6 +11,7 @@ import {
 	Picker,
 	ProgressView,
 	RNHostView,
+	RoundedRectangle,
 	Section,
 	SecureField,
 	Spacer,
@@ -21,6 +22,9 @@ import {
 	VStack,
 } from "@expo/ui/swift-ui";
 import {
+	accessibilityElement,
+	accessibilityHidden,
+	accessibilityLabel,
 	aspectRatio,
 	autocorrectionDisabled,
 	buttonStyle,
@@ -42,6 +46,7 @@ import {
 	opacity,
 	padding,
 	pickerStyle,
+	redacted,
 	refreshable,
 	scrollDismissesKeyboard,
 	submitLabel,
@@ -67,11 +72,13 @@ import type {
 	FormRowProps,
 	FormScreenProps,
 	FormSectionProps,
+	FormSkeletonProps,
 	FormTextFieldProps,
 	FormTextProps,
 	FormToggleProps,
 	Tone,
 } from "@/components/form/types";
+import { SKELETON_COUNT } from "@/components/form/types";
 import { ICONS } from "@/lib/icons";
 import { staggerDelay, useMotion } from "@/lib/motion";
 import { easeOut } from "@/lib/swift-ui-motion";
@@ -83,6 +90,10 @@ const hasContentUnavailableView =
 
 const secondary = foregroundStyle({ type: "hierarchical", style: "secondary" });
 const tertiary = foregroundStyle({ type: "hierarchical", style: "tertiary" });
+const quaternary = foregroundStyle({
+	type: "hierarchical",
+	style: "quaternary",
+});
 
 function useToneStyle(tone: Tone): ModifierConfig[] {
 	const { theme } = useColorScheme();
@@ -567,6 +578,86 @@ export function FormReveal({ children, index = 0 }: FormRevealProps) {
 		>
 			{children}
 		</Group>
+	);
+}
+
+const PLACEHOLDER_DATE = "September 27, 2026";
+const PLACEHOLDER_STEP =
+	"A placeholder step about as long as the one that will replace it.";
+const PLACEHOLDER_OPTIONS = ["one", "two", "three", "four", "five"].map(
+	(value) => ({ value, label: "Option" }),
+);
+
+/** Kit rows redacted as placeholders, so the loaded content lands where they stood. */
+export function FormSkeleton({
+	shape,
+	count = SKELETON_COUNT[shape],
+	label,
+}: FormSkeletonProps) {
+	// VoiceOver reads the label once, on the first placeholder, and skips the rest.
+	const readAs = (index: number) =>
+		index === 0
+			? [accessibilityElement("ignore"), accessibilityLabel(label)]
+			: [accessibilityHidden(true)];
+	const slots = Array.from({ length: count }, (_, index) => index);
+
+	if (shape === "photos") {
+		return (
+			<HStack
+				spacing={10}
+				alignment="top"
+				modifiers={[
+					listRowInsets({ top: 12, leading: 12, bottom: 12, trailing: 12 }),
+					redacted("placeholder"),
+					...readAs(0),
+				]}
+			>
+				{slots.map((index) => (
+					<VStack key={index} alignment="leading" spacing={6}>
+						<RoundedRectangle
+							cornerRadius={count > 1 ? 12 : 16}
+							modifiers={[
+								aspectRatio({ ratio: 4 / 5, contentMode: "fit" }),
+								quaternary,
+							]}
+						/>
+						<Text modifiers={[font({ textStyle: "footnote" }), secondary]}>
+							{PLACEHOLDER_DATE}
+						</Text>
+					</VStack>
+				))}
+			</HStack>
+		);
+	}
+
+	if (shape === "choice") {
+		return (
+			<Group modifiers={[redacted("placeholder"), ...readAs(0)]}>
+				<FormChoice
+					options={PLACEHOLDER_OPTIONS.slice(0, count)}
+					selection={null}
+					onSelectionChange={() => undefined}
+					disabled
+				/>
+			</Group>
+		);
+	}
+
+	return (
+		<>
+			{slots.map((index) => (
+				<Group
+					key={index}
+					modifiers={[redacted("placeholder"), ...readAs(index)]}
+				>
+					{shape === "rows" ? (
+						<FormRow icon="camera" title={PLACEHOLDER_DATE} />
+					) : (
+						<FormText>{PLACEHOLDER_STEP}</FormText>
+					)}
+				</Group>
+			))}
+		</>
 	);
 }
 

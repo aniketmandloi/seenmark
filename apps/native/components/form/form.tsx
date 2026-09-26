@@ -29,10 +29,12 @@ import type {
 	FormRowProps,
 	FormScreenProps,
 	FormSectionProps,
+	FormSkeletonProps,
 	FormTextFieldProps,
 	FormTextProps,
 	FormToggleProps,
 } from "@/components/form/types";
+import { SKELETON_COUNT } from "@/components/form/types";
 import { staggerDelay, useMotion } from "@/lib/motion";
 import { useColorScheme } from "@/lib/use-color-scheme";
 
@@ -399,6 +401,41 @@ export function FormReveal({ children, index = 0 }: FormRevealProps) {
 	);
 }
 
+export function FormSkeleton({
+	shape,
+	count = SKELETON_COUNT[shape],
+	label,
+}: FormSkeletonProps) {
+	const { theme } = useColorScheme();
+	const block = { backgroundColor: theme.border };
+	const slots = Array.from({ length: count }, (_, index) => index);
+
+	return (
+		<View accessible accessibilityLabel={label}>
+			{shape === "photos" ? (
+				<View style={[styles.row, styles.photos]}>
+					{slots.map((index) => (
+						<View key={index} style={styles.photoColumn}>
+							<View style={[styles.photo, block]} />
+							<View style={[styles.skeletonLine, styles.short, block]} />
+						</View>
+					))}
+				</View>
+			) : shape === "choice" ? (
+				<View style={styles.row}>
+					<View style={[styles.skeletonChoice, block]} />
+				</View>
+			) : (
+				slots.map((index) => (
+					<View key={index} style={styles.row}>
+						<View style={[styles.skeletonLine, styles.long, block]} />
+					</View>
+				))
+			)}
+		</View>
+	);
+}
+
 /** A failed read with a way to try it again; shared so every screen fails the same way. */
 export function FormErrorState({
 	message,
@@ -519,6 +556,21 @@ const styles = StyleSheet.create({
 		paddingVertical: 8,
 		borderRadius: 8,
 		borderWidth: 1,
+	},
+	skeletonLine: {
+		height: 14,
+		borderRadius: 4,
+	},
+	long: {
+		width: "70%",
+	},
+	short: {
+		width: "50%",
+	},
+	skeletonChoice: {
+		flex: 1,
+		height: 32,
+		borderRadius: 8,
 	},
 	empty: {
 		alignItems: "center",

@@ -122,6 +122,23 @@ export type FormRevealProps = {
 	index?: number;
 };
 
+export type FormSkeletonShape = "rows" | "photos" | "choice" | "steps";
+
+export type FormSkeletonProps = {
+	/** The content it stands in for, drawn static in the same shape. */
+	shape: FormSkeletonShape;
+	count?: number;
+	/** Read by screen readers in place of the placeholder, like "Loading your photos". */
+	label: string;
+};
+
+export const SKELETON_COUNT: Record<FormSkeletonShape, number> = {
+	rows: 3,
+	photos: 2,
+	choice: 3,
+	steps: 3,
+};
+
 export type FormErrorStateProps = {
 	/** What failed to load, like "Your check-ins could not load." */
 	message: string;

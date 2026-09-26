@@ -63,6 +63,7 @@
 @theme inline {
   --font-sans: var(--font-geist-sans, ui-sans-serif);
   --font-mono: var(--font-geist-mono, ui-monospace);
+  --font-display: var(--font-instrument-serif, ui-serif);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);

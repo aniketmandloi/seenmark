@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@seenmark/ui/components/button";
+import { cn } from "@seenmark/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 
@@ -8,7 +9,15 @@ import { trpc } from "@/utils/trpc";
 
 import type { CheckIn } from "./check-in-dates";
 
-export default function Photo({ item, alt }: { item: CheckIn; alt: string }) {
+export default function Photo({
+  item,
+  alt,
+  className,
+}: {
+  item: CheckIn;
+  alt: string;
+  className?: string;
+}) {
   // A recorded photo never changes, so once loaded it is never refetched.
   const photo = useQuery({
     ...trpc.checkIn.photo.queryOptions({ id: item.id }),
@@ -17,7 +26,12 @@ export default function Photo({ item, alt }: { item: CheckIn; alt: string }) {
 
   if (photo.isError && !photo.data) {
     return (
-      <div className="grid aspect-[3/4] w-full place-items-center rounded-2xl bg-muted p-4 text-center">
+      <div
+        className={cn(
+          "grid aspect-3/4 w-full place-items-center rounded-2xl bg-muted p-4 text-center",
+          className,
+        )}
+      >
         <div role="alert">
           <p className="text-muted-foreground text-sm">This photo could not load.</p>
           <Button
@@ -39,7 +53,7 @@ export default function Photo({ item, alt }: { item: CheckIn; alt: string }) {
       <div
         role="status"
         aria-label="Loading photo"
-        className="aspect-[3/4] w-full animate-pulse rounded-2xl bg-muted motion-reduce:animate-none"
+        className={cn("aspect-3/4 w-full animate-pulse rounded-2xl bg-muted", className)}
       />
     );
   }
@@ -51,7 +65,7 @@ export default function Photo({ item, alt }: { item: CheckIn; alt: string }) {
       width={900}
       height={1200}
       unoptimized
-      className="aspect-[3/4] w-full rounded-2xl bg-muted object-cover"
+      className={cn("aspect-3/4 w-full rounded-2xl bg-muted object-cover", className)}
     />
   );
 }

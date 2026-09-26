@@ -1,28 +1,37 @@
 "use client";
 
 import { HISTORY_PAGE_SIZE, nextHistoryCursor } from "@seenmark/api/history";
+import { Alert, AlertDescription } from "@seenmark/ui/components/alert";
 import { Button } from "@seenmark/ui/components/button";
 import { useInfiniteQuery, useIsMutating, useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, Camera, Check, Clock3, ImagePlus, LockKeyhole, Trash2 } from "lucide-react";
+import { ArrowUpRight, Camera, Check, Clock3, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { type ChangeEvent, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
+import ErrorState from "@/components/error-state";
+import PageHeader from "@/components/page-header";
 import type { authClient } from "@/lib/auth-client";
 import { claimMemberCache, queryClient, trpc } from "@/utils/trpc";
 
 import AccountPrivacy from "./account-privacy";
 import { type Band, bands } from "./bands";
-import { type CheckIn, formatDate } from "./check-in-dates";
+import { type CheckIn, formatDate, relativeTime } from "./check-in-dates";
+import Compare from "./compare";
+import { type ComparisonChoice, chooseSlot, defaultChoice, resolveComparison } from "./comparison";
 import IntroductionRequest from "./introduction-request";
 import { invalidateMemberLoop } from "./member-loop";
 import Photo from "./photo";
+import PhotoPicker from "./photo-picker";
 import { preparePhoto } from "./prepare-photo";
 
 export default function Dashboard({ session }: { session: typeof authClient.$Infer.Session }) {
   // Before any read below, so a previous member's cached reads are never shown.
   claimMemberCache(session.user.id);
+  const [choice, setChoice] = useState<ComparisonChoice>(defaultChoice);
   const [openedId, setOpenedId] = useState<string | null>(null);
+  // Relative times are hints, so they are measured from when the dashboard opened.
+  const [now] = useState(() => Date.now());
   const [isPreparingPhoto, setIsPreparingPhoto] = useState(false);
 
   const checkIns = useInfiniteQuery(
@@ -54,6 +63,8 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   const mutations = useIsMutating();
 
   const items: CheckIn[] = checkIns.data?.pages.flat() ?? [];
+  const comparison = resolveComparison(items, choice);
+  const latest = items[0];
   const opened = openedId ? (items.find((item) => item.id === openedId) ?? null) : null;
   const selectedBand = bands.find((band) => band.value === currentBand.data)?.label;
   const currentMenu = menu.data?.menu ?? null;
@@ -62,15 +73,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   const shownMenu = currentMenu?.band === currentBand.data ? currentMenu : null;
   const isBusy = isPreparingPhoto || mutations > 0;
 
-  async function handlePhotoSelected(event: ChangeEvent<HTMLInputElement>) {
-    const input = event.currentTarget;
-    const file = input.files?.[0];
-    input.value = "";
-
-    if (!file) {
-      return;
-    }
-
+  async function addCheckIn(file: File) {
     if (!file.type.startsWith("image/")) {
       toast.error("Choose an image file to add a check-in.");
       return;
@@ -84,6 +87,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
         ...(await preparePhoto(file)),
         takenAt: new Date().toISOString(),
       });
+      setChoice(defaultChoice);
       toast.success("Check-in saved");
     } catch (cause) {
       toast.error(cause instanceof Error ? cause.message : "We could not save that check-in.");
@@ -120,77 +124,48 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
 
   return (
     <div className="mx-auto max-w-7xl px-5 pt-10 pb-16 sm:px-8 md:pt-14 lg:px-10">
-      <header className="grid gap-7 border-border/80 border-b pb-8 md:grid-cols-[1fr_auto] md:items-end">
-        <div>
-          <p className="text-muted-foreground text-sm">A private place for your check-ins</p>
-          <h1 className="mt-2 font-semibold text-4xl tracking-[-0.05em] sm:text-5xl">
-            Your check-ins
-          </h1>
-          <p className="mt-3 max-w-2xl text-base text-muted-foreground leading-7">
-            Welcome back, {session.user.name}. Take a photo when you want to look again.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3 rounded-2xl bg-accent/55 px-4 py-3 text-sm">
-          <LockKeyhole aria-hidden="true" className="size-4 shrink-0 text-primary" />
-          <span>Only you can see your photos.</span>
-        </div>
-      </header>
-
-      <div className="grid gap-10 py-8 lg:grid-cols-[1.2fr_0.8fr] lg:gap-12">
-        <section aria-labelledby="timeline-heading" className="min-w-0">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h2 id="timeline-heading" className="font-semibold text-2xl tracking-[-0.04em]">
-                Your photo record
-              </h2>
-              <p className="mt-2 text-muted-foreground text-sm leading-6">
-                Similar light and angle can make it easier to compare later.
-              </p>
-            </div>
-            <span className="text-muted-foreground text-sm tabular-nums">
+      <PageHeader
+        eyebrow="Only you can see your photos"
+        title="Your check-ins"
+        lede={
+          latest ? (
+            <span className="tabular-nums">
               {items.length}
-              {checkIns.hasNextPage ? "+" : ""} {items.length === 1 ? "check-in" : "check-ins"}
+              {checkIns.hasNextPage ? "+" : ""} {items.length === 1 ? "check-in" : "check-ins"} ·
+              last one{" "}
+              <time dateTime={latest.takenAt} title={formatDate(latest.takenAt)}>
+                {relativeTime(latest.takenAt, now)}
+              </time>
             </span>
-          </div>
+          ) : undefined
+        }
+        actions={<PhotoPicker disabled={isBusy} label="Add check-in" onFile={addCheckIn} />}
+      />
 
+      {reminder.data?.due ? (
+        <Alert role="status" className="mt-6 bg-accent/50">
+          <Clock3 aria-hidden="true" />
+          <AlertDescription>{reminder.data.invitation}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      <div className="mt-10 grid gap-12 lg:grid-cols-3">
+        <div className="min-w-0 lg:col-span-2">
           {checkIns.isLoading ? (
-            <div
-              className="mt-6 grid grid-cols-2 gap-4"
-              role="status"
-              aria-label="Loading check-ins"
-            >
-              <div className="aspect-[3/4] animate-pulse rounded-2xl bg-muted motion-reduce:animate-none" />
-              <div className="aspect-[3/4] animate-pulse rounded-2xl bg-muted motion-reduce:animate-none" />
+            <div className="grid grid-cols-2 gap-4" role="status" aria-label="Loading check-ins">
+              <div className="aspect-3/4 animate-pulse rounded-2xl bg-muted" />
+              <div className="aspect-3/4 animate-pulse rounded-2xl bg-muted" />
             </div>
           ) : checkIns.isError ? (
-            <div className="mt-6 rounded-2xl border border-border bg-card p-6">
-              <h3 className="font-semibold">Your check-ins are unavailable</h3>
-              <p className="mt-2 text-muted-foreground text-sm leading-6">
-                {checkIns.error.message || "Try again in a moment."}
-              </p>
-              <Button variant="outline" className="mt-5" onClick={() => checkIns.refetch()}>
-                Try again
-              </Button>
-            </div>
-          ) : items.length === 0 ? (
-            <div className="mt-6 rounded-[1.75rem] border border-border border-dashed bg-card/70 px-6 py-10 text-center sm:px-10 sm:py-14">
-              <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-accent text-primary">
-                <Camera aria-hidden="true" className="size-6" />
-              </span>
-              <h3 className="mt-5 font-semibold text-xl tracking-tight">Start with one photo</h3>
-              <p className="mx-auto mt-2 max-w-md text-muted-foreground text-sm leading-6">
-                Take a clear photo of your own hairline. You can add another check-in whenever you
-                want.
-              </p>
-              <PhotoPicker
-                disabled={isBusy}
-                onChange={handlePhotoSelected}
-                label="Add your first check-in"
-              />
-            </div>
+            <ErrorState
+              message={
+                checkIns.error.message || "Your check-ins are unavailable. Try again in a moment."
+              }
+              retrying={checkIns.isFetching}
+              onRetry={() => checkIns.refetch()}
+            />
           ) : opened ? (
-            <div className="mt-6 max-w-xl">
+            <div className="max-w-xl">
               <Button variant="ghost" className="mb-4 px-2" onClick={() => setOpenedId(null)}>
                 Back to your photos
               </Button>
@@ -208,68 +183,32 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
               </figure>
             </div>
           ) : (
-            <div className="mt-6">
-              <PhotoPicker
-                disabled={isBusy}
-                onChange={handlePhotoSelected}
-                label="Add a check-in photo"
+            <>
+              <Compare
+                items={items}
+                earlier={comparison.earlier}
+                latest={comparison.latest}
+                busy={isBusy}
+                onChoose={(slot, id) => setChoice(chooseSlot(comparison, slot, id))}
+                onSwap={() =>
+                  setChoice({
+                    earlierId: comparison.latest?.id ?? null,
+                    latestId: comparison.earlier?.id ?? null,
+                  })
+                }
+                onAdd={addCheckIn}
               />
 
-              {items.length >= 2 && items[0] && items[1] ? (
-                <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-5">
-                  {[items[0], items[1]].map((item, index) => (
-                    <figure key={item.id} className="min-w-0">
-                      <Photo
-                        item={item}
-                        alt={`${index === 0 ? "Latest" : "Earlier"} check-in photo from ${formatDate(item.takenAt)}`}
-                      />
-                      <figcaption className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
-                        <span className="font-medium">{index === 0 ? "Latest" : "Earlier"}</span>
-                        <time dateTime={item.takenAt} className="text-muted-foreground">
-                          {formatDate(item.takenAt)}
-                        </time>
-                      </figcaption>
-                      <DeleteCheckIn
-                        id={item.id}
-                        date={formatDate(item.takenAt)}
-                        disabled={isBusy}
-                        onDelete={handleDeleteCheckIn}
-                      />
-                    </figure>
-                  ))}
-                </div>
-              ) : (
-                <figure className="mt-5 max-w-md">
-                  {items[0] ? (
-                    <>
-                      <Photo
-                        item={items[0]}
-                        alt={`Check-in photo from ${formatDate(items[0].takenAt)}`}
-                      />
-                      <figcaption className="mt-3 flex flex-wrap items-center justify-between gap-3 text-muted-foreground text-sm">
-                        <time dateTime={items[0].takenAt}>{formatDate(items[0].takenAt)}</time>
-                        <DeleteCheckIn
-                          id={items[0].id}
-                          date={formatDate(items[0].takenAt)}
-                          disabled={isBusy}
-                          onDelete={handleDeleteCheckIn}
-                        />
-                      </figcaption>
-                    </>
-                  ) : null}
-                </figure>
-              )}
-
-              {items.length > 2 ? (
+              {items.length > 0 ? (
                 <section
                   aria-labelledby="earlier-heading"
-                  className="mt-9 border-border/80 border-t pt-6"
+                  className="mt-12 border-border/80 border-t pt-6"
                 >
-                  <h3 id="earlier-heading" className="font-semibold text-lg tracking-tight">
-                    Earlier check-ins
-                  </h3>
+                  <h2 id="earlier-heading" className="font-display text-heading">
+                    All check-ins
+                  </h2>
                   <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    {items.slice(2).map((item) => (
+                    {items.map((item) => (
                       <button
                         key={item.id}
                         type="button"
@@ -295,16 +234,9 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
                   ) : null}
                 </section>
               ) : null}
-
-              {reminder.data?.due ? (
-                <p className="mt-8 flex items-center gap-2 rounded-xl bg-accent/50 px-4 py-3 text-sm leading-6">
-                  <Clock3 aria-hidden="true" className="size-4 shrink-0 text-primary" />
-                  {reminder.data.invitation}
-                </p>
-              ) : null}
-            </div>
+            </>
           )}
-        </section>
+        </div>
 
         <aside className="space-y-8">
           <section
@@ -413,45 +345,6 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
           <AccountPrivacy />
         </aside>
       </div>
-    </div>
-  );
-}
-
-function PhotoPicker({
-  disabled,
-  label,
-  onChange,
-}: {
-  disabled: boolean;
-  label: string;
-  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
-}) {
-  return (
-    <div>
-      <label
-        className={`inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-5 font-semibold text-primary-foreground text-sm transition focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 hover:brightness-105 ${
-          disabled ? "pointer-events-none opacity-50" : ""
-        }`}
-      >
-        {disabled ? (
-          <ImagePlus aria-hidden="true" className="size-4" />
-        ) : (
-          <Camera aria-hidden="true" className="size-4" />
-        )}
-        {label}
-        <input
-          id="checkin-photo"
-          type="file"
-          accept="image/*"
-          capture="user"
-          className="sr-only"
-          disabled={disabled}
-          onChange={onChange}
-        />
-      </label>
-      <p className="mt-3 text-muted-foreground text-xs leading-5">
-        Choose a photo from your device. On mobile, you can take one now.
-      </p>
     </div>
   );
 }

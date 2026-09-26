@@ -29,7 +29,9 @@ export default function MenuPreview({ band }: { band: Band }) {
         <h2 id="menu-heading" className="font-display text-heading">
           Next steps
         </h2>
-        <Badge variant="secondary">{label} band</Badge>
+        <Badge key={band} variant="secondary" className="animate-fade-in">
+          {label} band
+        </Badge>
       </div>
       <p className="mt-2 text-muted-foreground text-sm leading-6">
         A short menu to read at your pace. These are not a treatment plan.

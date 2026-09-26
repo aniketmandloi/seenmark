@@ -11,7 +11,10 @@ export default function SiteFooter() {
     <footer className="border-border/80 border-t">
       <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-10 text-muted-foreground text-sm sm:flex-row sm:items-start sm:justify-between sm:px-8 lg:px-10">
         <div className="flex flex-col gap-3">
-          <Link href="/" className="w-fit font-display text-2xl text-foreground">
+          <Link
+            href="/"
+            className="w-fit font-display font-semibold text-foreground text-xl tracking-tight"
+          >
             seenmark<span className="text-primary">.</span>
           </Link>
           <p>Seenmark does not diagnose or interpret photos.</p>

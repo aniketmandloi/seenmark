@@ -2,37 +2,27 @@
 
 import { HISTORY_PAGE_SIZE, nextHistoryCursor } from "@seenmark/api/history";
 import { Button } from "@seenmark/ui/components/button";
-import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useIsMutating, useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, Camera, Check, Clock3, ImagePlus, LockKeyhole, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { type ChangeEvent, useState } from "react";
 import { toast } from "sonner";
 
-import { authClient } from "@/lib/auth-client";
-import { forgetMemberData } from "@/lib/member-session";
+import type { authClient } from "@/lib/auth-client";
 import { claimMemberCache, queryClient, trpc } from "@/utils/trpc";
 
+import AccountPrivacy from "./account-privacy";
+import { type Band, bands } from "./bands";
 import { type CheckIn, formatDate } from "./check-in-dates";
+import IntroductionRequest from "./introduction-request";
 import { invalidateMemberLoop } from "./member-loop";
 import Photo from "./photo";
 import { preparePhoto } from "./prepare-photo";
 
-type Band = "early" | "mid" | "late";
-
-const bands: { value: Band; label: string }[] = [
-  { value: "early", label: "Early" },
-  { value: "mid", label: "Mid" },
-  { value: "late", label: "Late" },
-];
-
 export default function Dashboard({ session }: { session: typeof authClient.$Infer.Session }) {
   // Before any read below, so a previous member's cached reads are never shown.
   claimMemberCache(session.user.id);
-  const router = useRouter();
-  const [accountError, setAccountError] = useState<string | null>(null);
   const [openedId, setOpenedId] = useState<string | null>(null);
-  const [confirmAccountDeletion, setConfirmAccountDeletion] = useState(false);
   const [isPreparingPhoto, setIsPreparingPhoto] = useState(false);
 
   const checkIns = useInfiniteQuery(
@@ -44,7 +34,6 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   const currentBand = useQuery(trpc.score.current.queryOptions());
   const reminder = useQuery(trpc.checkIn.reminder.queryOptions());
   const menu = useQuery(trpc.menu.current.queryOptions());
-  const introduction = useQuery(trpc.introduction.current.queryOptions());
   const record = useMutation(
     trpc.checkIn.record.mutationOptions({ onSuccess: invalidateMemberLoop }),
   );
@@ -61,13 +50,8 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
       },
     }),
   );
-  const fileIntroduction = useMutation(
-    trpc.introduction.file.mutationOptions({ onSuccess: invalidateMemberLoop }),
-  );
-  const removeIntroduction = useMutation(
-    trpc.introduction.delete.mutationOptions({ onSuccess: invalidateMemberLoop }),
-  );
-  const deleteAccount = useMutation(trpc.member.deleteAccount.mutationOptions());
+
+  const mutations = useIsMutating();
 
   const items: CheckIn[] = checkIns.data?.pages.flat() ?? [];
   const opened = openedId ? (items.find((item) => item.id === openedId) ?? null) : null;
@@ -76,14 +60,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   // The score and the menu are separate reads that can land in either order after a change,
   // so steps show only under the heading of the band they belong to.
   const shownMenu = currentMenu?.band === currentBand.data ? currentMenu : null;
-  const isBusy =
-    isPreparingPhoto ||
-    record.isPending ||
-    removeCheckIn.isPending ||
-    chooseBand.isPending ||
-    fileIntroduction.isPending ||
-    removeIntroduction.isPending ||
-    deleteAccount.isPending;
+  const isBusy = isPreparingPhoto || mutations > 0;
 
   async function handlePhotoSelected(event: ChangeEvent<HTMLInputElement>) {
     const input = event.currentTarget;
@@ -138,30 +115,6 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
       toast.success("Band saved");
     } catch (cause) {
       toast.error(cause instanceof Error ? cause.message : "We could not save your choice.");
-    }
-  }
-
-  async function handleIntroduction(action: "file" | "delete") {
-    try {
-      if (action === "file") {
-        await fileIntroduction.mutateAsync();
-      } else {
-        await removeIntroduction.mutateAsync();
-      }
-    } catch (cause) {
-      toast.error(cause instanceof Error ? cause.message : "We could not update your request.");
-    }
-  }
-
-  async function handleDeleteAccount() {
-    setAccountError(null);
-    try {
-      await deleteAccount.mutateAsync();
-      await authClient.signOut().catch(() => undefined);
-      await forgetMemberData(queryClient);
-      router.replace("/");
-    } catch (cause) {
-      setAccountError(cause instanceof Error ? cause.message : "We could not delete your account.");
     }
   }
 
@@ -455,115 +408,9 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
             </section>
           ) : null}
 
-          {/* Filing needs the late band; a request already recorded stays reachable on any band. */}
-          {currentBand.data === "late" || introduction.data ? (
-            <section
-              aria-labelledby="introduction-heading"
-              className="rounded-[1.75rem] bg-accent/55 p-6 sm:p-8"
-            >
-              <h2 id="introduction-heading" className="font-semibold text-xl tracking-tight">
-                {currentBand.data === "late"
-                  ? "Ask for an introduction"
-                  : "Your introduction request"}
-              </h2>
-              <p className="mt-2 text-muted-foreground text-sm leading-6">
-                {currentBand.data === "late"
-                  ? "Your request is recorded for you. It is not sent to a clinic."
-                  : "You asked on the late band. It is still recorded for you, and it is not sent to a clinic."}
-              </p>
-              {introduction.isError ? (
-                <div
-                  role="alert"
-                  className="mt-4 rounded-xl bg-destructive/10 p-4 text-destructive text-sm"
-                >
-                  <p>We could not check your request status.</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-3"
-                    onClick={() => introduction.refetch()}
-                  >
-                    Try again
-                  </Button>
-                </div>
-              ) : introduction.data ? (
-                <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-                  <p className="font-medium text-sm">Request recorded</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={isBusy}
-                    onClick={() => handleIntroduction("delete")}
-                  >
-                    Remove request
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  className="mt-5"
-                  disabled={isBusy || introduction.isLoading}
-                  onClick={() => handleIntroduction("file")}
-                >
-                  {fileIntroduction.isPending ? "Recording…" : "Record my request"}
-                </Button>
-              )}
-            </section>
-          ) : null}
+          <IntroductionRequest band={currentBand.data} busy={isBusy} />
 
-          <section
-            aria-labelledby="account-privacy-heading"
-            className="border-border/80 border-t pt-7"
-          >
-            <h2 id="account-privacy-heading" className="font-semibold text-lg tracking-tight">
-              Account privacy
-            </h2>
-            <p className="mt-2 max-w-sm text-muted-foreground text-sm leading-6">
-              You can remove your account and all of its check-in photos at any time.
-            </p>
-            {accountError ? (
-              <p role="alert" className="mt-4 text-destructive text-sm">
-                {accountError}
-              </p>
-            ) : null}
-            {confirmAccountDeletion ? (
-              <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-                <p className="font-medium text-sm">Delete your account and every check-in photo?</p>
-                <p className="mt-1 text-muted-foreground text-xs leading-5">
-                  This cannot be undone.
-                </p>
-                <div className="mt-4 flex flex-wrap justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    disabled={deleteAccount.isPending}
-                    onClick={() => setConfirmAccountDeletion(false)}
-                  >
-                    Keep my account
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    disabled={deleteAccount.isPending}
-                    onClick={handleDeleteAccount}
-                  >
-                    {deleteAccount.isPending ? "Deleting…" : "Delete account"}
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="mt-4"
-                onClick={() => setConfirmAccountDeletion(true)}
-              >
-                Delete account
-              </Button>
-            )}
-          </section>
+          <AccountPrivacy />
         </aside>
       </div>
     </div>

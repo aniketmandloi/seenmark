@@ -12,6 +12,7 @@ import z from "zod";
 
 import { authClient } from "@/lib/auth-client";
 
+import FieldError from "./field-error";
 import Loader from "./loader";
 
 export default function SignInForm() {
@@ -102,11 +103,7 @@ export default function SignInForm() {
                 }}
                 aria-invalid={field.state.meta.errors.length > 0}
               />
-              {field.state.meta.errors.map((error) => (
-                <p key={error?.message} className="text-destructive text-sm">
-                  {error?.message}
-                </p>
-              ))}
+              <FieldError errors={field.state.meta.errors} />
             </div>
           )}
         </form.Field>
@@ -131,11 +128,7 @@ export default function SignInForm() {
                 }}
                 aria-invalid={field.state.meta.errors.length > 0}
               />
-              {field.state.meta.errors.map((error) => (
-                <p key={error?.message} className="text-destructive text-sm">
-                  {error?.message}
-                </p>
-              ))}
+              <FieldError errors={field.state.meta.errors} />
             </div>
           )}
         </form.Field>

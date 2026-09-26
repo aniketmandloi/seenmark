@@ -15,6 +15,7 @@ import z from "zod";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 
+import FieldError from "./field-error";
 import Loader from "./loader";
 
 export default function SignUpForm() {
@@ -121,11 +122,7 @@ export default function SignUpForm() {
                 onChange={(event) => field.handleChange(event.target.value)}
                 aria-invalid={field.state.meta.errors.length > 0}
               />
-              {field.state.meta.errors.map((error) => (
-                <p key={error?.message} className="text-destructive text-sm">
-                  {error?.message}
-                </p>
-              ))}
+              <FieldError errors={field.state.meta.errors} />
             </div>
           )}
         </form.Field>
@@ -148,11 +145,7 @@ export default function SignUpForm() {
                 onChange={(event) => field.handleChange(event.target.value)}
                 aria-invalid={field.state.meta.errors.length > 0}
               />
-              {field.state.meta.errors.map((error) => (
-                <p key={error?.message} className="text-destructive text-sm">
-                  {error?.message}
-                </p>
-              ))}
+              <FieldError errors={field.state.meta.errors} />
             </div>
           )}
         </form.Field>
@@ -175,11 +168,7 @@ export default function SignUpForm() {
                 aria-invalid={field.state.meta.errors.length > 0}
               />
               <p className="text-muted-foreground text-xs">At least 8 characters.</p>
-              {field.state.meta.errors.map((error) => (
-                <p key={error?.message} className="text-destructive text-sm">
-                  {error?.message}
-                </p>
-              ))}
+              <FieldError errors={field.state.meta.errors} />
             </div>
           )}
         </form.Field>

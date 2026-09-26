@@ -105,7 +105,9 @@ export default function IntroductionRequest({
           ) : null}
           {recorded ? (
             <CardAction>
-              <Badge variant="success">Recorded</Badge>
+              <Badge variant="success" className="animate-pop">
+                Recorded
+              </Badge>
             </CardAction>
           ) : null}
         </CardHeader>
@@ -123,7 +125,7 @@ export default function IntroductionRequest({
               className="h-11 w-44 rounded-xl"
             />
           ) : recorded ? (
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex animate-fade-in flex-wrap items-center justify-between gap-3">
               <p className="text-muted-foreground text-sm tabular-nums">
                 Recorded on <time dateTime={recorded.filedAt}>{formatDate(recorded.filedAt)}</time>{" "}
                 · {relativeTime(recorded.filedAt, now)}

@@ -65,7 +65,13 @@ export default function BandPicker({
             This is your choice after looking at your own check-ins. It is not a diagnosis.
           </p>
         </div>
-        {band ? <Check aria-hidden="true" className="mt-1 size-5 shrink-0 text-primary" /> : null}
+        {band ? (
+          <Check
+            key={band}
+            aria-hidden="true"
+            className="mt-1 size-5 shrink-0 animate-pop text-primary"
+          />
+        ) : null}
       </div>
 
       {failed ? (
@@ -86,6 +92,7 @@ export default function BandPicker({
           aria-labelledby="band-heading"
           options={bands}
           value={band}
+          pendingValue={chooseBand.isPending ? chooseBand.variables : undefined}
           disabled={!hasCheckIns || busy}
           onChoose={handleChooseBand}
           className="mt-6 grid w-full grid-cols-3"

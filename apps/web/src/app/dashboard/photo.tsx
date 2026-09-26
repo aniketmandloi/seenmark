@@ -59,7 +59,10 @@ export default function Photo({
       width={900}
       height={1200}
       unoptimized
-      className={cn("aspect-3/4 w-full rounded-2xl bg-muted object-cover", className)}
+      className={cn(
+        "aspect-3/4 w-full rounded-2xl bg-muted object-cover starting:opacity-0 transition-opacity duration-300",
+        className,
+      )}
     />
   );
 }

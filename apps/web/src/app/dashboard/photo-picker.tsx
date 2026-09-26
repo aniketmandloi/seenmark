@@ -1,5 +1,6 @@
 import { buttonVariants } from "@seenmark/ui/components/button";
-import { Camera, ImagePlus } from "lucide-react";
+import { Spinner } from "@seenmark/ui/components/spinner";
+import { Camera } from "lucide-react";
 
 export default function PhotoPicker({
   disabled,
@@ -19,7 +20,7 @@ export default function PhotoPicker({
         }`,
       })}
     >
-      {disabled ? <ImagePlus aria-hidden="true" /> : <Camera aria-hidden="true" />}
+      {disabled ? <Spinner /> : <Camera aria-hidden="true" />}
       {label}
       <input
         type="file"

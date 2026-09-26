@@ -36,7 +36,9 @@ const modes: { value: Mode; label: string }[] = [
 
 /**
  * Photos only (ADR 0005): nothing is drawn on or around them that could read as a measurement.
- * Only the two compared photos mount a Photo, so only those two are fetched.
+ * Only the two compared photos mount a Photo, so only those two are fetched. Each is keyed by its
+ * check-in, here and in the slider, so a new choice or a swap remounts it and it fades in again;
+ * the remount reads the cached photo rather than refetching it.
  */
 export default function Compare({
   items,
@@ -56,6 +58,8 @@ export default function Compare({
   onAdd: (file: File) => void;
 }) {
   const [mode, setMode] = useState<Mode>("side");
+  // Counts up rather than toggling, so every swap turns the icon the same way.
+  const [swapTurns, setSwapTurns] = useState(0);
 
   if (!latest) {
     return <FirstCheckIn busy={busy} onAdd={onAdd} />;
@@ -96,14 +100,21 @@ export default function Compare({
           size="icon"
           aria-label="Swap earlier and latest"
           className="size-11 shrink-0"
-          onClick={onSwap}
+          onClick={() => {
+            setSwapTurns((turns) => turns + 1);
+            onSwap();
+          }}
         >
-          <ArrowLeftRight aria-hidden="true" />
+          <ArrowLeftRight
+            aria-hidden="true"
+            className="transition-transform duration-300"
+            style={{ rotate: `${swapTurns * 180}deg` }}
+          />
         </Button>
         <SlotPicker slot="latest" items={items} slots={slots} onChoose={onChoose} />
       </div>
 
-      <div className="mt-5">
+      <div key={mode} className="mt-5 animate-fade-in">
         {mode === "slider" ? (
           <CompareSlider earlier={earlier} latest={latest} />
         ) : (
@@ -111,6 +122,7 @@ export default function Compare({
             {(["earlier", "latest"] as const).map((slot) => (
               <figure key={slot} className="min-w-0">
                 <Photo
+                  key={slots[slot].id}
                   item={slots[slot]}
                   alt={`${slotLabels[slot]} check-in photo from ${formatDate(slots[slot].takenAt)}`}
                 />
@@ -205,7 +217,12 @@ function FirstCheckIn({ busy, onAdd }: { busy: boolean; onAdd: (file: File) => v
       }}
     >
       <EmptyHeader>
-        <EmptyMedia variant="icon" className="size-14 rounded-2xl bg-accent text-primary">
+        <EmptyMedia
+          variant="icon"
+          className={`size-14 rounded-2xl bg-accent text-primary transition-transform ${
+            dragging ? "-translate-y-0.5 scale-105" : ""
+          }`}
+        >
           <Camera aria-hidden="true" className="size-6" />
         </EmptyMedia>
         <h2 className="font-display text-heading">Start with one photo</h2>

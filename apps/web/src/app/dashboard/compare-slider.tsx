@@ -18,6 +18,7 @@ const layer = "pointer-events-none absolute inset-0 size-full rounded-none";
  */
 export default function CompareSlider({ earlier, latest }: { earlier: CheckIn; latest: CheckIn }) {
   const [position, setPosition] = useState(50);
+  const [dragging, setDragging] = useState(false);
 
   function follow(event: PointerEvent<HTMLDivElement>) {
     setPosition(dividerPercent(event.clientX, event.currentTarget.getBoundingClientRect()));
@@ -26,22 +27,27 @@ export default function CompareSlider({ earlier, latest }: { earlier: CheckIn; l
   return (
     <figure>
       <div
-        className="relative aspect-3/4 w-full cursor-ew-resize touch-pan-y select-none overflow-hidden rounded-2xl bg-muted has-focus-visible:ring-2 has-focus-visible:ring-ring has-focus-visible:ring-offset-2 has-focus-visible:ring-offset-background"
+        data-dragging={dragging || undefined}
+        className="group relative aspect-3/4 w-full cursor-ew-resize touch-pan-y select-none overflow-hidden rounded-2xl bg-muted has-focus-visible:ring-2 has-focus-visible:ring-ring has-focus-visible:ring-offset-2 has-focus-visible:ring-offset-background"
         onPointerDown={(event) => {
           event.currentTarget.setPointerCapture(event.pointerId);
+          setDragging(true);
           follow(event);
         }}
         onPointerMove={(event) => {
           if (event.currentTarget.hasPointerCapture(event.pointerId)) follow(event);
         }}
+        onLostPointerCapture={() => setDragging(false)}
       >
         <Photo
+          key={earlier.id}
           item={earlier}
           alt={`Earlier check-in photo from ${formatDate(earlier.takenAt)}`}
           className={layer}
         />
         <div className="absolute inset-0" style={{ clipPath: `inset(0 0 0 ${position}%)` }}>
           <Photo
+            key={latest.id}
             item={latest}
             alt={`Latest check-in photo from ${formatDate(latest.takenAt)}`}
             className={layer}
@@ -52,7 +58,7 @@ export default function CompareSlider({ earlier, latest }: { earlier: CheckIn; l
           className="pointer-events-none absolute inset-y-0 w-0.5 -translate-x-1/2 bg-background"
           style={{ left: `${position}%` }}
         >
-          <span className="absolute top-1/2 left-1/2 grid size-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-background text-foreground shadow-lifted">
+          <span className="absolute top-1/2 left-1/2 grid size-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-background text-foreground shadow-lifted transition-[scale,box-shadow] duration-200 group-hover:scale-105 group-data-dragging:scale-110 group-data-dragging:shadow-lg">
             <ChevronsLeftRight className="size-4" />
           </span>
         </div>

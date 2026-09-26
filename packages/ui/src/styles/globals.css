@@ -161,9 +161,13 @@
 }
 
 /* Each item sets --i to its index. The delay stops growing after the eighth, so a long list never
-   keeps the member waiting for its last rows. */
+   keeps the member waiting for its last rows. The reduced-motion rule clamps durations but not
+   delays, so under it an item would sit invisible for its delay and then pop in; the delay is
+   left out there instead. */
 @utility stagger {
-  animation-delay: calc(min(var(--i, 0), 8) * 40ms);
+  @media (prefers-reduced-motion: no-preference) {
+    animation-delay: calc(min(var(--i, 0), 8) * 40ms);
+  }
 }
 
 .skip-link {

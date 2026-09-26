@@ -183,6 +183,9 @@
   transform: translateY(0);
 }
 
+/* This catches time-based transitions and animations only. A scroll-driven animation
+   (animation-timeline) ignores a time duration and still spans its whole scroll range, so each one
+   has to sit inside @media (prefers-reduced-motion: no-preference) itself. */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

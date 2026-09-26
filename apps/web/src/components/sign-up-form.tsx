@@ -5,6 +5,7 @@ import { Button, buttonVariants } from "@seenmark/ui/components/button";
 import { Checkbox } from "@seenmark/ui/components/checkbox";
 import { Input } from "@seenmark/ui/components/input";
 import { Label } from "@seenmark/ui/components/label";
+import { Spinner } from "@seenmark/ui/components/spinner";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
@@ -226,7 +227,13 @@ export default function SignUpForm() {
           selector={(state) => ({ canSubmit: state.canSubmit, isSubmitting: state.isSubmitting })}
         >
           {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" className="w-full" disabled={!canSubmit || isSubmitting}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={!canSubmit || isSubmitting}
+              aria-busy={isSubmitting || undefined}
+            >
+              {isSubmitting ? <Spinner data-icon="inline-start" /> : null}
               {isSubmitting ? "Creating your account…" : "Create account"}
             </Button>
           )}

@@ -112,6 +112,10 @@
   --text-heading--font-weight: 600;
   --text-lede: 1.125rem;
   --text-lede--line-height: 1.75;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-soft: cubic-bezier(0.4, 0, 1, 1);
+  --default-transition-timing-function: var(--ease-out-soft);
 }
 
 @layer base {

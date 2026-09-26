@@ -61,7 +61,7 @@ export default function SignInForm() {
   }
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className="mb-7">
         <h2 className="font-display text-heading">Welcome back</h2>
         <p className="mt-2 text-muted-foreground text-sm leading-6">

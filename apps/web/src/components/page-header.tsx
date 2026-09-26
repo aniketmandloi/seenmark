@@ -15,7 +15,7 @@ export default function PageHeader({
   titleRef?: RefObject<HTMLHeadingElement | null>;
 }) {
   return (
-    <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+    <header className="flex animate-rise flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
       <div className="flex max-w-2xl flex-col gap-3">
         {eyebrow ? <p className="font-medium text-primary text-sm">{eyebrow}</p> : null}
         <h1

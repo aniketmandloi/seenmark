@@ -17,6 +17,7 @@ import { Separator } from "@seenmark/ui/components/separator";
 import { Spinner } from "@seenmark/ui/components/spinner";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import type { CSSProperties } from "react";
 import { toast } from "sonner";
 
 import PageHeader from "@/components/page-header";
@@ -46,7 +47,11 @@ export default function Account({ session }: { session: typeof authClient.$Infer
     <div className="mx-auto max-w-3xl px-5 pt-10 pb-16 sm:px-8 md:pt-14">
       <PageHeader title="Account" lede="Your details, and what happens to your check-ins." />
 
-      <section aria-labelledby="details-heading" className="mt-10">
+      <section
+        aria-labelledby="details-heading"
+        style={{ "--i": 1 } as CSSProperties}
+        className="stagger mt-10 animate-rise"
+      >
         <Card>
           <CardHeader>
             <h2 id="details-heading" className="font-display text-heading">
@@ -78,7 +83,11 @@ export default function Account({ session }: { session: typeof authClient.$Infer
         </Card>
       </section>
 
-      <section aria-labelledby="privacy-heading" className="mt-12">
+      <section
+        aria-labelledby="privacy-heading"
+        style={{ "--i": 2 } as CSSProperties}
+        className="stagger mt-12 animate-rise"
+      >
         <h2 id="privacy-heading" className="font-display text-heading">
           Your privacy
         </h2>
@@ -96,7 +105,8 @@ export default function Account({ session }: { session: typeof authClient.$Infer
 
       <section
         aria-labelledby="danger-heading"
-        className="rounded-3xl border border-destructive/30 p-6 sm:p-8"
+        style={{ "--i": 3 } as CSSProperties}
+        className="stagger animate-rise rounded-3xl border border-destructive/30 p-6 sm:p-8"
       >
         <h2 id="danger-heading" className="font-display text-heading">
           Danger zone

@@ -8,7 +8,7 @@ import { Skeleton } from "@seenmark/ui/components/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
-import { useRef } from "react";
+import { type CSSProperties, useRef } from "react";
 
 import ErrorState from "@/components/error-state";
 import PageHeader from "@/components/page-header";
@@ -60,7 +60,11 @@ export default function NextSteps({ session }: { session: typeof authClient.$Inf
       ) : currentMenu ? (
         <ol className="mt-10 divide-y divide-border/70 border-border/70 border-y">
           {currentMenu.steps.map((step, index) => (
-            <li key={step} className="flex gap-5 py-6 sm:gap-8">
+            <li
+              key={step}
+              className="stagger flex animate-rise gap-5 py-6 sm:gap-8"
+              style={{ "--i": index } as CSSProperties}
+            >
               <span
                 aria-hidden="true"
                 className="w-8 shrink-0 font-display text-heading text-primary tabular-nums"
@@ -72,7 +76,7 @@ export default function NextSteps({ session }: { session: typeof authClient.$Inf
           ))}
         </ol>
       ) : (
-        <Empty className="mt-10 rounded-3xl border border-border bg-card/70">
+        <Empty className="mt-10 animate-fade-in rounded-3xl border border-border bg-card/70">
           <EmptyHeader>
             <h2 className="font-display text-heading">No band chosen yet</h2>
             <EmptyDescription>

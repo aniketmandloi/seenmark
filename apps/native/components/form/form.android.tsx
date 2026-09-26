@@ -15,6 +15,8 @@ import {
 	Row,
 	SegmentedButton,
 	SingleChoiceSegmentedButtonRow,
+	SnackbarHost,
+	type SnackbarHostRef,
 	Text,
 	TextButton,
 	type TextFieldKeyboardOptions,
@@ -39,12 +41,15 @@ import {
 	verticalScroll,
 } from "@expo/ui/jetpack-compose/modifiers";
 import * as ExpoLinking from "expo-linking";
+import { useFocusEffect } from "expo-router";
 import {
 	Children,
 	Fragment,
 	isValidElement,
 	type ReactElement,
 	type ReactNode,
+	useCallback,
+	useRef,
 	useState,
 } from "react";
 import {
@@ -78,6 +83,7 @@ import type {
 } from "@/components/form/types";
 import { SKELETON_COUNT } from "@/components/form/types";
 import { enter } from "@/lib/compose-motion";
+import { showResultsIn } from "@/lib/feedback";
 import { ICONS } from "@/lib/icons";
 import { staggerDelay, useMotion } from "@/lib/motion";
 import { useColorScheme } from "@/lib/use-color-scheme";
@@ -167,6 +173,7 @@ function ScreenBody({ children, primaryAction, onRefresh }: FormScreenProps) {
 					</ExtendedFloatingActionButton.Text>
 				</ExtendedFloatingActionButton>
 			) : null}
+			<ResultHost aboveAction={Boolean(primaryAction)} />
 		</>
 	);
 
@@ -183,6 +190,31 @@ function ScreenBody({ children, primaryAction, onRefresh }: FormScreenProps) {
 		>
 			{content}
 		</PullToRefreshBox>
+	);
+}
+
+/** Shows notifyResult messages while this screen is in front, above its action button. */
+function ResultHost({ aboveAction }: { aboveAction: boolean }) {
+	const host = useRef<SnackbarHostRef>(null);
+
+	useFocusEffect(
+		useCallback(
+			() =>
+				showResultsIn((message) => {
+					void host.current?.showSnackbar({ message });
+				}),
+			[],
+		),
+	);
+
+	return (
+		<SnackbarHost
+			ref={host}
+			modifiers={[
+				align("bottomCenter"),
+				padding(SCREEN_PADDING, 0, SCREEN_PADDING, aboveAction ? 88 : 16),
+			]}
+		/>
 	);
 }
 

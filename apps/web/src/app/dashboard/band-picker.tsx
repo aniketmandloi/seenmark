@@ -1,5 +1,6 @@
 "use client";
 
+import { Skeleton } from "@seenmark/ui/components/skeleton";
 import { useMutation } from "@tanstack/react-query";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
@@ -74,12 +75,18 @@ export default function BandPicker({
           retrying={retrying}
           onRetry={onRetry}
         />
+      ) : loading ? (
+        <div role="status" aria-label="Loading your band" className="mt-6 grid grid-cols-3 gap-2">
+          {bands.map((option) => (
+            <Skeleton key={option.value} className="h-12 rounded-lg" />
+          ))}
+        </div>
       ) : (
         <ChoiceGroup
           aria-labelledby="band-heading"
           options={bands}
           value={band}
-          disabled={!hasCheckIns || busy || loading}
+          disabled={!hasCheckIns || busy}
           onChoose={handleChooseBand}
           className="mt-6 grid w-full grid-cols-3"
           itemClassName="h-12 w-full data-pressed:border-primary"

@@ -19,3 +19,27 @@
     box-shadow: var(--shadow-soft);
   }
 }
+
+/* Browsers without these open a <details> instantly. The global reduced-motion rule's selectors
+   don't match ::details-content, so this gates itself. */
+@supports (interpolate-size: allow-keywords) and selector(::details-content) {
+  @media (prefers-reduced-motion: no-preference) {
+    details {
+      interpolate-size: allow-keywords;
+    }
+
+    details::details-content {
+      block-size: 0;
+      overflow-y: clip;
+      transition:
+        block-size 200ms var(--ease-in-soft),
+        content-visibility 200ms var(--ease-in-soft);
+      transition-behavior: allow-discrete;
+    }
+
+    details[open]::details-content {
+      block-size: auto;
+      transition-timing-function: var(--ease-out-soft);
+    }
+  }
+}

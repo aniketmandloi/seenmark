@@ -119,6 +119,8 @@
 
   --animate-fade-in: fade-in 200ms var(--ease-out-soft) both;
   --animate-rise: rise 300ms var(--ease-out-soft) both;
+  --animate-lift: lift 300ms var(--ease-out-soft) both;
+  --animate-settle: settle 500ms var(--ease-out-soft) both;
   --animate-pop: pop 200ms var(--ease-out-soft) both;
   --animate-breathe: breathe 2.4s ease-in-out infinite;
 
@@ -131,6 +133,20 @@
     from {
       opacity: 0;
       transform: translateY(6px);
+    }
+  }
+  /* Rise without the fade. Chrome doesn't count an element at opacity 0 as an LCP candidate, so
+     the landing h1 moves only and still paints at once. */
+  @keyframes lift {
+    from {
+      transform: translateY(6px);
+    }
+  }
+  /* The one duration outside 150 / 200 / 300ms, kept for the landing hero image. Scale only,
+     never opacity, so the image still counts as an LCP candidate from its first paint. */
+  @keyframes settle {
+    from {
+      transform: scale(1.02);
     }
   }
   @keyframes pop {
@@ -167,6 +183,18 @@
 @utility stagger {
   @media (prefers-reduced-motion: no-preference) {
     animation-delay: calc(min(var(--i, 0), 8) * 40ms);
+  }
+}
+
+/* The reduced-motion rule below can't stop a scroll-driven animation, so this gates itself. Without
+   scroll timelines, or when the member asks for reduced motion, the element is simply visible. */
+@utility reveal {
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: rise var(--ease-out-soft) both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 30%;
+    }
   }
 }
 

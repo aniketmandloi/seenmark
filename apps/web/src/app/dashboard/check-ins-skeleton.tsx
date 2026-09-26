@@ -7,7 +7,7 @@ export default function CheckInsSkeleton() {
       <Skeleton className="h-8 w-40 rounded-lg" />
       <div className="mt-5 flex items-end gap-2 sm:gap-3">
         <Skeleton className="h-11 flex-1 rounded-xl" />
-        <Skeleton className="size-10 rounded-xl" />
+        <Skeleton className="size-11 rounded-xl" />
         <Skeleton className="h-11 flex-1 rounded-xl" />
       </div>
       <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-5">

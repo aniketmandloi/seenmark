@@ -95,7 +95,7 @@ export default function Compare({
           variant="outline"
           size="icon"
           aria-label="Swap earlier and latest"
-          className="shrink-0"
+          className="size-11 shrink-0"
           onClick={onSwap}
         >
           <ArrowLeftRight aria-hidden="true" />

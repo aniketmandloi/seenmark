@@ -177,13 +177,9 @@
 }
 
 /* Each item sets --i to its index. The delay stops growing after the eighth, so a long list never
-   keeps the member waiting for its last rows. The reduced-motion rule clamps durations but not
-   delays, so under it an item would sit invisible for its delay and then pop in; the delay is
-   left out there instead. */
+   keeps the member waiting for its last rows. */
 @utility stagger {
-  @media (prefers-reduced-motion: no-preference) {
-    animation-delay: calc(min(var(--i, 0), 8) * 40ms);
-  }
+  animation-delay: calc(min(var(--i, 0), 8) * 40ms);
 }
 
 /* The reduced-motion rule below can't stop a scroll-driven animation, so this gates itself. Without
@@ -208,16 +204,19 @@
   background: var(--foreground);
   color: var(--background);
   padding: 0.75rem 1rem;
-  transition: transform 180ms ease;
+  transition: transform 150ms var(--ease-in-soft);
 }
 
 .skip-link:focus {
   transform: translateY(0);
+  transition-duration: 200ms;
+  transition-timing-function: var(--ease-out-soft);
 }
 
-/* This catches time-based transitions and animations only. A scroll-driven animation
-   (animation-timeline) ignores a time duration and still spans its whole scroll range, so each one
-   has to sit inside @media (prefers-reduced-motion: no-preference) itself. */
+/* This misses two things, and each has to sit inside @media (prefers-reduced-motion:
+   no-preference) itself. A scroll-driven animation (animation-timeline) ignores a time duration
+   and still spans its whole scroll range. And the selectors below don't match other
+   pseudo-elements, such as ::details-content, whose transitions run at full length. */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

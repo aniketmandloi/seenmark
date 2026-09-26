@@ -28,6 +28,7 @@ export default function PhotoPicker({
         capture="user"
         className="sr-only"
         disabled={disabled}
+        aria-busy={disabled || undefined}
         onChange={(event) => {
           const input = event.currentTarget;
           const file = input.files?.[0];

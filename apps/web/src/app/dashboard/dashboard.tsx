@@ -122,7 +122,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
       />
 
       {reminder.data?.due ? (
-        <Alert role="status" className="mt-6 bg-accent/50">
+        <Alert role="status" className="mt-6 animate-rise bg-accent/50">
           <Clock3 aria-hidden="true" />
           <AlertDescription>{reminder.data.invitation}</AlertDescription>
         </Alert>

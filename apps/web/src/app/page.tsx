@@ -1,5 +1,6 @@
 import { buttonVariants } from "@seenmark/ui/components/button";
 import { Card, CardContent } from "@seenmark/ui/components/card";
+import { Plus } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -55,6 +56,27 @@ const bands = [
     focus: "A clinic conversation",
     description:
       "What a clinic conversation is, and what verified means: a clinic Seenmark has checked for a named US-licensed physician, a published price range, and result photos at least 12 months out that aren't the clinic's ads. No clinic is verified yet, and there's no directory.",
+  },
+];
+
+const faqs = [
+  {
+    question: "Does Seenmark diagnose my hair?",
+    answer:
+      "No. Seenmark keeps your check-ins and shows them back to you side by side. It doesn't analyze them. You look, and you choose your band.",
+  },
+  {
+    question: "Who can see my photos?",
+    answer: "Only you. Your check-ins aren't shared with clinics or anyone else.",
+  },
+  {
+    question: "What does it cost?",
+    answer: "Nothing. Seenmark is free for members, with no subscription and no fees.",
+  },
+  {
+    question: "Can I delete everything?",
+    answer:
+      "Yes. Deleting a check-in removes its photo. Deleting your account removes it along with every photo you've kept.",
   },
 ];
 
@@ -162,6 +184,24 @@ export default function Home() {
               </li>
             ))}
           </ul>
+        </div>
+      </section>
+
+      <section className="mx-auto grid max-w-7xl gap-8 px-5 py-20 sm:px-8 md:py-28 lg:grid-cols-3 lg:gap-20 lg:px-10">
+        <h2 className="max-w-md font-display text-title">Questions, answered plainly.</h2>
+        <div className="divide-y divide-border/80 border-border/80 border-y lg:col-span-2">
+          {faqs.map((faq) => (
+            <details key={faq.question} className="group">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-6 rounded-lg py-5 font-medium text-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                {faq.question}
+                <Plus
+                  aria-hidden="true"
+                  className="size-5 shrink-0 text-primary transition-transform group-open:rotate-45 motion-reduce:transition-none"
+                />
+              </summary>
+              <p className="max-w-2xl pb-6 text-muted-foreground">{faq.answer}</p>
+            </details>
+          ))}
         </div>
       </section>
     </div>

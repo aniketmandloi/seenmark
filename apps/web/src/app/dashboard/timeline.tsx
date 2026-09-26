@@ -25,6 +25,7 @@ export default function Timeline({
   comparing,
   busy,
   headingRef,
+  fallbackFocus,
   hasNextPage,
   isFetchingNextPage,
   onShowEarlier,
@@ -38,6 +39,8 @@ export default function Timeline({
   busy: boolean;
   /** Takes focus once a deleted check-in's row, and the menu it was deleted from, are gone. */
   headingRef: RefObject<HTMLHeadingElement | null>;
+  /** Takes focus instead when the last check-in is deleted, and the timeline with it. */
+  fallbackFocus: RefObject<HTMLElement | null>;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   onShowEarlier: () => void;
@@ -76,6 +79,7 @@ export default function Timeline({
                   comparing={comparing}
                   busy={busy}
                   headingRef={headingRef}
+                  fallbackFocus={fallbackFocus}
                   onOpen={onOpen}
                   onCompare={onCompare}
                   onDelete={onDelete}
@@ -109,6 +113,7 @@ function TimelineRow({
   comparing,
   busy,
   headingRef,
+  fallbackFocus,
   onOpen,
   onCompare,
   onDelete,
@@ -120,6 +125,7 @@ function TimelineRow({
   comparing: Partial<Record<Slot, CheckIn>>;
   busy: boolean;
   headingRef: RefObject<HTMLHeadingElement | null>;
+  fallbackFocus: RefObject<HTMLElement | null>;
   onOpen: (id: string) => void;
   onCompare: (slot: Slot, id: string) => void;
   onDelete: (id: string) => Promise<boolean>;
@@ -183,7 +189,7 @@ function TimelineRow({
         checkIn={item}
         open={confirming}
         busy={busy}
-        finalFocus={() => menuTrigger.current ?? headingRef.current}
+        finalFocus={() => menuTrigger.current ?? headingRef.current ?? fallbackFocus.current}
         onOpenChange={setConfirming}
         onDelete={onDelete}
       />

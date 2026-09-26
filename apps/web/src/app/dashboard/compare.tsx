@@ -217,7 +217,12 @@ function FirstCheckIn({ busy, onAdd }: { busy: boolean; onAdd: (file: File) => v
       }}
     >
       <EmptyHeader>
-        <EmptyMedia variant="icon" className="size-14 rounded-2xl bg-accent text-primary">
+        <EmptyMedia
+          variant="icon"
+          className={`size-14 rounded-2xl bg-accent text-primary transition-transform ${
+            dragging ? "-translate-y-0.5 scale-105" : ""
+          }`}
+        >
           <Camera aria-hidden="true" className="size-6" />
         </EmptyMedia>
         <h2 className="font-display text-heading">Start with one photo</h2>

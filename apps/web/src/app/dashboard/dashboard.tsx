@@ -15,7 +15,8 @@ import type { authClient } from "@/lib/auth-client";
 import { claimMemberCache, queryClient, trpc } from "@/utils/trpc";
 
 import AccountPrivacy from "./account-privacy";
-import { type Band, bands } from "./bands";
+import BandPicker from "./band-picker";
+import { bands } from "./bands";
 import { type CheckIn, formatDate, relativeTime } from "./check-in-dates";
 import CheckInDialog from "./check-in-dialog";
 import Compare from "./compare";
@@ -51,16 +52,6 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   );
   const removeCheckIn = useMutation(
     trpc.checkIn.delete.mutationOptions({ onSuccess: invalidateMemberLoop }),
-  );
-  const chooseBand = useMutation(
-    trpc.score.choose.mutationOptions({
-      onSuccess: async (chosen) => {
-        // The saved band is confirmed by this reply, and the old band's menu no longer applies.
-        queryClient.setQueryData(trpc.score.current.queryKey(), chosen.band);
-        await queryClient.resetQueries({ queryKey: trpc.menu.current.queryKey() });
-        await invalidateMemberLoop();
-      },
-    }),
   );
 
   const mutations = useIsMutating();
@@ -113,15 +104,6 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
     } catch (cause) {
       toast.error(cause instanceof Error ? cause.message : "We could not delete that check-in.");
       return false;
-    }
-  }
-
-  async function handleChooseBand(band: Band) {
-    try {
-      await chooseBand.mutateAsync(band);
-      toast.success("Band saved");
-    } catch (cause) {
-      toast.error(cause instanceof Error ? cause.message : "We could not save your choice.");
     }
   }
 
@@ -213,52 +195,12 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
         </div>
 
         <aside className="space-y-8">
-          <section
-            aria-labelledby="band-heading"
-            className="rounded-[1.75rem] bg-card p-6 ring-1 ring-border/80 sm:p-8"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 id="band-heading" className="font-semibold text-2xl tracking-[-0.04em]">
-                  Choose your band
-                </h2>
-                <p className="mt-2 max-w-sm text-muted-foreground text-sm leading-6">
-                  This is your choice after looking at your own check-ins. It is not a diagnosis.
-                </p>
-              </div>
-              {currentBand.data ? (
-                <Check aria-hidden="true" className="mt-1 size-5 text-primary" />
-              ) : null}
-            </div>
-
-            <fieldset
-              aria-labelledby="band-heading"
-              className="mt-6 grid min-w-0 grid-cols-3 gap-2"
-            >
-              {bands.map((band) => {
-                const selected = currentBand.data === band.value;
-                return (
-                  <button
-                    key={band.value}
-                    type="button"
-                    aria-pressed={selected}
-                    disabled={items.length === 0 || isBusy || currentBand.isLoading}
-                    onClick={() => handleChooseBand(band.value)}
-                    className={`min-h-12 rounded-xl border px-2 font-semibold text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
-                      selected
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-background hover:border-primary/60 hover:bg-accent/50"
-                    }`}
-                  >
-                    {band.label}
-                  </button>
-                );
-              })}
-            </fieldset>
-            <p className="mt-3 text-muted-foreground text-xs leading-5">
-              You can change your choice whenever you want.
-            </p>
-          </section>
+          <BandPicker
+            band={currentBand.data}
+            loading={currentBand.isLoading}
+            hasCheckIns={items.length > 0}
+            busy={isBusy}
+          />
 
           {currentBand.data ? (
             <section

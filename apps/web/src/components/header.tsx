@@ -93,7 +93,7 @@ export default function Header() {
               </DialogTrigger>
               {/* zoom-*-100 cancels the dialog's zoom-*-95: cn keeps both, and Tailwind emits the
                   larger value later, so it wins. */}
-              <DialogContent className="data-closed:slide-out-to-right data-closed:zoom-out-100 data-open:slide-in-from-right data-open:zoom-in-100 top-0 right-0 left-auto h-dvh max-w-xs translate-x-0 translate-y-0 content-start rounded-none rounded-l-3xl sm:max-w-xs">
+              <DialogContent className="data-closed:slide-out-to-right data-closed:zoom-out-100 data-open:slide-in-from-right data-open:zoom-in-100 top-0 right-0 left-auto h-dvh max-w-xs translate-x-0 translate-y-0 content-start rounded-none rounded-l-3xl duration-300 data-closed:duration-200 sm:max-w-xs">
                 <DialogHeader>
                   <DialogTitle>Menu</DialogTitle>
                 </DialogHeader>

@@ -4,6 +4,7 @@ import { Alert, AlertDescription } from "@seenmark/ui/components/alert";
 import { Button, buttonVariants } from "@seenmark/ui/components/button";
 import { Input } from "@seenmark/ui/components/input";
 import { Label } from "@seenmark/ui/components/label";
+import { Spinner } from "@seenmark/ui/components/spinner";
 import { useForm } from "@tanstack/react-form";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -135,7 +136,13 @@ export default function SignInForm() {
           selector={(state) => ({ canSubmit: state.canSubmit, isSubmitting: state.isSubmitting })}
         >
           {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" className="w-full" disabled={!canSubmit || isSubmitting}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={!canSubmit || isSubmitting}
+              aria-busy={isSubmitting || undefined}
+            >
+              {isSubmitting ? <Spinner data-icon="inline-start" /> : null}
               {isSubmitting ? "Signing in…" : "Sign in"}
             </Button>
           )}

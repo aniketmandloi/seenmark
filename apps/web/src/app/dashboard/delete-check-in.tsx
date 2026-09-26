@@ -10,6 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@seenmark/ui/components/alert-dialog";
+import { Spinner } from "@seenmark/ui/components/spinner";
 import { type ComponentProps, useState } from "react";
 
 import { type CheckIn, formatDate } from "./check-in-dates";
@@ -48,6 +49,7 @@ export default function DeleteCheckIn({
           <AlertDialogAction
             variant="destructive"
             disabled={busy}
+            aria-busy={deleting || undefined}
             onClick={async () => {
               setDeleting(true);
               const deleted = await onDelete(checkIn.id);
@@ -55,6 +57,7 @@ export default function DeleteCheckIn({
               if (deleted) onOpenChange(false);
             }}
           >
+            {deleting ? <Spinner data-icon="inline-start" /> : null}
             {deleting ? "Deleting…" : "Delete photo"}
           </AlertDialogAction>
         </AlertDialogFooter>

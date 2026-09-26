@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 
 import AuthLayout from "@/components/auth-layout";
-import SignInForm from "@/components/sign-in-form";
+import SignUpForm from "@/components/sign-up-form";
 
 export const metadata: Metadata = {
-  title: "Sign in",
+  title: "Create your account",
 };
 
-export default function LoginPage() {
+export default function SignUpPage() {
   return (
     <AuthLayout>
-      <SignInForm />
+      <SignUpForm />
     </AuthLayout>
   );
 }

@@ -1,7 +1,10 @@
-import { Button } from "@seenmark/ui/components/button";
+"use client";
+
+import { Button, buttonVariants } from "@seenmark/ui/components/button";
 import { Input } from "@seenmark/ui/components/input";
 import { Label } from "@seenmark/ui/components/label";
 import { useForm } from "@tanstack/react-form";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -11,7 +14,7 @@ import { authClient } from "@/lib/auth-client";
 
 import Loader from "./loader";
 
-export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () => void }) {
+export default function SignInForm() {
   const router = useRouter();
   const { isPending } = authClient.useSession();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -150,14 +153,15 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
 
       <div className="mt-6 border-border/70 border-t pt-5 text-center">
         <p className="text-muted-foreground text-sm">New to Seenmark?</p>
-        <Button
-          type="button"
-          variant="link"
-          onClick={onSwitchToSignUp}
-          className="mt-1 h-auto px-2 py-1 font-semibold text-sm"
+        <Link
+          href="/signup"
+          className={buttonVariants({
+            variant: "link",
+            className: "mt-1 h-auto px-2 py-1 font-semibold",
+          })}
         >
           Create an account
-        </Button>
+        </Link>
       </div>
     </div>
   );

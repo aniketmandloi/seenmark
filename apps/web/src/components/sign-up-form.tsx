@@ -1,9 +1,12 @@
-import { Button } from "@seenmark/ui/components/button";
+"use client";
+
+import { Button, buttonVariants } from "@seenmark/ui/components/button";
 import { Checkbox } from "@seenmark/ui/components/checkbox";
 import { Input } from "@seenmark/ui/components/input";
 import { Label } from "@seenmark/ui/components/label";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -14,7 +17,7 @@ import { trpc } from "@/utils/trpc";
 
 import Loader from "./loader";
 
-export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void }) {
+export default function SignUpForm() {
   const router = useRouter();
   const { isPending } = authClient.useSession();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -234,14 +237,15 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
 
       <div className="mt-6 border-border/70 border-t pt-5 text-center">
         <p className="text-muted-foreground text-sm">Already have an account?</p>
-        <Button
-          type="button"
-          variant="link"
-          onClick={onSwitchToSignIn}
-          className="mt-1 h-auto px-2 py-1 font-semibold text-sm"
+        <Link
+          href="/login"
+          className={buttonVariants({
+            variant: "link",
+            className: "mt-1 h-auto px-2 py-1 font-semibold",
+          })}
         >
           Sign in
-        </Button>
+        </Link>
       </div>
     </div>
   );

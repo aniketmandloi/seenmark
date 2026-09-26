@@ -24,9 +24,9 @@ const monthFormat = new Intl.DateTimeFormat("en-US", {
 	year: "numeric",
 });
 
-const relativeFormat = new Intl.RelativeTimeFormat("en-US", {
-	numeric: "always",
-});
+// Built on first use: Hermes may lack Intl.RelativeTimeFormat, and building it at load would
+// break every native import of this module, formatDate included.
+let relativeFormat: Intl.RelativeTimeFormat | undefined;
 
 /** An unreadable date comes back as given, since format() throws a RangeError on it. */
 export function formatDate(value: string) {
@@ -44,6 +44,9 @@ export function formatDateTime(value: string) {
 export function relativeTime(value: string, now: number) {
 	const days = Math.floor((now - new Date(value).getTime()) / DAY);
 	if (days < 1) return "today";
+	relativeFormat ??= new Intl.RelativeTimeFormat("en-US", {
+		numeric: "always",
+	});
 	if (days < 7) return relativeFormat.format(-days, "day");
 	if (days < 30) return relativeFormat.format(-Math.floor(days / 7), "week");
 	if (days < 365) return relativeFormat.format(-Math.floor(days / 30), "month");

@@ -96,6 +96,22 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
+@theme {
+  --text-display: clamp(3rem, 2.25rem + 3vw, 4.5rem);
+  --text-display--line-height: 1.02;
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 400;
+  --text-title: clamp(2.25rem, 1.9rem + 1.4vw, 3rem);
+  --text-title--line-height: 1.08;
+  --text-title--letter-spacing: -0.015em;
+  --text-title--font-weight: 400;
+  --text-heading: 1.5rem;
+  --text-heading--line-height: 1.25;
+  --text-heading--letter-spacing: -0.02em;
+  --text-lede: 1.125rem;
+  --text-lede--line-height: 1.75;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

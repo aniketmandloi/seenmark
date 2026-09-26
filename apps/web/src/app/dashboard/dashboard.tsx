@@ -1,11 +1,9 @@
 "use client";
 
 import { HISTORY_PAGE_SIZE, nextHistoryCursor } from "@seenmark/api/history";
-import { MAX_PHOTO_BASE64_LENGTH } from "@seenmark/api/photo";
 import { Button } from "@seenmark/ui/components/button";
 import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, Camera, Check, Clock3, ImagePlus, LockKeyhole, Trash2 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ChangeEvent, useState } from "react";
@@ -15,6 +13,9 @@ import { forgetMemberData } from "@/lib/member-session";
 import { claimMemberCache, queryClient, trpc } from "@/utils/trpc";
 
 import { type CheckIn, formatDate } from "./check-in-dates";
+import { invalidateMemberLoop } from "./member-loop";
+import Photo from "./photo";
+import { preparePhoto } from "./prepare-photo";
 
 type Band = "early" | "mid" | "late";
 
@@ -23,95 +24,6 @@ const bands: { value: Band; label: string }[] = [
   { value: "mid", label: "Mid" },
   { value: "late", label: "Late" },
 ];
-
-function Photo({ item, alt }: { item: CheckIn; alt: string }) {
-  // A recorded photo never changes, so once loaded it is never refetched.
-  const photo = useQuery({
-    ...trpc.checkIn.photo.queryOptions({ id: item.id }),
-    staleTime: Number.POSITIVE_INFINITY,
-  });
-
-  if (photo.isError && !photo.data) {
-    return (
-      <div className="grid aspect-[3/4] w-full place-items-center rounded-2xl bg-muted p-4 text-center">
-        <div role="alert">
-          <p className="text-muted-foreground text-sm">This photo could not load.</p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-3"
-            disabled={photo.isFetching}
-            onClick={() => photo.refetch()}
-          >
-            {photo.isFetching ? "Trying…" : "Try again"}
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!photo.data) {
-    return (
-      <div
-        role="status"
-        aria-label="Loading photo"
-        className="aspect-[3/4] w-full animate-pulse rounded-2xl bg-muted motion-reduce:animate-none"
-      />
-    );
-  }
-
-  return (
-    <Image
-      src={`data:${photo.data.mediaType};base64,${photo.data.imageBase64}`}
-      alt={alt}
-      width={900}
-      height={1200}
-      unoptimized
-      className="aspect-[3/4] w-full rounded-2xl bg-muted object-cover"
-    />
-  );
-}
-
-// Long enough to compare hairlines, small enough to stay under the photo limit as JPEG.
-const MAX_PHOTO_EDGE = 2048;
-
-async function preparePhoto(file: File) {
-  let bitmap: ImageBitmap;
-  try {
-    bitmap = await createImageBitmap(file);
-  } catch {
-    throw new Error("We could not read that photo.");
-  }
-
-  const scale = Math.min(1, MAX_PHOTO_EDGE / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bitmap.width * scale);
-  canvas.height = Math.round(bitmap.height * scale);
-  const context = canvas.getContext("2d");
-  if (!context) {
-    bitmap.close();
-    throw new Error("We could not read that photo.");
-  }
-  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  bitmap.close();
-
-  const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
-  const imageBase64 = dataUrl.slice(dataUrl.indexOf(",") + 1);
-  if (imageBase64.length > MAX_PHOTO_BASE64_LENGTH) {
-    throw new Error("That photo is too large to keep. Try a smaller one.");
-  }
-  return { imageBase64, mediaType: "image/jpeg" as const };
-}
-
-async function invalidateMemberLoop() {
-  await Promise.all([
-    queryClient.invalidateQueries({ queryKey: trpc.checkIn.list.pathKey() }),
-    queryClient.invalidateQueries({ queryKey: trpc.score.current.queryKey() }),
-    queryClient.invalidateQueries({ queryKey: trpc.menu.current.queryKey() }),
-    queryClient.invalidateQueries({ queryKey: trpc.checkIn.reminder.queryKey() }),
-    queryClient.invalidateQueries({ queryKey: trpc.introduction.current.queryKey() }),
-  ]);
-}
 
 export default function Dashboard({ session }: { session: typeof authClient.$Infer.Session }) {
   // Before any read below, so a previous member's cached reads are never shown.

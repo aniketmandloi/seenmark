@@ -177,13 +177,9 @@
 }
 
 /* Each item sets --i to its index. The delay stops growing after the eighth, so a long list never
-   keeps the member waiting for its last rows. The reduced-motion rule clamps durations but not
-   delays, so under it an item would sit invisible for its delay and then pop in; the delay is
-   left out there instead. */
+   keeps the member waiting for its last rows. */
 @utility stagger {
-  @media (prefers-reduced-motion: no-preference) {
-    animation-delay: calc(min(var(--i, 0), 8) * 40ms);
-  }
+  animation-delay: calc(min(var(--i, 0), 8) * 40ms);
 }
 
 /* The reduced-motion rule below can't stop a scroll-driven animation, so this gates itself. Without

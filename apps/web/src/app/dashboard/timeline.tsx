@@ -11,7 +11,7 @@ import {
 } from "@seenmark/ui/components/dropdown-menu";
 import { Spinner } from "@seenmark/ui/components/spinner";
 import { MoreHorizontal } from "lucide-react";
-import { type RefObject, useRef, useState } from "react";
+import { type CSSProperties, type RefObject, useRef, useState } from "react";
 
 import { type CheckIn, formatDate, groupByMonth, relativeTime } from "./check-in-dates";
 import type { Slot } from "./comparison";
@@ -74,6 +74,7 @@ export default function Timeline({
                 <TimelineRow
                   key={item.id}
                   item={item}
+                  index={items.indexOf(item)}
                   newest={item === items[0]}
                   now={now}
                   canCompare={items.length > 1}
@@ -110,6 +111,7 @@ export default function Timeline({
 
 function TimelineRow({
   item,
+  index,
   newest,
   now,
   canCompare,
@@ -122,6 +124,8 @@ function TimelineRow({
   onDelete,
 }: {
   item: CheckIn;
+  /** Position in the whole list, not the month, so the stagger runs top to bottom across months. */
+  index: number;
   newest: boolean;
   now: number;
   canCompare: boolean;
@@ -138,7 +142,10 @@ function TimelineRow({
   const date = formatDate(item.takenAt);
 
   return (
-    <li className="flex items-center gap-3 py-2 pr-2 pl-4">
+    <li
+      className="stagger flex animate-rise items-center gap-3 py-2 pr-2 pl-4"
+      style={{ "--i": index } as CSSProperties}
+    >
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 text-sm tabular-nums">
         <time dateTime={item.takenAt} className="font-medium">
           {date}

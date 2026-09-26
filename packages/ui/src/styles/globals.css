@@ -204,11 +204,13 @@
   background: var(--foreground);
   color: var(--background);
   padding: 0.75rem 1rem;
-  transition: transform 180ms ease;
+  transition: transform 150ms var(--ease-in-soft);
 }
 
 .skip-link:focus {
   transform: translateY(0);
+  transition-duration: 200ms;
+  transition-timing-function: var(--ease-out-soft);
 }
 
 /* This misses two things, and each has to sit inside @media (prefers-reduced-motion:

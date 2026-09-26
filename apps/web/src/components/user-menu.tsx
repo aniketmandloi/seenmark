@@ -9,15 +9,11 @@ import {
   DropdownMenuTrigger,
 } from "@seenmark/ui/components/dropdown-menu";
 import { Skeleton } from "@seenmark/ui/components/skeleton";
-import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { authClient } from "@/lib/auth-client";
 import { signOut } from "@/lib/sign-out";
-
-// The account page arrives with #29; until it exists, typed routes reject the literal.
-export const accountHref = "/account" as Route;
 
 export default function UserMenu() {
   const router = useRouter();
@@ -66,7 +62,7 @@ export default function UserMenu() {
             Your check-ins
           </DropdownMenuItem>
           <DropdownMenuItem
-            onClick={() => router.push(accountHref)}
+            onClick={() => router.push("/account")}
             className="cursor-pointer rounded-lg px-3 py-2"
           >
             Account

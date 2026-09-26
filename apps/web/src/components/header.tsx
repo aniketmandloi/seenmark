@@ -18,7 +18,7 @@ import { activeHref } from "@/lib/active-link";
 import { authClient } from "@/lib/auth-client";
 
 import { ModeToggle } from "./mode-toggle";
-import UserMenu, { accountHref } from "./user-menu";
+import UserMenu from "./user-menu";
 
 const visitorLinks: { href: Route; label: string }[] = [
   { href: "/#how-it-works", label: "How it works" },
@@ -27,7 +27,7 @@ const visitorLinks: { href: Route; label: string }[] = [
 const memberLinks: { href: Route; label: string }[] = [
   { href: "/dashboard", label: "Check-ins" },
   { href: "/dashboard/next-steps", label: "Next steps" },
-  { href: accountHref, label: "Account" },
+  { href: "/account", label: "Account" },
 ];
 
 export default function Header() {

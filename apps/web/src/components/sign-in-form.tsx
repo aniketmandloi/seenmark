@@ -1,5 +1,6 @@
 "use client";
 
+import { Alert, AlertDescription } from "@seenmark/ui/components/alert";
 import { Button, buttonVariants } from "@seenmark/ui/components/button";
 import { Input } from "@seenmark/ui/components/input";
 import { Label } from "@seenmark/ui/components/label";
@@ -61,7 +62,7 @@ export default function SignInForm() {
   return (
     <div>
       <div className="mb-7">
-        <h2 className="font-semibold text-2xl tracking-[-0.04em]">Welcome back</h2>
+        <h2 className="font-display text-heading">Welcome back</h2>
         <p className="mt-2 text-muted-foreground text-sm leading-6">
           Sign in to see your private check-ins.
         </p>
@@ -76,12 +77,9 @@ export default function SignInForm() {
         className="space-y-5"
       >
         {errorMessage ? (
-          <p
-            role="alert"
-            className="rounded-xl bg-destructive/10 px-4 py-3 text-destructive text-sm"
-          >
-            {errorMessage}
-          </p>
+          <Alert variant="destructive">
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
         ) : null}
         <form.Field name="email">
           {(field) => (

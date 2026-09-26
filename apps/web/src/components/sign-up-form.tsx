@@ -1,5 +1,6 @@
 "use client";
 
+import { Alert, AlertDescription } from "@seenmark/ui/components/alert";
 import { Button, buttonVariants } from "@seenmark/ui/components/button";
 import { Checkbox } from "@seenmark/ui/components/checkbox";
 import { Input } from "@seenmark/ui/components/input";
@@ -89,7 +90,7 @@ export default function SignUpForm() {
   return (
     <div>
       <div className="mb-7">
-        <h2 className="font-semibold text-2xl tracking-[-0.04em]">Create your account</h2>
+        <h2 className="font-display text-heading">Create your account</h2>
         <p className="mt-2 text-muted-foreground text-sm leading-6">
           Your check-ins stay private to you.
         </p>
@@ -104,12 +105,9 @@ export default function SignUpForm() {
         className="space-y-4"
       >
         {errorMessage ? (
-          <p
-            role="alert"
-            className="rounded-xl bg-destructive/10 px-4 py-3 text-destructive text-sm"
-          >
-            {errorMessage}
-          </p>
+          <Alert variant="destructive">
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
         ) : null}
 
         <form.Field name="name">

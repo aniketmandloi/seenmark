@@ -1,9 +1,18 @@
 "use client";
 
-import { buttonVariants } from "@seenmark/ui/components/button";
+import { Button, buttonVariants } from "@seenmark/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@seenmark/ui/components/dialog";
+import { MenuIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 import { activeHref } from "@/lib/active-link";
 import { authClient } from "@/lib/auth-client";
@@ -24,6 +33,9 @@ const memberLinks: { href: Route; label: string }[] = [
 export default function Header() {
   const pathname = usePathname();
   const { data: session, isPending } = authClient.useSession();
+  // Remembering where the sheet was opened closes it on any navigation, including back/forward.
+  const [sheetOpenedOn, setSheetOpenedOn] = useState<string | null>(null);
+  const closeSheet = () => setSheetOpenedOn(null);
 
   const links = isPending ? [] : session ? memberLinks : visitorLinks;
   const current = activeHref(
@@ -68,6 +80,56 @@ export default function Header() {
               Get started
             </Link>
           ) : null}
+          {isPending ? null : (
+            <Dialog
+              open={sheetOpenedOn === pathname}
+              onOpenChange={(open) => setSheetOpenedOn(open ? pathname : null)}
+            >
+              <DialogTrigger
+                aria-label="Open menu"
+                render={<Button variant="ghost" size="icon" className="md:hidden" />}
+              >
+                <MenuIcon />
+              </DialogTrigger>
+              <DialogContent className="data-closed:slide-out-to-right data-open:slide-in-from-right top-0 right-0 left-auto h-dvh max-w-xs translate-x-0 translate-y-0 content-start rounded-none rounded-l-3xl sm:max-w-xs">
+                <DialogHeader>
+                  <DialogTitle>Menu</DialogTitle>
+                </DialogHeader>
+                <nav aria-label="Main navigation" className="flex flex-col gap-1">
+                  {links.map((link) => {
+                    const isCurrent = link.href === current;
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={closeSheet}
+                        aria-current={isCurrent ? "page" : undefined}
+                        className={`rounded-xl px-4 py-3 font-display text-heading transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                          isCurrent ? "bg-accent text-accent-foreground" : "text-foreground"
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    );
+                  })}
+                </nav>
+                {session ? null : (
+                  <div className="flex flex-col gap-2">
+                    <Link
+                      href="/login"
+                      onClick={closeSheet}
+                      className={buttonVariants({ variant: "outline" })}
+                    >
+                      Sign in
+                    </Link>
+                    <Link href="/login" onClick={closeSheet} className={buttonVariants()}>
+                      Get started
+                    </Link>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </div>
     </header>

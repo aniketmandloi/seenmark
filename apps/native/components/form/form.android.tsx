@@ -55,6 +55,7 @@ import {
 	View,
 } from "react-native";
 
+import { FadeInPhoto } from "@/components/form/fade-in-photo";
 import type {
 	FormButtonProps,
 	FormChoiceProps,
@@ -81,7 +82,6 @@ import { ICONS } from "@/lib/icons";
 import { staggerDelay, useMotion } from "@/lib/motion";
 import { useColorScheme } from "@/lib/use-color-scheme";
 
-const TRANSPARENT = "#00000000";
 const SCREEN_PADDING = 16;
 const ROW_PADDING = 12;
 const PHOTO_GAP = 10;
@@ -324,7 +324,7 @@ function ListRow({
 
 	return (
 		<ListItem
-			colors={{ containerColor: TRANSPARENT }}
+			colors={{ containerColor: "transparent" }}
 			modifiers={[
 				...(onPress && !disabled && !pending ? [clickable(onPress)] : []),
 				...(disabled ? [alpha(0.38)] : []),
@@ -513,18 +513,16 @@ export function FormPhotos({ photos }: FormPhotosProps) {
 				<View style={styles.photoRow}>
 					{photos.map((photo) => (
 						<View key={photo.id} style={{ width: photoWidth }}>
-							<RNImage
-								source={{ uri: photo.uri }}
-								style={[
-									styles.photo,
-									{
-										width: photoWidth,
-										height: (photoWidth * 5) / 4,
-										borderRadius: photos.length > 1 ? 12 : 16,
-									},
-								]}
-								resizeMode="cover"
+							<FadeInPhoto
+								key={photo.id}
+								uri={photo.uri}
 								accessibilityLabel={photo.accessibilityLabel}
+								style={{
+									width: photoWidth,
+									height: (photoWidth * 5) / 4,
+									borderRadius: photos.length > 1 ? 12 : 16,
+									backgroundColor: colors.surfaceContainerHighest,
+								}}
 							/>
 							<RNText
 								style={[styles.caption, { color: colors.onSurfaceVariant }]}
@@ -842,9 +840,6 @@ const styles = StyleSheet.create({
 	photoRow: {
 		flexDirection: "row",
 		gap: PHOTO_GAP,
-	},
-	photo: {
-		backgroundColor: "#D8D8D0",
 	},
 	caption: {
 		fontSize: 12,

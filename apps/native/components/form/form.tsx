@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import Animated, { Easing, FadeInDown } from "react-native-reanimated";
 
+import { FadeInPhoto } from "@/components/form/fade-in-photo";
 import type {
 	FormButtonProps,
 	FormChoiceProps,
@@ -276,10 +277,11 @@ export function FormPhotos({ photos }: FormPhotosProps) {
 		<View style={[styles.row, styles.photos]}>
 			{photos.map((photo) => (
 				<View key={photo.id} style={styles.photoColumn}>
-					<Image
-						source={{ uri: photo.uri }}
-						style={styles.photo}
+					<FadeInPhoto
+						key={photo.id}
+						uri={photo.uri}
 						accessibilityLabel={photo.accessibilityLabel}
+						style={[styles.photo, { backgroundColor: theme.border }]}
 					/>
 					<Text style={[styles.footnote, { color: theme.muted }]}>
 						{photo.caption}

@@ -27,6 +27,7 @@ import {
 	accessibilityLabel,
 	aspectRatio,
 	autocorrectionDisabled,
+	background,
 	buttonStyle,
 	clipShape,
 	controlSize,
@@ -58,6 +59,7 @@ import { Stack } from "expo-router";
 import { useState } from "react";
 import { Platform, Image as RNImage, StyleSheet, View } from "react-native";
 
+import { FadeInPhoto } from "@/components/form/fade-in-photo";
 import type {
 	FormButtonProps,
 	FormChoiceProps,
@@ -405,15 +407,16 @@ export function FormPhotos({ photos }: FormPhotosProps) {
 					<VStack
 						modifiers={[
 							aspectRatio({ ratio: 4 / 5, contentMode: "fit" }),
+							background({ type: "hierarchical", style: "quaternary" }),
 							clipShape("roundedRectangle", photos.length > 1 ? 12 : 16),
 						]}
 					>
 						<RNHostView>
-							<RNImage
-								source={{ uri: photo.uri }}
-								style={styles.fill}
-								resizeMode="cover"
+							<FadeInPhoto
+								key={photo.id}
+								uri={photo.uri}
 								accessibilityLabel={photo.accessibilityLabel}
+								style={styles.fill}
 							/>
 						</RNHostView>
 					</VStack>

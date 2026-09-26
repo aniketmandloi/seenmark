@@ -204,6 +204,20 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      <section className="border-border/70 border-t bg-card/60">
+        <div className="mx-auto flex max-w-7xl flex-col items-start gap-8 px-5 py-20 sm:px-8 md:flex-row md:items-end md:justify-between md:py-24 lg:px-10">
+          <div className="max-w-xl">
+            <h2 className="font-display text-title">Start with one check-in.</h2>
+            <p className="mt-4 text-lede text-muted-foreground">
+              Take one photo today. Compare it with the next one whenever you're ready.
+            </p>
+          </div>
+          <Link href="/login" className={buttonVariants({ size: "lg" })}>
+            Get started
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }

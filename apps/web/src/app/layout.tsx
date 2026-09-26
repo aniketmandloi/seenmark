@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { DM_Sans, Geist_Mono } from "next/font/google";
 
 import "../index.css";
 import Header from "@/components/header";
@@ -13,12 +13,6 @@ const dmSans = DM_Sans({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const instrumentSerif = Instrument_Serif({
-  variable: "--font-instrument-serif",
-  weight: "400",
   subsets: ["latin"],
 });
 
@@ -52,9 +46,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${dmSans.variable} ${geistMono.variable} ${instrumentSerif.variable} antialiased`}
-      >
+      <body className={`${dmSans.variable} ${geistMono.variable} antialiased`}>
         <Providers>
           <a href="#main-content" className="skip-link">
             Skip to content

@@ -120,6 +120,7 @@
   --animate-fade-in: fade-in 200ms var(--ease-out-soft) both;
   --animate-rise: rise 300ms var(--ease-out-soft) both;
   --animate-pop: pop 200ms var(--ease-out-soft) both;
+  --animate-breathe: breathe 2.4s ease-in-out infinite;
 
   @keyframes fade-in {
     from {
@@ -136,6 +137,11 @@
     from {
       opacity: 0;
       transform: scale(0.9);
+    }
+  }
+  @keyframes breathe {
+    50% {
+      opacity: 0.6;
     }
   }
 }

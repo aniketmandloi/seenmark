@@ -88,7 +88,7 @@ export default function AccountScreen() {
 					confirmLabel="Delete account"
 					cancelLabel="Keep account"
 					onConfirm={() => void confirmDelete()}
-					disabled={deleteAccount.isPending}
+					pending={deleteAccount.isPending}
 				/>
 			</FormSection>
 		</FormScreen>

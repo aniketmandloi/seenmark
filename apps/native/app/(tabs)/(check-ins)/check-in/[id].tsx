@@ -51,7 +51,7 @@ export default function CheckInScreen() {
 						<FormButton
 							label={photo.isFetching ? "Trying…" : "Try again"}
 							onPress={() => void photo.refetch()}
-							disabled={photo.isFetching}
+							pending={photo.isFetching}
 						/>
 					</FormSection>
 				)}

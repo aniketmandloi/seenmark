@@ -213,7 +213,7 @@ export default function CheckInsScreen() {
 								loop.isLoadingEarlier ? "Loading…" : "Show earlier check-ins"
 							}
 							onPress={loop.loadEarlier}
-							disabled={loop.isLoadingEarlier}
+							pending={loop.isLoadingEarlier}
 						/>
 					) : null}
 				</FormSection>

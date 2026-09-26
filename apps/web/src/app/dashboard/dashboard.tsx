@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import ErrorState from "@/components/error-state";
 import PageHeader from "@/components/page-header";
 import type { authClient } from "@/lib/auth-client";
+import { invalidateMemberLoop } from "@/lib/member-loop";
 import { claimMemberCache, queryClient, trpc } from "@/utils/trpc";
 
 import AccountPrivacy from "./account-privacy";
@@ -20,7 +21,6 @@ import CheckInsSkeleton from "./check-ins-skeleton";
 import Compare from "./compare";
 import { type ComparisonChoice, chooseSlot, defaultChoice, resolveComparison } from "./comparison";
 import IntroductionRequest from "./introduction-request";
-import { invalidateMemberLoop } from "./member-loop";
 import MenuPreview from "./menu-preview";
 import PhotoPicker from "./photo-picker";
 import { preparePhoto } from "./prepare-photo";

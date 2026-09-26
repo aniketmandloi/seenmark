@@ -5,10 +5,10 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import ErrorState from "@/components/error-state";
+import { invalidateMemberLoop } from "@/lib/member-loop";
 import { trpc } from "@/utils/trpc";
 
 import type { Band } from "./bands";
-import { invalidateMemberLoop } from "./member-loop";
 
 export default function IntroductionRequest({
   band,

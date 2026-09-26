@@ -12,7 +12,7 @@ import { MenuIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { type CSSProperties, useState } from "react";
 
 import { activeHref } from "@/lib/active-link";
 import { authClient } from "@/lib/auth-client";
@@ -98,7 +98,7 @@ export default function Header() {
                   <DialogTitle>Menu</DialogTitle>
                 </DialogHeader>
                 <nav aria-label="Main navigation" className="flex flex-col gap-1">
-                  {links.map((link) => {
+                  {links.map((link, index) => {
                     const isCurrent = link.href === current;
                     return (
                       <Link
@@ -106,7 +106,8 @@ export default function Header() {
                         href={link.href}
                         onClick={closeSheet}
                         aria-current={isCurrent ? "page" : undefined}
-                        className={`rounded-xl px-4 py-3 font-display text-heading transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                        style={{ "--i": index } as CSSProperties}
+                        className={`stagger animate-rise rounded-xl px-4 py-3 font-display text-heading transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                           isCurrent ? "bg-accent text-accent-foreground" : "text-foreground"
                         }`}
                       >
@@ -120,11 +121,20 @@ export default function Header() {
                     <Link
                       href="/login"
                       onClick={closeSheet}
-                      className={buttonVariants({ variant: "outline" })}
+                      style={{ "--i": links.length } as CSSProperties}
+                      className={buttonVariants({
+                        variant: "outline",
+                        className: "stagger animate-rise",
+                      })}
                     >
                       Sign in
                     </Link>
-                    <Link href="/signup" onClick={closeSheet} className={buttonVariants()}>
+                    <Link
+                      href="/signup"
+                      onClick={closeSheet}
+                      style={{ "--i": links.length + 1 } as CSSProperties}
+                      className={buttonVariants({ className: "stagger animate-rise" })}
+                    >
                       Get started
                     </Link>
                   </div>

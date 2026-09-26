@@ -8,6 +8,7 @@ import { Skeleton } from "@seenmark/ui/components/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
+import { useRef } from "react";
 
 import ErrorState from "@/components/error-state";
 import PageHeader from "@/components/page-header";
@@ -27,10 +28,12 @@ export default function NextSteps({ session }: { session: typeof authClient.$Inf
   const currentMenu = menu.data?.menu ?? null;
   const paidLink = currentMenu && "paidLink" in currentMenu ? currentMenu.paidLink : undefined;
   const bandLabel = bands.find((candidate) => candidate.value === currentMenu?.band)?.label;
+  const title = useRef<HTMLHeadingElement>(null);
 
   return (
     <div className="mx-auto max-w-3xl px-5 pt-10 pb-16 sm:px-8 md:pt-14">
       <PageHeader
+        titleRef={title}
         title="Next steps"
         lede="A short menu to read at your pace. These are not a treatment plan."
         actions={
@@ -85,7 +88,7 @@ export default function NextSteps({ session }: { session: typeof authClient.$Inf
         </Empty>
       )}
 
-      <IntroductionRequest band={currentMenu?.band} />
+      <IntroductionRequest band={currentMenu?.band} fallbackFocus={title} />
 
       {paidLink ? (
         <Card size="sm" className="mt-10">

@@ -7,6 +7,7 @@ import { ArrowUpRight, Camera, Check, Clock3, ImagePlus, LockKeyhole, Trash2 } f
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ChangeEvent, useState } from "react";
+import { toast } from "sonner";
 
 import { authClient } from "@/lib/auth-client";
 import { forgetMemberData } from "@/lib/member-session";
@@ -29,7 +30,6 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   // Before any read below, so a previous member's cached reads are never shown.
   claimMemberCache(session.user.id);
   const router = useRouter();
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [accountError, setAccountError] = useState<string | null>(null);
   const [openedId, setOpenedId] = useState<string | null>(null);
   const [confirmAccountDeletion, setConfirmAccountDeletion] = useState(false);
@@ -95,11 +95,10 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
     }
 
     if (!file.type.startsWith("image/")) {
-      setErrorMessage("Choose an image file to add a check-in.");
+      toast.error("Choose an image file to add a check-in.");
       return;
     }
 
-    setErrorMessage(null);
     setOpenedId(null);
     setIsPreparingPhoto(true);
 
@@ -108,15 +107,15 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
         ...(await preparePhoto(file)),
         takenAt: new Date().toISOString(),
       });
+      toast.success("Check-in saved");
     } catch (cause) {
-      setErrorMessage(cause instanceof Error ? cause.message : "We could not save that check-in.");
+      toast.error(cause instanceof Error ? cause.message : "We could not save that check-in.");
     } finally {
       setIsPreparingPhoto(false);
     }
   }
 
   async function handleDeleteCheckIn(id: string) {
-    setErrorMessage(null);
     try {
       await removeCheckIn.mutateAsync({ id });
       if (openedId === id) {
@@ -127,24 +126,22 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
       const photoKey = trpc.checkIn.photo.queryKey({ id });
       await queryClient.cancelQueries({ queryKey: photoKey });
       queryClient.removeQueries({ queryKey: photoKey });
+      toast.success("Check-in deleted");
     } catch (cause) {
-      setErrorMessage(
-        cause instanceof Error ? cause.message : "We could not delete that check-in.",
-      );
+      toast.error(cause instanceof Error ? cause.message : "We could not delete that check-in.");
     }
   }
 
   async function handleChooseBand(band: Band) {
-    setErrorMessage(null);
     try {
       await chooseBand.mutateAsync(band);
+      toast.success("Band saved");
     } catch (cause) {
-      setErrorMessage(cause instanceof Error ? cause.message : "We could not save your choice.");
+      toast.error(cause instanceof Error ? cause.message : "We could not save your choice.");
     }
   }
 
   async function handleIntroduction(action: "file" | "delete") {
-    setErrorMessage(null);
     try {
       if (action === "file") {
         await fileIntroduction.mutateAsync();
@@ -152,7 +149,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
         await removeIntroduction.mutateAsync();
       }
     } catch (cause) {
-      setErrorMessage(cause instanceof Error ? cause.message : "We could not update your request.");
+      toast.error(cause instanceof Error ? cause.message : "We could not update your request.");
     }
   }
 
@@ -203,15 +200,6 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
               {checkIns.hasNextPage ? "+" : ""} {items.length === 1 ? "check-in" : "check-ins"}
             </span>
           </div>
-
-          {errorMessage ? (
-            <p
-              role="alert"
-              className="mt-5 rounded-xl bg-destructive/10 px-4 py-3 text-destructive text-sm"
-            >
-              {errorMessage}
-            </p>
-          ) : null}
 
           {checkIns.isLoading ? (
             <div

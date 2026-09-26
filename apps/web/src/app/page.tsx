@@ -1,4 +1,5 @@
 import { buttonVariants } from "@seenmark/ui/components/button";
+import { Card, CardContent } from "@seenmark/ui/components/card";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -33,6 +34,27 @@ const privacy = [
     title: "Clinics cannot see your photos.",
     description:
       "Seenmark doesn't send your check-ins to a clinic. An introduction is only ever your request.",
+  },
+];
+
+const bands = [
+  {
+    name: "Early",
+    focus: "Habits",
+    description:
+      "Everyday habits worth knowing: taking later photos in similar light, being gentle with heat and tension, and noticing shedding without keeping score.",
+  },
+  {
+    name: "Mid",
+    focus: "Who to talk to",
+    description:
+      "A prescriber is who discusses medicines. The mid menu says who that conversation is with, not what to take.",
+  },
+  {
+    name: "Late",
+    focus: "A clinic conversation",
+    description:
+      "What a clinic conversation is, and what verified means: a clinic Seenmark has checked for a named US-licensed physician, a published price range, and result photos at least 12 months out that aren't the clinic's ads. No clinic is verified yet, and there's no directory.",
   },
 ];
 
@@ -117,6 +139,30 @@ export default function Home() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="border-border/70 border-y bg-card/60">
+        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 md:py-24 lg:px-10">
+          <h2 className="max-w-lg font-display text-title">Three bands, three short menus.</h2>
+          <p className="mt-6 max-w-2xl text-lede text-muted-foreground">
+            A band is how you describe your own hair right now: early, mid, or late. You choose it
+            after looking at your check-ins. Each band has a short menu to read, and every menu is
+            educational. None tells you what to start or promises a result.
+          </p>
+          <ul className="mt-12 grid gap-4 md:grid-cols-3">
+            {bands.map((band) => (
+              <li key={band.name}>
+                <Card className="h-full">
+                  <CardContent>
+                    <h3 className="font-display text-heading">{band.name}</h3>
+                    <p className="mt-1 font-semibold text-primary">{band.focus}</p>
+                    <p className="mt-4 text-muted-foreground">{band.description}</p>
+                  </CardContent>
+                </Card>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
     </div>
   );

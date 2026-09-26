@@ -154,7 +154,7 @@ export default function Home() {
             </div>
             <ol className="divide-y divide-border/80 lg:col-span-2">
               {steps.map((step, index) => (
-                <li key={step.title} className="grid gap-2 py-6 sm:grid-cols-3 sm:gap-8">
+                <li key={step.title} className="reveal grid gap-2 py-6 sm:grid-cols-3 sm:gap-8">
                   <h3 className="flex items-baseline gap-3 font-display text-heading">
                     <span aria-hidden="true" className="text-primary tabular-nums">
                       {String(index + 1).padStart(2, "0")}
@@ -173,7 +173,7 @@ export default function Home() {
         <h2 className="max-w-lg font-display text-title">Private by design.</h2>
         <ul className="mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
           {privacy.map((item) => (
-            <li key={item.title} className="border-primary/50 border-l-2 pl-6">
+            <li key={item.title} className="reveal border-primary/50 border-l-2 pl-6">
               <h3 className="font-display text-heading">{item.title}</h3>
               <p className="mt-3 text-muted-foreground">{item.description}</p>
             </li>
@@ -191,7 +191,7 @@ export default function Home() {
           </p>
           <ul className="mt-12 grid gap-4 md:grid-cols-3">
             {bands.map((band) => (
-              <li key={band.name}>
+              <li key={band.name} className="reveal">
                 <Card className="h-full">
                   <CardContent>
                     <h3 className="font-display text-heading">{band.name}</h3>
@@ -207,7 +207,7 @@ export default function Home() {
 
       <section className="mx-auto grid max-w-7xl gap-8 px-5 py-20 sm:px-8 md:py-28 lg:grid-cols-3 lg:gap-20 lg:px-10">
         <h2 className="max-w-md font-display text-title">Questions, answered plainly.</h2>
-        <div className="divide-y divide-border/80 border-border/80 border-y lg:col-span-2">
+        <div className="reveal divide-y divide-border/80 border-border/80 border-y lg:col-span-2">
           {faqs.map((faq) => (
             <details key={faq.question} className="group">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-6 rounded-lg py-5 font-medium text-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
@@ -224,7 +224,7 @@ export default function Home() {
       </section>
 
       <section className="border-border/70 border-t bg-card/60">
-        <div className="mx-auto flex max-w-7xl flex-col items-start gap-8 px-5 py-20 sm:px-8 md:flex-row md:items-end md:justify-between md:py-24 lg:px-10">
+        <div className="reveal mx-auto flex max-w-7xl flex-col items-start gap-8 px-5 py-20 sm:px-8 md:flex-row md:items-end md:justify-between md:py-24 lg:px-10">
           <div className="max-w-xl">
             <h2 className="font-display text-title">Start with one check-in.</h2>
             <p className="mt-4 text-lede text-muted-foreground">

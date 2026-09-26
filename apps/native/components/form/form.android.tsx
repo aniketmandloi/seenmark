@@ -34,6 +34,7 @@ import {
 	onGloballyPositioned,
 	padding,
 	Shapes,
+	size,
 	verticalScroll,
 } from "@expo/ui/jetpack-compose/modifiers";
 import * as ExpoLinking from "expo-linking";
@@ -277,7 +278,22 @@ export function FormFields({ title, footer, children }: FormFieldsProps) {
 	);
 }
 
-export function FormRow({
+export function FormRow(props: FormRowProps) {
+	return <ListRow {...props} />;
+}
+
+function Spinner({ color }: { color: string }) {
+	return (
+		<CircularProgressIndicator
+			color={color}
+			strokeWidth={2}
+			modifiers={[size(18, 18)]}
+		/>
+	);
+}
+
+/** A kit row that can also stand for a button in flight, with a spinner at its end. */
+function ListRow({
 	title,
 	subtitle,
 	value,
@@ -286,7 +302,8 @@ export function FormRow({
 	onPress,
 	showsChevron = false,
 	disabled = false,
-}: FormRowProps) {
+	pending = false,
+}: FormRowProps & { pending?: boolean }) {
 	const colors = useMaterialColors();
 	const titleColor =
 		tone === "destructive"
@@ -305,7 +322,7 @@ export function FormRow({
 		<ListItem
 			colors={{ containerColor: TRANSPARENT }}
 			modifiers={[
-				...(onPress && !disabled ? [clickable(onPress)] : []),
+				...(onPress && !disabled && !pending ? [clickable(onPress)] : []),
 				...(disabled ? [alpha(0.38)] : []),
 			]}
 		>
@@ -322,12 +339,13 @@ export function FormRow({
 					<Icon source={ICONS[icon].android} tint={iconColor} size={24} />
 				</ListItem.LeadingContent>
 			) : null}
-			{value || showsChevron ? (
+			{value || showsChevron || pending ? (
 				<ListItem.TrailingContent>
 					<Row
 						verticalAlignment="center"
 						horizontalArrangement={{ spacedBy: 4 }}
 					>
+						{pending ? <Spinner color={iconColor} /> : null}
 						{value ? (
 							<Text color={colors.onSurfaceVariant}>{value}</Text>
 						) : null}
@@ -375,27 +393,34 @@ export function FormButton({
 	onPress,
 	icon,
 	disabled = false,
+	pending = false,
 	prominent = false,
 }: FormButtonProps) {
+	const colors = useMaterialColors();
+
 	if (prominent) {
 		return (
 			<Button
 				onClick={onPress}
-				enabled={!disabled}
+				enabled={!disabled && !pending}
 				modifiers={[fillMaxWidth(), height(52)]}
 			>
-				<Text style={{ typography: "labelLarge" }}>{label}</Text>
+				<Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
+					{pending ? <Spinner color={colors.onSurfaceVariant} /> : null}
+					<Text style={{ typography: "labelLarge" }}>{label}</Text>
+				</Row>
 			</Button>
 		);
 	}
 
 	return (
-		<FormRow
+		<ListRow
 			title={label}
 			icon={icon}
 			tone="accent"
 			onPress={onPress}
 			disabled={disabled}
+			pending={pending}
 		/>
 	);
 }
@@ -409,18 +434,20 @@ export function FormConfirmButton({
 	cancelLabel = "Cancel",
 	onConfirm,
 	disabled = false,
+	pending = false,
 }: FormConfirmButtonProps) {
 	const colors = useMaterialColors();
 	const [isPresented, setIsPresented] = useState(false);
 
 	return (
 		<>
-			<FormRow
+			<ListRow
 				title={label}
 				icon={icon}
 				tone="destructive"
 				onPress={() => setIsPresented(true)}
 				disabled={disabled}
+				pending={pending}
 			/>
 			{isPresented ? (
 				<AlertDialog onDismissRequest={() => setIsPresented(false)}>

@@ -55,6 +55,8 @@ export type FormButtonProps = {
 	onPress: () => void;
 	icon?: IconName;
 	disabled?: boolean;
+	/** Disabled with an inline spinner; the label passed in still names the action in flight. */
+	pending?: boolean;
 	/** A full-width filled button that ends a flow, like submitting a form. */
 	prominent?: boolean;
 };
@@ -68,6 +70,8 @@ export type FormConfirmButtonProps = {
 	cancelLabel?: string;
 	onConfirm: () => void;
 	disabled?: boolean;
+	/** Disabled with an inline spinner; the label passed in still names the action in flight. */
+	pending?: boolean;
 };
 
 export type FormLinkProps = {

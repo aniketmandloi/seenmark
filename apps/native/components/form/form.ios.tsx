@@ -261,16 +261,33 @@ export function FormText({
 	);
 }
 
+function PendingLabel({
+	label,
+	modifiers = [],
+}: {
+	label: string;
+	modifiers?: ModifierConfig[];
+}) {
+	return (
+		<HStack spacing={8} modifiers={modifiers}>
+			<ProgressView modifiers={[controlSize("small")]} />
+			<Text>{label}</Text>
+		</HStack>
+	);
+}
+
 export function FormButton({
 	label,
 	onPress,
 	icon,
 	disabled = false,
+	pending = false,
 	prominent = false,
 }: FormButtonProps) {
-	const disabledModifiers = disabled ? [disableControl(true)] : [];
+	const disabledModifiers = disabled || pending ? [disableControl(true)] : [];
 
 	if (prominent) {
+		const fill = frame({ maxWidth: Number.POSITIVE_INFINITY });
 		return (
 			<Button
 				onPress={onPress}
@@ -282,14 +299,24 @@ export function FormButton({
 					...disabledModifiers,
 				]}
 			>
-				<Text
-					modifiers={[
-						font({ textStyle: "headline" }),
-						frame({ maxWidth: Number.POSITIVE_INFINITY }),
-					]}
-				>
-					{label}
-				</Text>
+				{pending ? (
+					<PendingLabel
+						label={label}
+						modifiers={[font({ textStyle: "headline" }), fill]}
+					/>
+				) : (
+					<Text modifiers={[font({ textStyle: "headline" }), fill]}>
+						{label}
+					</Text>
+				)}
+			</Button>
+		);
+	}
+
+	if (pending) {
+		return (
+			<Button onPress={onPress} modifiers={disabledModifiers}>
+				<PendingLabel label={label} />
 			</Button>
 		);
 	}
@@ -313,17 +340,27 @@ export function FormConfirmButton({
 	cancelLabel = "Cancel",
 	onConfirm,
 	disabled = false,
+	pending = false,
 }: FormConfirmButtonProps) {
+	const modifiers = disabled || pending ? [disableControl(true)] : undefined;
+
 	return (
 		<ConfirmationDialog title={title} titleVisibility="visible">
 			<ConfirmationDialog.Trigger>
-				{/* biome-ignore lint/a11y/useValidAriaRole: Expo UI maps this prop to SwiftUI's ButtonRole. */}
-				<Button
-					label={label}
-					systemImage={icon ? ICONS[icon].ios : undefined}
-					role="destructive"
-					modifiers={disabled ? [disableControl(true)] : undefined}
-				/>
+				{pending ? (
+					// biome-ignore lint/a11y/useValidAriaRole: Expo UI maps this prop to SwiftUI's ButtonRole.
+					<Button role="destructive" modifiers={modifiers}>
+						<PendingLabel label={label} />
+					</Button>
+				) : (
+					// biome-ignore lint/a11y/useValidAriaRole: Expo UI maps this prop to SwiftUI's ButtonRole.
+					<Button
+						label={label}
+						systemImage={icon ? ICONS[icon].ios : undefined}
+						role="destructive"
+						modifiers={modifiers}
+					/>
+				)}
 			</ConfirmationDialog.Trigger>
 			<ConfirmationDialog.Message>
 				<Text>{message}</Text>

@@ -122,7 +122,12 @@ export function FormSection({ title, footer, children }: FormSectionProps) {
 
 export const FormFields = FormSection;
 
-export function FormRow({
+export function FormRow(props: FormRowProps) {
+	return <ListRow {...props} />;
+}
+
+/** A kit row that can also stand for a button in flight, with a spinner at its end. */
+function ListRow({
 	title,
 	subtitle,
 	value,
@@ -130,7 +135,8 @@ export function FormRow({
 	onPress,
 	showsChevron = false,
 	disabled = false,
-}: FormRowProps) {
+	pending = false,
+}: FormRowProps & { pending?: boolean }) {
 	const { theme } = useColorScheme();
 	const color =
 		tone === "destructive"
@@ -143,7 +149,8 @@ export function FormRow({
 		<Pressable
 			accessibilityRole={onPress ? "button" : undefined}
 			onPress={onPress}
-			disabled={disabled || !onPress}
+			disabled={disabled || pending || !onPress}
+			accessibilityState={{ disabled: disabled || pending, busy: pending }}
 			style={[styles.row, disabled && styles.disabled]}
 		>
 			<View style={styles.rowCopy}>
@@ -154,6 +161,7 @@ export function FormRow({
 					</Text>
 				) : null}
 			</View>
+			{pending ? <ActivityIndicator color={color} /> : null}
 			{value ? <Text style={{ color: theme.muted }}>{value}</Text> : null}
 			{showsChevron ? <Text style={{ color: theme.muted }}>›</Text> : null}
 		</Pressable>
@@ -185,6 +193,7 @@ export function FormButton({
 	label,
 	onPress,
 	disabled = false,
+	pending = false,
 	prominent = false,
 }: FormButtonProps) {
 	const { theme } = useColorScheme();
@@ -193,14 +202,16 @@ export function FormButton({
 		return (
 			<Pressable
 				accessibilityRole="button"
+				accessibilityState={{ disabled: disabled || pending, busy: pending }}
 				onPress={onPress}
-				disabled={disabled}
+				disabled={disabled || pending}
 				style={[
 					styles.prominent,
 					{ backgroundColor: theme.primary },
 					disabled && styles.disabled,
 				]}
 			>
+				{pending ? <ActivityIndicator color={theme.background} /> : null}
 				<Text style={[styles.prominentLabel, { color: theme.background }]}>
 					{label}
 				</Text>
@@ -209,11 +220,12 @@ export function FormButton({
 	}
 
 	return (
-		<FormRow
+		<ListRow
 			title={label}
 			tone="accent"
 			onPress={onPress}
 			disabled={disabled}
+			pending={pending}
 		/>
 	);
 }
@@ -226,12 +238,14 @@ export function FormConfirmButton({
 	cancelLabel = "Cancel",
 	onConfirm,
 	disabled = false,
+	pending = false,
 }: FormConfirmButtonProps) {
 	return (
-		<FormRow
+		<ListRow
 			title={label}
 			tone="destructive"
 			disabled={disabled}
+			pending={pending}
 			onPress={() =>
 				Alert.alert(title, message, [
 					{ text: cancelLabel, style: "cancel" },
@@ -450,6 +464,8 @@ const styles = StyleSheet.create({
 	prominent: {
 		minHeight: 50,
 		borderRadius: 12,
+		flexDirection: "row",
+		gap: 8,
 		alignItems: "center",
 		justifyContent: "center",
 	},

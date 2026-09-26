@@ -2,10 +2,8 @@
 
 import { HISTORY_PAGE_SIZE, nextHistoryCursor } from "@seenmark/api/history";
 import { Alert, AlertDescription } from "@seenmark/ui/components/alert";
-import { Button } from "@seenmark/ui/components/button";
 import { useInfiniteQuery, useIsMutating, useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, Check, Clock3 } from "lucide-react";
-import Link from "next/link";
+import { Clock3 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -16,13 +14,13 @@ import { claimMemberCache, queryClient, trpc } from "@/utils/trpc";
 
 import AccountPrivacy from "./account-privacy";
 import BandPicker from "./band-picker";
-import { bands } from "./bands";
 import { type CheckIn, formatDate, relativeTime } from "./check-in-dates";
 import CheckInDialog from "./check-in-dialog";
 import Compare from "./compare";
 import { type ComparisonChoice, chooseSlot, defaultChoice, resolveComparison } from "./comparison";
 import IntroductionRequest from "./introduction-request";
 import { invalidateMemberLoop } from "./member-loop";
+import MenuPreview from "./menu-preview";
 import PhotoPicker from "./photo-picker";
 import { preparePhoto } from "./prepare-photo";
 import Timeline from "./timeline";
@@ -46,7 +44,6 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   );
   const currentBand = useQuery(trpc.score.current.queryOptions());
   const reminder = useQuery(trpc.checkIn.reminder.queryOptions());
-  const menu = useQuery(trpc.menu.current.queryOptions());
   const record = useMutation(
     trpc.checkIn.record.mutationOptions({ onSuccess: invalidateMemberLoop }),
   );
@@ -59,11 +56,6 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   const items: CheckIn[] = checkIns.data?.pages.flat() ?? [];
   const comparison = resolveComparison(items, choice);
   const latest = items[0];
-  const selectedBand = bands.find((band) => band.value === currentBand.data)?.label;
-  const currentMenu = menu.data?.menu ?? null;
-  // The score and the menu are separate reads that can land in either order after a change,
-  // so steps show only under the heading of the band they belong to.
-  const shownMenu = currentMenu?.band === currentBand.data ? currentMenu : null;
   const isBusy = isPreparingPhoto || mutations > 0;
 
   async function addCheckIn(file: File) {
@@ -202,59 +194,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
             busy={isBusy}
           />
 
-          {currentBand.data ? (
-            <section
-              aria-labelledby="menu-heading"
-              className="rounded-[1.75rem] border border-border/80 bg-card p-6 sm:p-8"
-            >
-              <h2 id="menu-heading" className="font-semibold text-2xl tracking-[-0.04em]">
-                Next steps for {selectedBand}
-              </h2>
-              <p className="mt-2 text-muted-foreground text-sm leading-6">
-                A short menu to read at your pace. These are not a treatment plan.
-              </p>
-
-              {menu.isError ? (
-                <div
-                  role="alert"
-                  className="mt-5 rounded-xl bg-destructive/10 p-4 text-destructive text-sm"
-                >
-                  <p>We could not load your next steps.</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-3"
-                    onClick={() => menu.refetch()}
-                  >
-                    Try again
-                  </Button>
-                </div>
-              ) : !shownMenu ? (
-                <div className="mt-6 space-y-3" role="status" aria-label="Loading next steps">
-                  <div className="h-4 animate-pulse rounded bg-muted motion-reduce:animate-none" />
-                  <div className="h-4 w-4/5 animate-pulse rounded bg-muted motion-reduce:animate-none" />
-                </div>
-              ) : (
-                <ol className="mt-6 space-y-4">
-                  {shownMenu.steps.map((step) => (
-                    <li key={step} className="flex gap-3 text-sm leading-6">
-                      <Check aria-hidden="true" className="mt-1 size-4 shrink-0 text-primary" />
-                      <span>{step}</span>
-                    </li>
-                  ))}
-                </ol>
-              )}
-
-              <p className="mt-6 border-border/70 border-t pt-4 text-sm leading-6">
-                <Link
-                  href="/dashboard/next-steps"
-                  className="inline-flex items-center gap-1 font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  Open your next steps <ArrowUpRight aria-hidden="true" className="size-3.5" />
-                </Link>
-              </p>
-            </section>
-          ) : null}
+          {currentBand.data ? <MenuPreview band={currentBand.data} /> : null}
 
           <IntroductionRequest band={currentBand.data} busy={isBusy} />
 

@@ -65,7 +65,13 @@ export default function BandPicker({
             This is your choice after looking at your own check-ins. It is not a diagnosis.
           </p>
         </div>
-        {band ? <Check aria-hidden="true" className="mt-1 size-5 shrink-0 text-primary" /> : null}
+        {band ? (
+          <Check
+            key={band}
+            aria-hidden="true"
+            className="mt-1 size-5 shrink-0 animate-pop text-primary"
+          />
+        ) : null}
       </div>
 
       {failed ? (

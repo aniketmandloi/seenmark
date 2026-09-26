@@ -134,7 +134,7 @@ export default function Home() {
               height={1024}
               preload
               sizes="(max-width: 1024px) 100vw, 50vw"
-              className="aspect-4/3 h-full w-full object-cover sm:aspect-3/2 lg:aspect-4/3"
+              className="aspect-4/3 h-full w-full animate-settle object-cover sm:aspect-3/2 lg:aspect-4/3"
             />
           </div>
         </div>

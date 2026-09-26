@@ -120,6 +120,7 @@
   --animate-fade-in: fade-in 200ms var(--ease-out-soft) both;
   --animate-rise: rise 300ms var(--ease-out-soft) both;
   --animate-lift: lift 300ms var(--ease-out-soft) both;
+  --animate-settle: settle 500ms var(--ease-out-soft) both;
   --animate-pop: pop 200ms var(--ease-out-soft) both;
   --animate-breathe: breathe 2.4s ease-in-out infinite;
 
@@ -139,6 +140,13 @@
   @keyframes lift {
     from {
       transform: translateY(6px);
+    }
+  }
+  /* The one duration outside 150 / 200 / 300ms, kept for the landing hero image. Scale only,
+     never opacity, so the image still counts as an LCP candidate from its first paint. */
+  @keyframes settle {
+    from {
+      transform: scale(1.02);
     }
   }
   @keyframes pop {

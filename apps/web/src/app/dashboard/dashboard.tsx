@@ -191,6 +191,9 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
           <BandPicker
             band={currentBand.data}
             loading={currentBand.isLoading}
+            failed={currentBand.isError && currentBand.data === undefined}
+            retrying={currentBand.isFetching}
+            onRetry={() => currentBand.refetch()}
             hasCheckIns={items.length > 0}
             busy={isBusy}
           />

@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 
+import ErrorState from "@/components/error-state";
 import { invalidateMemberLoop } from "@/lib/member-loop";
 import { queryClient, trpc } from "@/utils/trpc";
 
@@ -14,11 +15,18 @@ import ChoiceGroup from "./choice-group";
 export default function BandPicker({
   band,
   loading,
+  failed,
+  retrying,
+  onRetry,
   hasCheckIns,
   busy,
 }: {
   band: Band | null | undefined;
   loading: boolean;
+  /** The saved band could not be read, so choosing would start from a blank that may be wrong. */
+  failed: boolean;
+  retrying: boolean;
+  onRetry: () => void;
   hasCheckIns: boolean;
   busy: boolean;
 }) {
@@ -59,15 +67,24 @@ export default function BandPicker({
         {band ? <Check aria-hidden="true" className="mt-1 size-5 shrink-0 text-primary" /> : null}
       </div>
 
-      <ChoiceGroup
-        aria-labelledby="band-heading"
-        options={bands}
-        value={band}
-        disabled={!hasCheckIns || busy || loading}
-        onChoose={handleChooseBand}
-        className="mt-6 grid w-full grid-cols-3"
-        itemClassName="h-12 w-full data-pressed:border-primary"
-      />
+      {failed ? (
+        <ErrorState
+          className="mt-6"
+          message="We could not load your band."
+          retrying={retrying}
+          onRetry={onRetry}
+        />
+      ) : (
+        <ChoiceGroup
+          aria-labelledby="band-heading"
+          options={bands}
+          value={band}
+          disabled={!hasCheckIns || busy || loading}
+          onChoose={handleChooseBand}
+          className="mt-6 grid w-full grid-cols-3"
+          itemClassName="h-12 w-full data-pressed:border-primary"
+        />
+      )}
       <p className="mt-3 text-muted-foreground text-xs leading-5">
         You can change your choice whenever you want.
       </p>

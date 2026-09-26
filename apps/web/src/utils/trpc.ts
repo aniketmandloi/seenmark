@@ -1,16 +1,14 @@
 import type { AppRouter } from "@seenmark/api/routers/index";
+import { QueryClient } from "@tanstack/react-query";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query";
-import { toast } from "sonner";
 
 import { createMemberCacheClaim } from "@/lib/member-session";
 import { resolveServerUrl } from "@/lib/server-url";
 
-import { createQueryClient } from "./query-client";
-
-export const queryClient = createQueryClient((message, retry) => {
-  toast.error(message, { action: { label: "retry", onClick: retry } });
-});
+// Failed reads are shown inline where they are used, each with its own retry; toasts are for
+// mutation results only.
+export const queryClient = new QueryClient();
 
 export const claimMemberCache = createMemberCacheClaim(queryClient);
 

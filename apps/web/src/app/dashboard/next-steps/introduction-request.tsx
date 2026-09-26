@@ -72,8 +72,9 @@ export default function IntroductionRequest({
     }
   }
 
-  // Filing needs the late band; a request already recorded stays reachable on any band.
-  if (band !== "late" && !introduction.data) {
+  // Filing needs the late band; a request already recorded stays reachable on any band, and a
+  // failed read shows so a recorded request is never silently hidden.
+  if (band !== "late" && !introduction.data && !introduction.isError) {
     return null;
   }
 
@@ -91,11 +92,16 @@ export default function IntroductionRequest({
           >
             {band === "late" ? "Ask for an introduction" : "Your introduction request"}
           </h2>
-          <CardDescription>
-            {band === "late"
-              ? "Your request is recorded for you. It is not sent to a clinic."
-              : "You asked on the late band. It is still recorded for you, and it is not sent to a clinic."}
-          </CardDescription>
+          {band === "late" ? (
+            <CardDescription>
+              Your request is recorded for you. It is not sent to a clinic.
+            </CardDescription>
+          ) : recorded ? (
+            <CardDescription>
+              You asked on the late band. It is still recorded for you, and it is not sent to a
+              clinic.
+            </CardDescription>
+          ) : null}
           {recorded ? (
             <CardAction>
               <Badge variant="success">Recorded</Badge>

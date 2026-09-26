@@ -12,8 +12,8 @@ import z from "zod";
 
 import { authClient } from "@/lib/auth-client";
 
+import AuthFormSkeleton from "./auth-form-skeleton";
 import FieldError from "./field-error";
-import Loader from "./loader";
 import PasswordInput from "./password-input";
 
 export default function SignInForm() {
@@ -55,7 +55,7 @@ export default function SignInForm() {
   });
 
   if (isPending) {
-    return <Loader />;
+    return <AuthFormSkeleton fields={["email", "password"]} />;
   }
 
   return (

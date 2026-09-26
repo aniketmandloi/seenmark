@@ -15,8 +15,8 @@ import z from "zod";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 
+import AuthFormSkeleton from "./auth-form-skeleton";
 import FieldError from "./field-error";
-import Loader from "./loader";
 import PasswordInput from "./password-input";
 
 export default function SignUpForm() {
@@ -78,7 +78,12 @@ export default function SignUpForm() {
   });
 
   if (isPending) {
-    return <Loader />;
+    return (
+      <AuthFormSkeleton
+        fields={["name", "email", "password"]}
+        affirmations={["affirmedAtLeast18", "affirmedInUnitedStates"]}
+      />
+    );
   }
 
   return (

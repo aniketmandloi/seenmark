@@ -14,25 +14,15 @@ import { authClient } from "@/lib/auth-client";
 import { forgetMemberData } from "@/lib/member-session";
 import { claimMemberCache, queryClient, trpc } from "@/utils/trpc";
 
+import { type CheckIn, formatDate } from "./check-in-dates";
+
 type Band = "early" | "mid" | "late";
-type CheckIn = {
-  id: string;
-  takenAt: string;
-};
 
 const bands: { value: Band; label: string }[] = [
   { value: "early", label: "Early" },
   { value: "mid", label: "Mid" },
   { value: "late", label: "Late" },
 ];
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(value));
-}
 
 function Photo({ item, alt }: { item: CheckIn; alt: string }) {
   // A recorded photo never changes, so once loaded it is never refetched.

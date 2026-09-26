@@ -21,6 +21,7 @@ import {
   CardHeader,
 } from "@seenmark/ui/components/card";
 import { Skeleton } from "@seenmark/ui/components/skeleton";
+import { Spinner } from "@seenmark/ui/components/spinner";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { type RefObject, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -151,8 +152,10 @@ export default function IntroductionRequest({
                     <AlertDialogAction
                       variant="destructive"
                       disabled={removeIntroduction.isPending}
+                      aria-busy={removeIntroduction.isPending || undefined}
                       onClick={handleRemove}
                     >
+                      {removeIntroduction.isPending ? <Spinner data-icon="inline-start" /> : null}
                       {removeIntroduction.isPending ? "Removing…" : "Remove request"}
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -160,7 +163,12 @@ export default function IntroductionRequest({
               </AlertDialog>
             </div>
           ) : (
-            <Button disabled={fileIntroduction.isPending} onClick={handleFile}>
+            <Button
+              disabled={fileIntroduction.isPending}
+              aria-busy={fileIntroduction.isPending || undefined}
+              onClick={handleFile}
+            >
+              {fileIntroduction.isPending ? <Spinner data-icon="inline-start" /> : null}
               {fileIntroduction.isPending ? "Recording…" : "Record my request"}
             </Button>
           )}

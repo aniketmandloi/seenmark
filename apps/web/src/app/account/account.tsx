@@ -14,6 +14,7 @@ import {
 import { Button } from "@seenmark/ui/components/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@seenmark/ui/components/card";
 import { Separator } from "@seenmark/ui/components/separator";
+import { Spinner } from "@seenmark/ui/components/spinner";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -119,8 +120,10 @@ export default function Account({ session }: { session: typeof authClient.$Infer
               <AlertDialogAction
                 variant="destructive"
                 disabled={deleteAccount.isPending}
+                aria-busy={deleteAccount.isPending || undefined}
                 onClick={handleDeleteAccount}
               >
+                {deleteAccount.isPending ? <Spinner data-icon="inline-start" /> : null}
                 {deleteAccount.isPending ? "Deleting…" : "Delete account"}
               </AlertDialogAction>
             </AlertDialogFooter>

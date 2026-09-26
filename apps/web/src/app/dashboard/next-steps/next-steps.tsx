@@ -76,7 +76,7 @@ export default function NextSteps({ session }: { session: typeof authClient.$Inf
           ))}
         </ol>
       ) : (
-        <Empty className="mt-10 rounded-3xl border border-border bg-card/70">
+        <Empty className="mt-10 animate-fade-in rounded-3xl border border-border bg-card/70">
           <EmptyHeader>
             <h2 className="font-display text-heading">No band chosen yet</h2>
             <EmptyDescription>

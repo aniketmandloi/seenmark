@@ -4,13 +4,13 @@ import { redirect } from "next/navigation";
 
 import { authClient } from "@/lib/auth-client";
 
-import NextSteps from "./next-steps";
+import Account from "./account";
 
 export const metadata: Metadata = {
-  title: "Next steps",
+  title: "Account",
 };
 
-export default async function NextStepsPage() {
+export default async function AccountPage() {
   const session = await authClient.getSession({
     fetchOptions: {
       headers: await headers(),
@@ -22,5 +22,5 @@ export default async function NextStepsPage() {
     redirect("/login");
   }
 
-  return <NextSteps key={session.user.id} session={session} />;
+  return <Account key={session.user.id} session={session} />;
 }

@@ -14,6 +14,7 @@ import { authClient } from "@/lib/auth-client";
 
 import FieldError from "./field-error";
 import Loader from "./loader";
+import PasswordInput from "./password-input";
 
 export default function SignInForm() {
   const router = useRouter();
@@ -114,10 +115,9 @@ export default function SignInForm() {
               <Label htmlFor={field.name} className="font-medium text-sm">
                 Password
               </Label>
-              <Input
+              <PasswordInput
                 id={field.name}
                 name={field.name}
-                type="password"
                 autoComplete="current-password"
                 required
                 value={field.state.value}

@@ -17,6 +17,7 @@ import { trpc } from "@/utils/trpc";
 
 import FieldError from "./field-error";
 import Loader from "./loader";
+import PasswordInput from "./password-input";
 
 export default function SignUpForm() {
   const router = useRouter();
@@ -156,10 +157,9 @@ export default function SignUpForm() {
               <Label htmlFor={field.name} className="font-medium text-sm">
                 Password
               </Label>
-              <Input
+              <PasswordInput
                 id={field.name}
                 name={field.name}
-                type="password"
                 autoComplete="new-password"
                 required
                 value={field.state.value}

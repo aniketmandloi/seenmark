@@ -18,6 +18,24 @@ const steps = [
   },
 ];
 
+const privacy = [
+  {
+    title: "Only you can see your photos.",
+    description:
+      "Seenmark keeps your check-ins so you can look back and compare them. It doesn't analyze them.",
+  },
+  {
+    title: "You choose your band.",
+    description:
+      "Look at your own check-ins, then choose early, mid, or late. Seenmark never chooses it for you, and nobody can pay to change it.",
+  },
+  {
+    title: "Clinics cannot see your photos.",
+    description:
+      "Seenmark doesn't send your check-ins to a clinic. An introduction is only ever your request.",
+  },
+];
+
 export default function Home() {
   return (
     <div>
@@ -89,18 +107,16 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-10 px-5 py-20 sm:px-8 md:grid-cols-[0.8fr_1.2fr] md:items-center md:py-28 lg:px-10">
-        <div>
-          <h2 className="mt-4 max-w-lg font-semibold text-3xl tracking-[-0.04em] sm:text-4xl">
-            Your photo is a record, not a diagnosis.
-          </h2>
-        </div>
-        <div className="max-w-2xl border-primary/50 border-l-2 pl-6 sm:pl-8">
-          <p className="text-lg text-muted-foreground leading-8">
-            Seenmark stores your check-ins so you can look back. It does not analyze your photos or
-            tell you which band to choose. Clinics cannot see your photos.
-          </p>
-        </div>
+      <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8 md:py-28 lg:px-10">
+        <h2 className="max-w-lg font-display text-title">Private by design.</h2>
+        <ul className="mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
+          {privacy.map((item) => (
+            <li key={item.title} className="border-primary/50 border-l-2 pl-6">
+              <h3 className="font-display text-heading">{item.title}</h3>
+              <p className="mt-3 text-muted-foreground">{item.description}</p>
+            </li>
+          ))}
+        </ul>
       </section>
     </div>
   );

@@ -192,7 +192,7 @@ export default function Home() {
         <div className="divide-y divide-border/80 border-border/80 border-y lg:col-span-2">
           {faqs.map((faq) => (
             <details key={faq.question} className="group">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-6 rounded-lg py-5 font-medium text-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-6 rounded-lg py-5 font-medium text-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                 {faq.question}
                 <Plus
                   aria-hidden="true"

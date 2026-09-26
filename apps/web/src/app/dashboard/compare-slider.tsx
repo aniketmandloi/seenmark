@@ -26,7 +26,7 @@ export default function CompareSlider({ earlier, latest }: { earlier: CheckIn; l
   return (
     <figure>
       <div
-        className="relative aspect-3/4 w-full cursor-ew-resize touch-pan-y select-none overflow-hidden rounded-2xl bg-muted has-focus-visible:ring-2 has-focus-visible:ring-ring has-focus-visible:ring-offset-2"
+        className="relative aspect-3/4 w-full cursor-ew-resize touch-pan-y select-none overflow-hidden rounded-2xl bg-muted has-focus-visible:ring-2 has-focus-visible:ring-ring has-focus-visible:ring-offset-2 has-focus-visible:ring-offset-background"
         onPointerDown={(event) => {
           event.currentTarget.setPointerCapture(event.pointerId);
           follow(event);

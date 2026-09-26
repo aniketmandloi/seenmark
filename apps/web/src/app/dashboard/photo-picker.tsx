@@ -14,7 +14,7 @@ export default function PhotoPicker({
     <label
       aria-disabled={disabled || undefined}
       className={buttonVariants({
-        className: `cursor-pointer has-focus-visible:ring-2 has-focus-visible:ring-ring has-focus-visible:ring-offset-2 ${
+        className: `cursor-pointer has-focus-visible:ring-2 has-focus-visible:ring-ring has-focus-visible:ring-offset-2 has-focus-visible:ring-offset-background ${
           disabled ? "pointer-events-none opacity-50" : ""
         }`,
       })}

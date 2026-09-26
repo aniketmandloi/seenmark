@@ -19,11 +19,20 @@ import { ArrowLeftRight, Camera } from "lucide-react";
 import { useState } from "react";
 
 import { type CheckIn, formatDate, formatDateTime } from "./check-in-dates";
+import ChoiceGroup from "./choice-group";
+import CompareSlider from "./compare-slider";
 import type { Slot } from "./comparison";
 import Photo from "./photo";
 import PhotoPicker from "./photo-picker";
 
 const slotLabels: Record<Slot, string> = { earlier: "Earlier", latest: "Latest" };
+
+type Mode = "side" | "slider";
+
+const modes: { value: Mode; label: string }[] = [
+  { value: "side", label: "Side by side" },
+  { value: "slider", label: "Slider" },
+];
 
 /**
  * Photos only (ADR 0005): nothing is drawn on or around them that could read as a measurement.
@@ -46,6 +55,8 @@ export default function Compare({
   onSwap: () => void;
   onAdd: (file: File) => void;
 }) {
+  const [mode, setMode] = useState<Mode>("side");
+
   if (!latest) {
     return <FirstCheckIn busy={busy} onAdd={onAdd} />;
   }
@@ -71,9 +82,12 @@ export default function Compare({
 
   return (
     <section aria-labelledby="compare-heading">
-      <h2 id="compare-heading" className="font-display text-heading">
-        Compare
-      </h2>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="compare-heading" className="font-display text-heading">
+          Compare
+        </h2>
+        <ChoiceGroup aria-label="Compare mode" options={modes} value={mode} onChoose={setMode} />
+      </div>
 
       <div className="mt-5 flex items-end gap-2 sm:gap-3">
         <SlotPicker slot="earlier" items={items} slots={slots} onChoose={onChoose} />
@@ -89,16 +103,22 @@ export default function Compare({
         <SlotPicker slot="latest" items={items} slots={slots} onChoose={onChoose} />
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-5">
-        {(["earlier", "latest"] as const).map((slot) => (
-          <figure key={slot} className="min-w-0">
-            <Photo
-              item={slots[slot]}
-              alt={`${slotLabels[slot]} check-in photo from ${formatDate(slots[slot].takenAt)}`}
-            />
-            <CheckInCaption item={slots[slot]} />
-          </figure>
-        ))}
+      <div className="mt-5">
+        {mode === "slider" ? (
+          <CompareSlider earlier={earlier} latest={latest} />
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:gap-5">
+            {(["earlier", "latest"] as const).map((slot) => (
+              <figure key={slot} className="min-w-0">
+                <Photo
+                  item={slots[slot]}
+                  alt={`${slotLabels[slot]} check-in photo from ${formatDate(slots[slot].takenAt)}`}
+                />
+                <CheckInCaption item={slots[slot]} />
+              </figure>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

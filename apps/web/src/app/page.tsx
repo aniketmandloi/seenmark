@@ -60,25 +60,28 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="how-it-works" className="scroll-mt-24 border-border/70 border-y bg-card/60">
+      <section id="how-it-works" className="border-border/70 border-y bg-card/60">
         <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 md:py-24 lg:px-10">
-          <div className="max-w-2xl">
-            <h2 className="mt-4 font-semibold text-3xl tracking-[-0.04em] sm:text-4xl">
-              A little more perspective, over time.
-            </h2>
-          </div>
-
-          <div className="mt-10 grid gap-0 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
-            <p className="max-w-sm text-base text-muted-foreground leading-7">
-              No complicated routine to keep up with. Come back when you want to take another look.
-            </p>
-            <ol className="mt-8 divide-y divide-border/80 lg:mt-0">
-              {steps.map((step) => (
-                <li key={step.title} className="grid gap-2 py-6 sm:grid-cols-[12rem_1fr] sm:gap-8">
-                  <h3 className="font-semibold text-lg tracking-tight">{step.title}</h3>
-                  <p className="max-w-xl text-muted-foreground text-sm leading-6">
-                    {step.description}
-                  </p>
+          <div className="grid gap-8 lg:grid-cols-3 lg:gap-20">
+            <div>
+              <h2 className="max-w-md font-display text-title">
+                A little more perspective, over time.
+              </h2>
+              <p className="mt-6 max-w-sm text-muted-foreground">
+                No complicated routine to keep up with. Come back when you want to take another
+                look.
+              </p>
+            </div>
+            <ol className="divide-y divide-border/80 lg:col-span-2">
+              {steps.map((step, index) => (
+                <li key={step.title} className="grid gap-2 py-6 sm:grid-cols-3 sm:gap-8">
+                  <h3 className="flex items-baseline gap-3 font-display text-heading">
+                    <span aria-hidden="true" className="text-primary tabular-nums">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    {step.title}
+                  </h3>
+                  <p className="max-w-xl text-muted-foreground sm:col-span-2">{step.description}</p>
                 </li>
               ))}
             </ol>

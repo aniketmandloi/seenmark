@@ -5,6 +5,7 @@ import { Skeleton } from "@seenmark/ui/components/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 
 import ErrorState from "@/components/error-state";
 import { trpc } from "@/utils/trpc";
@@ -53,7 +54,11 @@ export default function MenuPreview({ band }: { band: Band }) {
       ) : (
         <ol className="mt-6 space-y-4">
           {shownMenu.steps.map((step, index) => (
-            <li key={step} className="flex gap-3 text-sm leading-6">
+            <li
+              key={step}
+              className="stagger flex animate-rise gap-3 text-sm leading-6"
+              style={{ "--i": index } as CSSProperties}
+            >
               <span
                 aria-hidden="true"
                 className="grid size-6 shrink-0 place-items-center rounded-full bg-accent font-medium text-accent-foreground text-xs tabular-nums"

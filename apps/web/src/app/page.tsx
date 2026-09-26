@@ -1,3 +1,4 @@
+import { buttonVariants } from "@seenmark/ui/components/button";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -20,48 +21,40 @@ const steps = [
 export default function Home() {
   return (
     <div>
-      <section className="mx-auto grid max-w-7xl items-center gap-12 px-5 pt-12 pb-20 sm:px-8 md:gap-14 md:pt-16 md:pb-28 lg:grid-cols-[0.9fr_1.1fr] lg:px-10">
+      <section className="mx-auto grid max-w-7xl items-center gap-12 px-5 pt-12 pb-20 sm:px-8 md:gap-14 md:pt-16 md:pb-28 lg:grid-cols-2 lg:px-10">
         <div className="max-w-xl">
-          <p className="mb-5 font-semibold text-primary text-sm tracking-[0.12em]">
-            YOUR HAIRLINE, YOUR CALL
+          <p className="mb-5 font-semibold text-primary text-sm uppercase tracking-widest">
+            Your hairline, your call
           </p>
-          <h1 className="text-balance font-semibold text-5xl leading-[1.04] tracking-[-0.055em] sm:text-6xl lg:text-[4.4rem]">
-            Your hairline, over time.
-          </h1>
-          <p className="mt-6 max-w-[34rem] text-lg text-muted-foreground leading-8">
+          <h1 className="text-balance font-display text-display">Your hairline, over time.</h1>
+          <p className="mt-6 max-w-lg text-lede text-muted-foreground">
             Keep private check-in photos, compare them over time, and choose a next step that feels
             right to you.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link
-              href="/login"
-              className="inline-flex min-h-12 items-center justify-center rounded-xl bg-primary px-6 font-semibold text-primary-foreground text-sm transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:translate-y-px"
-            >
-              Create your account
+            <Link href="/login" className={buttonVariants({ size: "lg" })}>
+              Get started
             </Link>
-            <Link
-              href="#how-it-works"
-              className="inline-flex min-h-12 items-center justify-center rounded-xl px-5 font-semibold text-foreground text-sm transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            >
+            <Link href="#how-it-works" className={buttonVariants({ variant: "ghost", size: "lg" })}>
               How it works
             </Link>
           </div>
           <p className="mt-6 max-w-md text-muted-foreground text-sm leading-6">
-            No diagnosis from a photo. No clinic directory. Just a private record and your own next
-            step.
+            Seenmark doesn't analyze your photos, and there's no clinic directory. Just a private
+            record and your own next step.
           </p>
         </div>
 
-        <div className="relative mx-auto w-full max-w-[44rem] lg:mx-0 lg:justify-self-end">
-          <div className="overflow-hidden rounded-[2rem] bg-muted shadow-[0_28px_80px_-44px_rgba(31,65,49,0.48)] ring-1 ring-foreground/10">
+        <div className="mx-auto w-full max-w-2xl lg:mx-0 lg:justify-self-end">
+          <div className="overflow-hidden rounded-4xl bg-muted shadow-lifted ring-1 ring-foreground/10">
             <Image
               src="/seenmark-checkin-hero.png"
               alt="An adult taking a private hairline check-in photo at home."
               width={1536}
               height={1024}
-              priority
-              sizes="(max-width: 1024px) 100vw, 54vw"
-              className="aspect-[1.13] h-full w-full object-cover object-[64%_center] sm:aspect-[1.35] lg:aspect-[1.1]"
+              preload
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="aspect-4/3 h-full w-full object-cover sm:aspect-3/2 lg:aspect-4/3"
             />
           </div>
         </div>

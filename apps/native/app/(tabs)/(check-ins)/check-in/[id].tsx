@@ -4,9 +4,9 @@ import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 
 import {
-	FormButton,
 	FormConfirmButton,
 	FormEmptyState,
+	FormErrorState,
 	FormPhotos,
 	FormProgress,
 	FormRow,
@@ -42,18 +42,12 @@ export default function CheckInScreen() {
 						description="It may have been deleted from your record."
 					/>
 				) : (
-					<FormSection footer="Nothing was changed. Try again when you are online.">
-						<FormRow
-							icon="error"
-							title="This photo could not load."
-							tone="destructive"
-						/>
-						<FormButton
-							label={photo.isFetching ? "Trying…" : "Try again"}
-							onPress={() => void photo.refetch()}
-							pending={photo.isFetching}
-						/>
-					</FormSection>
+					<FormErrorState
+						message="This photo could not load."
+						footer="Nothing was changed. Try again when you are online."
+						retrying={photo.isFetching}
+						onRetry={() => void photo.refetch()}
+					/>
 				)}
 			</FormScreen>
 		);

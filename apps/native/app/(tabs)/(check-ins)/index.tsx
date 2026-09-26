@@ -8,6 +8,7 @@ import {
 	FormButton,
 	FormChoice,
 	FormEmptyState,
+	FormErrorState,
 	FormPhotos,
 	FormProgress,
 	FormRow,
@@ -82,14 +83,12 @@ export default function CheckInsScreen() {
 			) : null}
 
 			{loop.loadFailed ? (
-				<FormSection footer="Nothing was changed. Pull down or try again.">
-					<FormRow
-						icon="error"
-						title="Your check-ins could not load."
-						tone="destructive"
-					/>
-					<FormButton label="Try again" onPress={() => void loop.refresh()} />
-				</FormSection>
+				<FormErrorState
+					message="Your check-ins could not load."
+					footer="Nothing was changed. Pull down or try again."
+					retrying={loop.isRefreshing}
+					onRetry={() => void loop.refresh()}
+				/>
 			) : null}
 
 			{loop.isLoading || actions.isRecording ? (
@@ -118,7 +117,14 @@ export default function CheckInsScreen() {
 				</>
 			) : null}
 
-			{latest.length > 0 ? (
+			{latest.some((photo) => photo.isError) ? (
+				<FormErrorState
+					message="Your photos could not load."
+					footer="Nothing was changed. Pull down or try again."
+					retrying={latest.some((photo) => photo.isFetching)}
+					onRetry={() => void loop.refresh()}
+				/>
+			) : latest.length > 0 ? (
 				<FormSection
 					title={latest.length > 1 ? "Side by side" : "Your baseline"}
 					footer={
@@ -127,19 +133,7 @@ export default function CheckInsScreen() {
 							: "Take another check-in later to compare."
 					}
 				>
-					{latest.some((photo) => photo.isError) ? (
-						<>
-							<FormRow
-								icon="error"
-								title="Your photos could not load."
-								tone="destructive"
-							/>
-							<FormButton
-								label="Try again"
-								onPress={() => void loop.refresh()}
-							/>
-						</>
-					) : latestPhotos.length === latest.length ? (
+					{latestPhotos.length === latest.length ? (
 						<FormPhotos
 							photos={latestPhotos.map((photo, index) => ({
 								id: photo.id,

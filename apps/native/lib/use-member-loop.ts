@@ -83,6 +83,7 @@ export function useCheckIns() {
 		items,
 		// A failed read is not an empty record: it must not invite a first photo or hide the band.
 		loadFailed: checkIns.isError || band.isError,
+		isRefreshing: checkIns.isFetching || band.isFetching,
 		hasEarlier: checkIns.hasNextPage,
 		isLoadingEarlier: checkIns.isFetchingNextPage,
 		loadEarlier: () => void checkIns.fetchNextPage(),
@@ -108,6 +109,7 @@ export function useNextSteps() {
 	return {
 		isLoading: menu.isLoading || introduction.isLoading,
 		loadFailed: menu.isError || introduction.isError,
+		isRefreshing: menu.isFetching || introduction.isFetching,
 		menu: currentMenu,
 		paidLink:
 			currentMenu && "paidLink" in currentMenu

@@ -58,6 +58,7 @@ import type {
 	FormChoiceProps,
 	FormConfirmButtonProps,
 	FormEmptyStateProps,
+	FormErrorStateProps,
 	FormHeroProps,
 	FormLinkProps,
 	FormPhotosProps,
@@ -566,6 +567,27 @@ export function FormReveal({ children, index = 0 }: FormRevealProps) {
 		>
 			{children}
 		</Group>
+	);
+}
+
+/** A failed read with a way to try it again; shared so every screen fails the same way. */
+export function FormErrorState({
+	message,
+	footer,
+	retrying,
+	onRetry,
+}: FormErrorStateProps) {
+	return (
+		<FormReveal>
+			<FormSection footer={footer}>
+				<FormRow icon="error" title={message} tone="destructive" />
+				<FormButton
+					label={retrying ? "Trying…" : "Try again"}
+					onPress={onRetry}
+					pending={retrying}
+				/>
+			</FormSection>
+		</FormReveal>
 	);
 }
 

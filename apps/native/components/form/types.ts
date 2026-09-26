@@ -122,6 +122,14 @@ export type FormRevealProps = {
 	index?: number;
 };
 
+export type FormErrorStateProps = {
+	/** What failed to load, like "Your check-ins could not load." */
+	message: string;
+	footer?: string;
+	retrying: boolean;
+	onRetry: () => void;
+};
+
 export type FormEmptyStateProps = {
 	icon: IconName;
 	title: string;

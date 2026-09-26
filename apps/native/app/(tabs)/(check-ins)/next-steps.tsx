@@ -5,6 +5,7 @@ import {
 	FormButton,
 	FormConfirmButton,
 	FormEmptyState,
+	FormErrorState,
 	FormLink,
 	FormProgress,
 	FormRow,
@@ -42,14 +43,12 @@ export default function NextStepsScreen() {
 			) : null}
 
 			{steps.loadFailed ? (
-				<FormSection footer="Nothing was changed. Pull down or try again.">
-					<FormRow
-						icon="error"
-						title="Your next steps could not load."
-						tone="destructive"
-					/>
-					<FormButton label="Try again" onPress={() => void steps.refresh()} />
-				</FormSection>
+				<FormErrorState
+					message="Your next steps could not load."
+					footer="Nothing was changed. Pull down or try again."
+					retrying={steps.isRefreshing}
+					onRetry={() => void steps.refresh()}
+				/>
 			) : menu ? (
 				<FormSection title={bandLabel ? `${bandLabel} band` : undefined}>
 					{menu.steps.map((step, index) => (

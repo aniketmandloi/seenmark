@@ -64,7 +64,7 @@ export default function Compare({
   if (!earlier) {
     return (
       <section aria-labelledby="compare-heading">
-        <h2 id="compare-heading" className="font-display text-heading">
+        <h2 id="compare-heading" className="scroll-mt-24 font-display text-heading">
           Your baseline
         </h2>
         <p className="mt-2 text-muted-foreground text-sm leading-6">
@@ -83,7 +83,7 @@ export default function Compare({
   return (
     <section aria-labelledby="compare-heading">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="compare-heading" className="font-display text-heading">
+        <h2 id="compare-heading" className="scroll-mt-24 font-display text-heading">
           Compare
         </h2>
         <ChoiceGroup aria-label="Compare mode" options={modes} value={mode} onChoose={setMode} />

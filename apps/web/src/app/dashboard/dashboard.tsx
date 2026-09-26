@@ -4,7 +4,7 @@ import { HISTORY_PAGE_SIZE, nextHistoryCursor } from "@seenmark/api/history";
 import { Alert, AlertDescription } from "@seenmark/ui/components/alert";
 import { Button } from "@seenmark/ui/components/button";
 import { useInfiniteQuery, useIsMutating, useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, Camera, Check, Clock3, Trash2 } from "lucide-react";
+import { ArrowUpRight, Check, Clock3, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -25,6 +25,7 @@ import { invalidateMemberLoop } from "./member-loop";
 import Photo from "./photo";
 import PhotoPicker from "./photo-picker";
 import { preparePhoto } from "./prepare-photo";
+import Timeline from "./timeline";
 
 export default function Dashboard({ session }: { session: typeof authClient.$Infer.Session }) {
   // Before any read below, so a previous member's cached reads are never shown.
@@ -209,39 +210,25 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
               />
 
               {items.length > 0 ? (
-                <section
-                  aria-labelledby="earlier-heading"
-                  className="mt-12 border-border/80 border-t pt-6"
-                >
-                  <h2 id="earlier-heading" className="font-display text-heading">
-                    All check-ins
-                  </h2>
-                  <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    {items.map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        aria-label={`Open check-in from ${formatDate(item.takenAt)}`}
-                        onClick={() => setOpenedId(item.id)}
-                        className="flex min-w-0 items-center gap-2 rounded-xl border border-border bg-card px-3 py-3 text-left text-muted-foreground text-sm transition hover:border-primary/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      >
-                        <Camera aria-hidden="true" className="size-4 shrink-0 text-primary" />
-                        <span className="truncate">{formatDate(item.takenAt)}</span>
-                      </button>
-                    ))}
-                  </div>
-                  {checkIns.hasNextPage ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-4"
-                      disabled={checkIns.isFetchingNextPage}
-                      onClick={() => checkIns.fetchNextPage()}
-                    >
-                      {checkIns.isFetchingNextPage ? "Loading…" : "Show earlier check-ins"}
-                    </Button>
-                  ) : null}
-                </section>
+                <div className="mt-12">
+                  <Timeline
+                    items={items}
+                    now={now}
+                    comparing={comparison}
+                    busy={isBusy}
+                    hasNextPage={checkIns.hasNextPage}
+                    isFetchingNextPage={checkIns.isFetchingNextPage}
+                    onShowEarlier={() => checkIns.fetchNextPage()}
+                    onOpen={setOpenedId}
+                    onCompare={(slot, id) => {
+                      setChoice(chooseSlot(comparison, slot, id));
+                      document
+                        .getElementById("compare-heading")
+                        ?.scrollIntoView({ block: "start" });
+                    }}
+                    onDelete={handleDeleteCheckIn}
+                  />
+                </div>
               ) : null}
             </>
           )}

@@ -58,6 +58,8 @@ export default function Compare({
   onAdd: (file: File) => void;
 }) {
   const [mode, setMode] = useState<Mode>("side");
+  // Counts up rather than toggling, so every swap turns the icon the same way.
+  const [swapTurns, setSwapTurns] = useState(0);
 
   if (!latest) {
     return <FirstCheckIn busy={busy} onAdd={onAdd} />;
@@ -98,9 +100,16 @@ export default function Compare({
           size="icon"
           aria-label="Swap earlier and latest"
           className="size-11 shrink-0"
-          onClick={onSwap}
+          onClick={() => {
+            setSwapTurns((turns) => turns + 1);
+            onSwap();
+          }}
         >
-          <ArrowLeftRight aria-hidden="true" />
+          <ArrowLeftRight
+            aria-hidden="true"
+            className="transition-transform duration-300"
+            style={{ rotate: `${swapTurns * 180}deg` }}
+          />
         </Button>
         <SlotPicker slot="latest" items={items} slots={slots} onChoose={onChoose} />
       </div>

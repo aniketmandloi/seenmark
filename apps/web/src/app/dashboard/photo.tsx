@@ -1,10 +1,11 @@
 "use client";
 
-import { Button } from "@seenmark/ui/components/button";
+import { Skeleton } from "@seenmark/ui/components/skeleton";
 import { cn } from "@seenmark/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 
+import ErrorState from "@/components/error-state";
 import { trpc } from "@/utils/trpc";
 
 import type { CheckIn } from "./check-in-dates";
@@ -28,32 +29,25 @@ export default function Photo({
     return (
       <div
         className={cn(
-          "grid aspect-3/4 w-full place-items-center rounded-2xl bg-muted p-4 text-center",
+          "grid aspect-3/4 w-full place-items-center rounded-2xl bg-muted p-4",
           className,
         )}
       >
-        <div role="alert">
-          <p className="text-muted-foreground text-sm">This photo could not load.</p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-3"
-            disabled={photo.isFetching}
-            onClick={() => photo.refetch()}
-          >
-            {photo.isFetching ? "Trying…" : "Try again"}
-          </Button>
-        </div>
+        <ErrorState
+          message="This photo could not load."
+          retrying={photo.isFetching}
+          onRetry={() => photo.refetch()}
+        />
       </div>
     );
   }
 
   if (!photo.data) {
     return (
-      <div
+      <Skeleton
         role="status"
         aria-label="Loading photo"
-        className={cn("aspect-3/4 w-full animate-pulse rounded-2xl bg-muted", className)}
+        className={cn("aspect-3/4 w-full rounded-2xl", className)}
       />
     );
   }

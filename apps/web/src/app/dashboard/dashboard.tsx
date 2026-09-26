@@ -16,6 +16,7 @@ import AccountPrivacy from "./account-privacy";
 import BandPicker from "./band-picker";
 import { type CheckIn, formatDate, relativeTime } from "./check-in-dates";
 import CheckInDialog from "./check-in-dialog";
+import CheckInsSkeleton from "./check-ins-skeleton";
 import Compare from "./compare";
 import { type ComparisonChoice, chooseSlot, defaultChoice, resolveComparison } from "./comparison";
 import IntroductionRequest from "./introduction-request";
@@ -129,10 +130,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
       <div className="mt-10 grid gap-12 lg:grid-cols-3">
         <div className="min-w-0 lg:col-span-2">
           {checkIns.isLoading ? (
-            <div className="grid grid-cols-2 gap-4" role="status" aria-label="Loading check-ins">
-              <div className="aspect-3/4 animate-pulse rounded-2xl bg-muted" />
-              <div className="aspect-3/4 animate-pulse rounded-2xl bg-muted" />
-            </div>
+            <CheckInsSkeleton />
           ) : checkIns.isError ? (
             <ErrorState
               message={

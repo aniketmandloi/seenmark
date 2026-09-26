@@ -1,13 +1,15 @@
 "use client";
 
 import { ChevronsLeftRight } from "lucide-react";
-import { useRef, useState } from "react";
+import { type PointerEvent, useRef, useState } from "react";
 
 import { type CheckIn, formatDate } from "./check-in-dates";
 import { dividerPercent } from "./comparison";
 import Photo from "./photo";
 
-const layer = "absolute inset-0 size-full rounded-none";
+// Pointer events pass through to the frame, so a press never starts a native image drag, which
+// would cancel the pointer stream mid-drag.
+const layer = "pointer-events-none absolute inset-0 size-full rounded-none";
 
 /**
  * The two photos stacked, with the latest revealed to the right of a divider. Pointer drags move
@@ -18,7 +20,7 @@ export default function CompareSlider({ earlier, latest }: { earlier: CheckIn; l
   const [position, setPosition] = useState(50);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  function follow(event: React.PointerEvent<HTMLDivElement>) {
+  function follow(event: PointerEvent<HTMLDivElement>) {
     setPosition(dividerPercent(event.clientX, event.currentTarget.getBoundingClientRect()));
   }
 

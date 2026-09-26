@@ -1,3 +1,4 @@
+import type { Band } from "@seenmark/api/bands";
 import { HISTORY_PAGE_SIZE, nextHistoryCursor } from "@seenmark/api/history";
 import { isPhotoMediaType, MAX_PHOTO_BASE64_LENGTH } from "@seenmark/api/photo";
 import {
@@ -11,24 +12,6 @@ import { useEffect, useEffectEvent, useState } from "react";
 import { AppState } from "react-native";
 
 import { queryClient, trpc } from "@/utils/trpc";
-
-export type Band = "early" | "mid" | "late";
-
-export const BANDS: readonly { value: Band; label: string }[] = [
-	{ value: "early", label: "Early" },
-	{ value: "mid", label: "Mid" },
-	{ value: "late", label: "Late" },
-];
-
-export function formatCheckInDate(value: string) {
-	const date = new Date(value);
-	if (Number.isNaN(date.getTime())) return value;
-	return new Intl.DateTimeFormat("en-US", {
-		month: "long",
-		day: "numeric",
-		year: "numeric",
-	}).format(date);
-}
 
 export type CheckInPhoto = {
 	id: string;

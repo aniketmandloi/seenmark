@@ -1,5 +1,7 @@
 "use client";
 
+import { type CheckIn, formatDate, groupByMonth, relativeTime } from "@seenmark/api/check-in-dates";
+import type { Slot } from "@seenmark/api/comparison";
 import { Badge } from "@seenmark/ui/components/badge";
 import { Button } from "@seenmark/ui/components/button";
 import {
@@ -13,8 +15,6 @@ import { Spinner } from "@seenmark/ui/components/spinner";
 import { MoreHorizontal } from "lucide-react";
 import { type CSSProperties, type RefObject, useRef, useState } from "react";
 
-import { type CheckIn, formatDate, groupByMonth, relativeTime } from "./check-in-dates";
-import type { Slot } from "./comparison";
 import DeleteCheckIn from "./delete-check-in";
 
 const itemClassName = "cursor-pointer rounded-lg px-3 py-2";

@@ -1,3 +1,4 @@
+import { formatDate } from "@seenmark/api/check-in-dates";
 import { useQuery } from "@tanstack/react-query";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
@@ -16,7 +17,6 @@ import {
 	type CheckInPhoto,
 	checkInPhotoQuery,
 	checkInPhotoUri,
-	formatCheckInDate,
 	useMemberActions,
 } from "@/lib/use-member-loop";
 
@@ -59,7 +59,7 @@ export default function CheckInScreen() {
 		);
 	}
 
-	const takenOn = formatCheckInDate(checkIn.takenAt);
+	const takenOn = formatDate(checkIn.takenAt);
 
 	return (
 		<>

@@ -3,6 +3,7 @@ import {
 	ConfirmationDialog,
 	ContentUnavailableView,
 	Form,
+	Group,
 	Host,
 	HStack,
 	Image,
@@ -35,7 +36,10 @@ import {
 	listRowInsets,
 	type ModifierConfig,
 	multilineTextAlignment,
+	offset,
+	onAppear,
 	onSubmit,
+	opacity,
 	padding,
 	pickerStyle,
 	refreshable,
@@ -46,6 +50,7 @@ import {
 	textInputAutocapitalization,
 } from "@expo/ui/swift-ui/modifiers";
 import { Stack } from "expo-router";
+import { useState } from "react";
 import { Platform, Image as RNImage, StyleSheet, View } from "react-native";
 
 import type {
@@ -57,6 +62,7 @@ import type {
 	FormLinkProps,
 	FormPhotosProps,
 	FormProgressProps,
+	FormRevealProps,
 	FormRowProps,
 	FormScreenProps,
 	FormSectionProps,
@@ -66,6 +72,8 @@ import type {
 	Tone,
 } from "@/components/form/types";
 import { ICONS } from "@/lib/icons";
+import { staggerDelay, useMotion } from "@/lib/motion";
+import { easeOut } from "@/lib/swift-ui-motion";
 import { useColorScheme } from "@/lib/use-color-scheme";
 
 // SwiftUI's ContentUnavailableView renders nothing before iOS 17.
@@ -502,6 +510,25 @@ export function FormEmptyState({
 				</Text>
 			</VStack>
 		</Section>
+	);
+}
+
+export function FormReveal({ children, index = 0 }: FormRevealProps) {
+	const motion = useMotion();
+	const [appeared, setAppeared] = useState(motion.reduced);
+
+	// Group passes its modifiers to each child, so every row inside stays its own Form row.
+	return (
+		<Group
+			modifiers={[
+				opacity(appeared ? 1 : 0),
+				offset({ y: appeared ? 0 : motion.rise }),
+				...easeOut(motion, motion.slow, appeared, staggerDelay(motion, index)),
+				...(appeared ? [] : [onAppear(() => setAppeared(true))]),
+			]}
+		>
+			{children}
+		</Group>
 	);
 }
 

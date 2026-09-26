@@ -1,5 +1,6 @@
 "use client";
 
+import { type Band, bands } from "@seenmark/api/bands";
 import { Skeleton } from "@seenmark/ui/components/skeleton";
 import { useMutation } from "@tanstack/react-query";
 import { Check } from "lucide-react";
@@ -9,7 +10,6 @@ import ErrorState from "@/components/error-state";
 import { invalidateMemberLoop } from "@/lib/member-loop";
 import { queryClient, trpc } from "@/utils/trpc";
 
-import { type Band, bands } from "./bands";
 import ChoiceGroup from "./choice-group";
 
 /** Nothing is chosen until the member chooses (ADR 0005), and no paid link appears here (ADR 0006). */

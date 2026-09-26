@@ -1,3 +1,6 @@
+import { bands } from "@seenmark/api/bands";
+import { formatDate } from "@seenmark/api/check-in-dates";
+
 import {
 	FormButton,
 	FormConfirmButton,
@@ -9,18 +12,13 @@ import {
 	FormSection,
 	FormText,
 } from "@/components/form/form";
-import {
-	BANDS,
-	formatCheckInDate,
-	useMemberActions,
-	useNextSteps,
-} from "@/lib/use-member-loop";
+import { useMemberActions, useNextSteps } from "@/lib/use-member-loop";
 
 export default function NextStepsScreen() {
 	const steps = useNextSteps();
 	const actions = useMemberActions();
 	const menu = steps.menu;
-	const bandLabel = BANDS.find((band) => band.value === menu?.band)?.label;
+	const bandLabel = bands.find((band) => band.value === menu?.band)?.label;
 
 	if (steps.isLoading) {
 		return (
@@ -82,7 +80,7 @@ export default function NextStepsScreen() {
 							<FormRow
 								icon="done"
 								title="Request saved"
-								value={formatCheckInDate(steps.introduction.filedAt)}
+								value={formatDate(steps.introduction.filedAt)}
 							/>
 							<FormConfirmButton
 								label="Delete request"

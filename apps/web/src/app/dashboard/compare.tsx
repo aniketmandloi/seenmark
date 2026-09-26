@@ -1,5 +1,7 @@
 "use client";
 
+import { type CheckIn, formatDate, formatDateTime } from "@seenmark/api/check-in-dates";
+import type { Slot } from "@seenmark/api/comparison";
 import { Button } from "@seenmark/ui/components/button";
 import {
   Empty,
@@ -18,10 +20,8 @@ import {
 import { ArrowLeftRight, Camera } from "lucide-react";
 import { useState } from "react";
 
-import { type CheckIn, formatDate, formatDateTime } from "./check-in-dates";
 import ChoiceGroup from "./choice-group";
 import CompareSlider from "./compare-slider";
-import type { Slot } from "./comparison";
 import Photo from "./photo";
 import PhotoPicker from "./photo-picker";
 

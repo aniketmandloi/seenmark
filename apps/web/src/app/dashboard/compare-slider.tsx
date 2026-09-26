@@ -1,10 +1,10 @@
 "use client";
 
+import { type CheckIn, formatDate } from "@seenmark/api/check-in-dates";
 import { ChevronsLeftRight } from "lucide-react";
 import { type PointerEvent, useState } from "react";
 
-import { type CheckIn, formatDate } from "./check-in-dates";
-import { dividerPercent } from "./comparison";
+import { dividerPercent } from "./divider-percent";
 import Photo from "./photo";
 
 // Pointer events pass through to the frame, so a press never starts a native image drag, which

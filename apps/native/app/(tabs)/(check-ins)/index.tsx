@@ -1,3 +1,5 @@
+import { bands } from "@seenmark/api/bands";
+import { formatDate } from "@seenmark/api/check-in-dates";
 import { useQueries } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { Linking } from "react-native";
@@ -14,10 +16,8 @@ import {
 	FormText,
 } from "@/components/form/form";
 import {
-	BANDS,
 	checkInPhotoQuery,
 	checkInPhotoUri,
-	formatCheckInDate,
 	useCheckIns,
 	useMemberActions,
 } from "@/lib/use-member-loop";
@@ -30,7 +30,7 @@ export default function CheckInsScreen() {
 	});
 	const latestPhotos = latest.flatMap(({ data }) => (data ? [data] : []));
 	const takeCheckIn = () => void actions.takeCheckIn();
-	const bandLabel = BANDS.find((band) => band.value === loop.band)?.label;
+	const bandLabel = bands.find((band) => band.value === loop.band)?.label;
 
 	return (
 		<FormScreen
@@ -148,7 +148,7 @@ export default function CheckInsScreen() {
 									index === 0
 										? "Newest check-in photo"
 										: "Previous check-in photo",
-								caption: formatCheckInDate(photo.takenAt),
+								caption: formatDate(photo.takenAt),
 							}))}
 						/>
 					) : (
@@ -163,7 +163,7 @@ export default function CheckInsScreen() {
 					footer="Choose the band that feels right. This is your description. It is not generated from the photo."
 				>
 					<FormChoice
-						options={BANDS}
+						options={bands}
 						selection={loop.band}
 						onSelectionChange={(band) => void actions.chooseBand(band)}
 						disabled={actions.isBusy}
@@ -196,7 +196,7 @@ export default function CheckInsScreen() {
 						<FormRow
 							key={item.id}
 							icon="camera"
-							title={formatCheckInDate(item.takenAt)}
+							title={formatDate(item.takenAt)}
 							subtitle={index === 0 ? "Newest" : undefined}
 							showsChevron
 							onPress={() =>

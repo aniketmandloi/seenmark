@@ -1,5 +1,12 @@
 "use client";
 
+import { type CheckIn, formatDate, relativeTime } from "@seenmark/api/check-in-dates";
+import {
+  type ComparisonChoice,
+  chooseSlot,
+  defaultChoice,
+  resolveComparison,
+} from "@seenmark/api/comparison";
 import { HISTORY_PAGE_SIZE, nextHistoryCursor } from "@seenmark/api/history";
 import { Alert, AlertDescription } from "@seenmark/ui/components/alert";
 import { useInfiniteQuery, useIsMutating, useMutation, useQuery } from "@tanstack/react-query";
@@ -14,11 +21,9 @@ import { invalidateMemberLoop } from "@/lib/member-loop";
 import { claimMemberCache, queryClient, trpc } from "@/utils/trpc";
 
 import BandPicker from "./band-picker";
-import { type CheckIn, formatDate, relativeTime } from "./check-in-dates";
 import CheckInDialog from "./check-in-dialog";
 import CheckInsSkeleton from "./check-ins-skeleton";
 import Compare from "./compare";
-import { type ComparisonChoice, chooseSlot, defaultChoice, resolveComparison } from "./comparison";
 import MenuPreview from "./menu-preview";
 import PhotoPicker from "./photo-picker";
 import { preparePhoto } from "./prepare-photo";

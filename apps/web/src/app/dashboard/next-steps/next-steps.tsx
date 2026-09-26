@@ -1,5 +1,6 @@
 "use client";
 
+import { bands } from "@seenmark/api/bands";
 import { Badge } from "@seenmark/ui/components/badge";
 import { buttonVariants } from "@seenmark/ui/components/button";
 import { Card, CardContent } from "@seenmark/ui/components/card";
@@ -15,7 +16,6 @@ import PageHeader from "@/components/page-header";
 import type { authClient } from "@/lib/auth-client";
 import { claimMemberCache, trpc } from "@/utils/trpc";
 
-import { bands } from "../bands";
 import IntroductionRequest from "./introduction-request";
 
 /**

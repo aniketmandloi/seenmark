@@ -23,12 +23,15 @@ import {
 import {
 	align,
 	alpha,
+	animated,
 	background,
 	clickable,
 	clip,
 	fillMaxSize,
 	fillMaxWidth,
+	graphicsLayer,
 	height,
+	onGloballyPositioned,
 	padding,
 	Shapes,
 	verticalScroll,
@@ -60,6 +63,7 @@ import type {
 	FormLinkProps,
 	FormPhotosProps,
 	FormProgressProps,
+	FormRevealProps,
 	FormRowProps,
 	FormScreenProps,
 	FormSectionProps,
@@ -67,7 +71,9 @@ import type {
 	FormTextProps,
 	FormToggleProps,
 } from "@/components/form/types";
+import { enter } from "@/lib/compose-motion";
 import { ICONS } from "@/lib/icons";
+import { staggerDelay, useMotion } from "@/lib/motion";
 import { useColorScheme } from "@/lib/use-color-scheme";
 
 const TRANSPARENT = "#00000000";
@@ -634,6 +640,29 @@ export function FormEmptyState({
 			>
 				{description}
 			</Text>
+		</Column>
+	);
+}
+
+export function FormReveal({ children, index = 0 }: FormRevealProps) {
+	const motion = useMotion();
+	const [appeared, setAppeared] = useState(motion.reduced);
+	const spec = enter(motion, motion.slow, staggerDelay(motion, index));
+
+	// animateFloatAsState starts from the first value it composes, so the flip waits for the
+	// first layout rather than a mount effect that can reach Compose before it draws.
+	// graphicsLayer moves only the drawn layer, so the rows around never shift.
+	return (
+		<Column
+			modifiers={[
+				graphicsLayer({
+					alpha: animated(appeared ? 1 : 0, spec),
+					translationY: animated(appeared ? 0 : motion.rise, spec),
+				}),
+				...(appeared ? [] : [onGloballyPositioned(() => setAppeared(true))]),
+			]}
+		>
+			{children}
 		</Column>
 	);
 }

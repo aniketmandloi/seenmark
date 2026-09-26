@@ -4,7 +4,7 @@ import { HISTORY_PAGE_SIZE, nextHistoryCursor } from "@seenmark/api/history";
 import { Alert, AlertDescription } from "@seenmark/ui/components/alert";
 import { useInfiniteQuery, useIsMutating, useMutation, useQuery } from "@tanstack/react-query";
 import { Clock3 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 import ErrorState from "@/components/error-state";
@@ -34,6 +34,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   // Relative times are hints, so they are measured from when the dashboard opened.
   const [now] = useState(() => Date.now());
   const [isPreparingPhoto, setIsPreparingPhoto] = useState(false);
+  const timelineHeading = useRef<HTMLHeadingElement>(null);
 
   const checkIns = useInfiniteQuery(
     trpc.checkIn.list.infiniteQueryOptions(
@@ -161,6 +162,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
                     now={now}
                     comparing={comparison}
                     busy={isBusy}
+                    headingRef={timelineHeading}
                     hasNextPage={checkIns.hasNextPage}
                     isFetchingNextPage={checkIns.isFetchingNextPage}
                     onShowEarlier={() => checkIns.fetchNextPage()}
@@ -199,6 +201,10 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
         open={dialogOpen}
         now={now}
         busy={isBusy}
+        // Once the opened check-in is deleted, the menu it was opened from is gone too.
+        finalFocus={() =>
+          items.some((item) => item.id === opened?.id) ? true : timelineHeading.current
+        }
         onOpenChange={setDialogOpen}
         onDelete={handleDeleteCheckIn}
       />

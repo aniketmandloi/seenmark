@@ -13,7 +13,6 @@ import type { authClient } from "@/lib/auth-client";
 import { invalidateMemberLoop } from "@/lib/member-loop";
 import { claimMemberCache, queryClient, trpc } from "@/utils/trpc";
 
-import AccountPrivacy from "./account-privacy";
 import BandPicker from "./band-picker";
 import { type CheckIn, formatDate, relativeTime } from "./check-in-dates";
 import CheckInDialog from "./check-in-dialog";
@@ -192,8 +191,6 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
           />
 
           {currentBand.data ? <MenuPreview band={currentBand.data} /> : null}
-
-          <AccountPrivacy />
         </aside>
       </div>
 

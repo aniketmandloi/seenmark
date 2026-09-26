@@ -49,7 +49,7 @@ export default function Header() {
         <Link
           href="/"
           aria-label="Seenmark home"
-          className="shrink-0 font-display text-3xl text-foreground"
+          className="shrink-0 font-display font-semibold text-2xl text-foreground tracking-tight"
         >
           seenmark<span className="text-primary">.</span>
         </Link>

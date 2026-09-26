@@ -15,6 +15,7 @@ import type { authClient } from "@/lib/auth-client";
 import { claimMemberCache, trpc } from "@/utils/trpc";
 
 import { bands } from "../bands";
+import IntroductionRequest from "./introduction-request";
 
 /**
  * The menu for the member's chosen band, on its own page. ADR 0006 keeps a paid link off the
@@ -83,6 +84,8 @@ export default function NextSteps({ session }: { session: typeof authClient.$Inf
           </EmptyContent>
         </Empty>
       )}
+
+      <IntroductionRequest band={currentMenu?.band} />
 
       {paidLink ? (
         <Card size="sm" className="mt-10">

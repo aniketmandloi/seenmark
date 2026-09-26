@@ -20,7 +20,6 @@ import CheckInDialog from "./check-in-dialog";
 import CheckInsSkeleton from "./check-ins-skeleton";
 import Compare from "./compare";
 import { type ComparisonChoice, chooseSlot, defaultChoice, resolveComparison } from "./comparison";
-import IntroductionRequest from "./introduction-request";
 import MenuPreview from "./menu-preview";
 import PhotoPicker from "./photo-picker";
 import { preparePhoto } from "./prepare-photo";
@@ -193,8 +192,6 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
           />
 
           {currentBand.data ? <MenuPreview band={currentBand.data} /> : null}
-
-          <IntroductionRequest band={currentBand.data} busy={isBusy} />
 
           <AccountPrivacy />
         </aside>

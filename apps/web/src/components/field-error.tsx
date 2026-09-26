@@ -12,7 +12,11 @@ export default function FieldError({ name, errors }: { name: string; errors: Err
   }
 
   return (
-    <div id={`${name}-error`} role="alert" className="space-y-1 text-destructive text-sm">
+    <div
+      id={`${name}-error`}
+      role="alert"
+      className="animate-rise space-y-1 text-destructive text-sm"
+    >
       {errors.map((error) => (
         <p key={error?.message}>{error?.message}</p>
       ))}

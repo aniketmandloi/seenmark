@@ -36,12 +36,14 @@ export default function CompareSlider({ earlier, latest }: { earlier: CheckIn; l
         }}
       >
         <Photo
+          key={earlier.id}
           item={earlier}
           alt={`Earlier check-in photo from ${formatDate(earlier.takenAt)}`}
           className={layer}
         />
         <div className="absolute inset-0" style={{ clipPath: `inset(0 0 0 ${position}%)` }}>
           <Photo
+            key={latest.id}
             item={latest}
             alt={`Latest check-in photo from ${formatDate(latest.takenAt)}`}
             className={layer}

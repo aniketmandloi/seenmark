@@ -36,7 +36,9 @@ const modes: { value: Mode; label: string }[] = [
 
 /**
  * Photos only (ADR 0005): nothing is drawn on or around them that could read as a measurement.
- * Only the two compared photos mount a Photo, so only those two are fetched.
+ * Only the two compared photos mount a Photo, so only those two are fetched. Each is keyed by its
+ * check-in, here and in the slider, so a new choice or a swap remounts it and it fades in again;
+ * the remount reads the cached photo rather than refetching it.
  */
 export default function Compare({
   items,
@@ -111,6 +113,7 @@ export default function Compare({
             {(["earlier", "latest"] as const).map((slot) => (
               <figure key={slot} className="min-w-0">
                 <Photo
+                  key={slots[slot].id}
                   item={slots[slot]}
                   alt={`${slotLabels[slot]} check-in photo from ${formatDate(slots[slot].takenAt)}`}
                 />

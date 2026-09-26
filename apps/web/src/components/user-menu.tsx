@@ -1,4 +1,4 @@
-import { Button } from "@seenmark/ui/components/button";
+import { Button, buttonVariants } from "@seenmark/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@seenmark/ui/components/dropdown-menu";
 import { Skeleton } from "@seenmark/ui/components/skeleton";
+import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -17,20 +18,20 @@ import { authClient } from "@/lib/auth-client";
 import { forgetMemberData } from "@/lib/member-session";
 import { queryClient } from "@/utils/trpc";
 
+// The account page arrives with #29; until it exists, typed routes reject the literal.
+export const accountHref = "/account" as Route;
+
 export default function UserMenu() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
   if (isPending) {
-    return <Skeleton aria-label="Loading account" className="h-10 w-20 rounded-xl" />;
+    return <Skeleton aria-label="Loading account" className="h-11 w-20 rounded-xl" />;
   }
 
   if (!session) {
     return (
-      <Link
-        href="/login"
-        className="inline-flex h-10 items-center justify-center rounded-xl px-4 font-semibold text-foreground text-sm transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
+      <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
         Sign in
       </Link>
     );
@@ -65,6 +66,12 @@ export default function UserMenu() {
             className="cursor-pointer rounded-lg px-3 py-2"
           >
             Your check-ins
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => router.push(accountHref)}
+            className="cursor-pointer rounded-lg px-3 py-2"
+          >
+            Account
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={async () => {

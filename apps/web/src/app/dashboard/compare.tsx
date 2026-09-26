@@ -114,7 +114,7 @@ export default function Compare({
         <SlotPicker slot="latest" items={items} slots={slots} onChoose={onChoose} />
       </div>
 
-      <div className="mt-5">
+      <div key={mode} className="mt-5 animate-fade-in">
         {mode === "slider" ? (
           <CompareSlider earlier={earlier} latest={latest} />
         ) : (

@@ -12,11 +12,9 @@ import { Skeleton } from "@seenmark/ui/components/skeleton";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 
 import { authClient } from "@/lib/auth-client";
-import { forgetMemberData } from "@/lib/member-session";
-import { queryClient } from "@/utils/trpc";
+import { signOut } from "@/lib/sign-out";
 
 // The account page arrives with #29; until it exists, typed routes reject the literal.
 export const accountHref = "/account" as Route;
@@ -75,13 +73,7 @@ export default function UserMenu() {
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={async () => {
-              const { error } = await authClient.signOut();
-              await forgetMemberData(queryClient);
-              if (error) {
-                toast.error("We could not sign you out. Try again.");
-                return;
-              }
-              router.push("/");
+              if (await signOut()) router.push("/");
             }}
             className="cursor-pointer rounded-lg px-3 py-2"
           >

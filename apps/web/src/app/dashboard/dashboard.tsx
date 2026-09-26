@@ -4,7 +4,7 @@ import { HISTORY_PAGE_SIZE, nextHistoryCursor } from "@seenmark/api/history";
 import { Alert, AlertDescription } from "@seenmark/ui/components/alert";
 import { useInfiniteQuery, useIsMutating, useMutation, useQuery } from "@tanstack/react-query";
 import { Clock3 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 import ErrorState from "@/components/error-state";
@@ -34,6 +34,8 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   // Relative times are hints, so they are measured from when the dashboard opened.
   const [now] = useState(() => Date.now());
   const [isPreparingPhoto, setIsPreparingPhoto] = useState(false);
+  const title = useRef<HTMLHeadingElement>(null);
+  const timelineHeading = useRef<HTMLHeadingElement>(null);
 
   const checkIns = useInfiniteQuery(
     trpc.checkIn.list.infiniteQueryOptions(
@@ -101,6 +103,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   return (
     <div className="mx-auto max-w-7xl px-5 pt-10 pb-16 sm:px-8 md:pt-14 lg:px-10">
       <PageHeader
+        titleRef={title}
         eyebrow="Only you can see your photos"
         title="Your check-ins"
         lede={
@@ -161,6 +164,8 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
                     now={now}
                     comparing={comparison}
                     busy={isBusy}
+                    headingRef={timelineHeading}
+                    fallbackFocus={title}
                     hasNextPage={checkIns.hasNextPage}
                     isFetchingNextPage={checkIns.isFetchingNextPage}
                     onShowEarlier={() => checkIns.fetchNextPage()}
@@ -186,6 +191,9 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
           <BandPicker
             band={currentBand.data}
             loading={currentBand.isLoading}
+            failed={currentBand.isError && currentBand.data === undefined}
+            retrying={currentBand.isFetching}
+            onRetry={() => currentBand.refetch()}
             hasCheckIns={items.length > 0}
             busy={isBusy}
           />
@@ -199,6 +207,12 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
         open={dialogOpen}
         now={now}
         busy={isBusy}
+        // Once the opened check-in is deleted, the menu it was opened from is gone too.
+        finalFocus={() =>
+          items.some((item) => item.id === opened?.id)
+            ? true
+            : (timelineHeading.current ?? title.current)
+        }
         onOpenChange={setDialogOpen}
         onDelete={handleDeleteCheckIn}
       />

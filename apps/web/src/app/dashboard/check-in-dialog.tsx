@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@seenmark/ui/components/dialog";
 import { Trash2 } from "lucide-react";
-import { useRef, useState } from "react";
+import { type ComponentProps, useRef, useState } from "react";
 
 import { type CheckIn, formatDate, relativeTime } from "./check-in-dates";
 import DeleteCheckIn from "./delete-check-in";
@@ -23,6 +23,7 @@ export default function CheckInDialog({
   open,
   now,
   busy,
+  finalFocus,
   onOpenChange,
   onDelete,
 }: {
@@ -30,6 +31,7 @@ export default function CheckInDialog({
   open: boolean;
   now: number;
   busy: boolean;
+  finalFocus: ComponentProps<typeof DialogContent>["finalFocus"];
   onOpenChange: (open: boolean) => void;
   onDelete: (id: string) => Promise<boolean>;
 }) {
@@ -39,7 +41,7 @@ export default function CheckInDialog({
   return (
     <Dialog open={open && checkIn !== null} onOpenChange={onOpenChange}>
       {checkIn ? (
-        <DialogContent>
+        <DialogContent finalFocus={finalFocus}>
           <DialogHeader>
             <DialogTitle>Check-in from {formatDate(checkIn.takenAt)}</DialogTitle>
             <DialogDescription className="tabular-nums">

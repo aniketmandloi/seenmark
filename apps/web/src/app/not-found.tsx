@@ -1,19 +1,21 @@
-import { Button } from "@seenmark/ui/components/button";
+import { buttonVariants } from "@seenmark/ui/components/button";
 import Link from "next/link";
+
+import PageHeader from "@/components/page-header";
 
 export default function NotFound() {
   return (
-    <div className="mx-auto grid min-h-[60vh] max-w-3xl content-center px-5 py-16 text-center sm:px-8">
-      <p className="font-semibold text-primary text-sm">Page not found</p>
-      <h1 className="mt-4 font-semibold text-4xl tracking-[-0.05em] sm:text-5xl">
-        This page is not here.
-      </h1>
-      <p className="mx-auto mt-4 max-w-md text-base text-muted-foreground leading-7">
-        The link may be old, or the address may have a typo.
-      </p>
-      <Button render={<Link href="/" />} className="mx-auto mt-7">
-        Go to Seenmark
-      </Button>
+    <div className="mx-auto max-w-3xl px-5 pt-10 pb-16 sm:px-8 md:pt-14">
+      <PageHeader
+        eyebrow="Page not found"
+        title="This page is not here."
+        lede="The link may be old, or the address may have a typo."
+        actions={
+          <Link href="/" className={buttonVariants()}>
+            Go to Seenmark
+          </Link>
+        }
+      />
     </div>
   );
 }

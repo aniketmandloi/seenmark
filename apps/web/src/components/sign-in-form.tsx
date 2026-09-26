@@ -14,7 +14,7 @@ import z from "zod";
 import { authClient } from "@/lib/auth-client";
 
 import AuthFormSkeleton from "./auth-form-skeleton";
-import FieldError from "./field-error";
+import FieldError, { fieldErrorProps } from "./field-error";
 import PasswordInput from "./password-input";
 
 export default function SignInForm() {
@@ -100,9 +100,9 @@ export default function SignInForm() {
                   field.handleChange(event.target.value);
                   setErrorMessage(null);
                 }}
-                aria-invalid={field.state.meta.errors.length > 0}
+                {...fieldErrorProps(field.name, field.state.meta.errors)}
               />
-              <FieldError errors={field.state.meta.errors} />
+              <FieldError name={field.name} errors={field.state.meta.errors} />
             </div>
           )}
         </form.Field>
@@ -124,9 +124,9 @@ export default function SignInForm() {
                   field.handleChange(event.target.value);
                   setErrorMessage(null);
                 }}
-                aria-invalid={field.state.meta.errors.length > 0}
+                {...fieldErrorProps(field.name, field.state.meta.errors)}
               />
-              <FieldError errors={field.state.meta.errors} />
+              <FieldError name={field.name} errors={field.state.meta.errors} />
             </div>
           )}
         </form.Field>

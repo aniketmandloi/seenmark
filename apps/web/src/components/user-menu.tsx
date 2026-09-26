@@ -20,7 +20,7 @@ export default function UserMenu() {
   const { data: session, isPending } = authClient.useSession();
 
   if (isPending) {
-    return <Skeleton aria-label="Loading account" className="h-11 w-20 rounded-xl" />;
+    return <Skeleton role="status" aria-label="Loading account" className="h-11 w-20 rounded-xl" />;
   }
 
   if (!session) {

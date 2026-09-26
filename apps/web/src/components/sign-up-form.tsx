@@ -17,7 +17,7 @@ import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 
 import AuthFormSkeleton from "./auth-form-skeleton";
-import FieldError from "./field-error";
+import FieldError, { fieldErrorProps } from "./field-error";
 import PasswordInput from "./password-input";
 
 export default function SignUpForm() {
@@ -124,9 +124,9 @@ export default function SignUpForm() {
                 value={field.state.value}
                 onBlur={field.handleBlur}
                 onChange={(event) => field.handleChange(event.target.value)}
-                aria-invalid={field.state.meta.errors.length > 0}
+                {...fieldErrorProps(field.name, field.state.meta.errors)}
               />
-              <FieldError errors={field.state.meta.errors} />
+              <FieldError name={field.name} errors={field.state.meta.errors} />
             </div>
           )}
         </form.Field>
@@ -147,9 +147,9 @@ export default function SignUpForm() {
                 value={field.state.value}
                 onBlur={field.handleBlur}
                 onChange={(event) => field.handleChange(event.target.value)}
-                aria-invalid={field.state.meta.errors.length > 0}
+                {...fieldErrorProps(field.name, field.state.meta.errors)}
               />
-              <FieldError errors={field.state.meta.errors} />
+              <FieldError name={field.name} errors={field.state.meta.errors} />
             </div>
           )}
         </form.Field>
@@ -168,10 +168,10 @@ export default function SignUpForm() {
                 value={field.state.value}
                 onBlur={field.handleBlur}
                 onChange={(event) => field.handleChange(event.target.value)}
-                aria-invalid={field.state.meta.errors.length > 0}
+                {...fieldErrorProps(field.name, field.state.meta.errors)}
               />
               <p className="text-muted-foreground text-xs">At least 8 characters.</p>
-              <FieldError errors={field.state.meta.errors} />
+              <FieldError name={field.name} errors={field.state.meta.errors} />
             </div>
           )}
         </form.Field>
@@ -184,14 +184,17 @@ export default function SignUpForm() {
                   id={field.name}
                   checked={field.state.value}
                   onCheckedChange={(checked) => field.handleChange(checked === true)}
-                  aria-invalid={field.state.meta.errors.length > 0}
+                  {...fieldErrorProps(field.name, field.state.meta.errors)}
                 />
-                <Label
-                  htmlFor={field.name}
-                  className="cursor-pointer text-muted-foreground text-sm leading-5"
-                >
-                  I confirm that I am 18 or older.
-                </Label>
+                <div className="space-y-1">
+                  <Label
+                    htmlFor={field.name}
+                    className="cursor-pointer text-muted-foreground text-sm leading-5"
+                  >
+                    I confirm that I am 18 or older.
+                  </Label>
+                  <FieldError name={field.name} errors={field.state.meta.errors} />
+                </div>
               </div>
             )}
           </form.Field>
@@ -203,14 +206,17 @@ export default function SignUpForm() {
                   id={field.name}
                   checked={field.state.value}
                   onCheckedChange={(checked) => field.handleChange(checked === true)}
-                  aria-invalid={field.state.meta.errors.length > 0}
+                  {...fieldErrorProps(field.name, field.state.meta.errors)}
                 />
-                <Label
-                  htmlFor={field.name}
-                  className="cursor-pointer text-muted-foreground text-sm leading-5"
-                >
-                  I confirm that I live in the United States.
-                </Label>
+                <div className="space-y-1">
+                  <Label
+                    htmlFor={field.name}
+                    className="cursor-pointer text-muted-foreground text-sm leading-5"
+                  >
+                    I confirm that I live in the United States.
+                  </Label>
+                  <FieldError name={field.name} errors={field.state.meta.errors} />
+                </div>
               </div>
             )}
           </form.Field>

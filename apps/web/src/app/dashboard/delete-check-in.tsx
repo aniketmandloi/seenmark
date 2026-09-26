@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@seenmark/ui/components/alert-dialog";
-import { type RefObject, useState } from "react";
+import { type ComponentProps, useState } from "react";
 
 import { type CheckIn, formatDate } from "./check-in-dates";
 
@@ -26,7 +26,7 @@ export default function DeleteCheckIn({
   open: boolean;
   busy: boolean;
   /** Where focus returns on close, for a dialog opened from a menu item that no longer exists. */
-  finalFocus?: RefObject<HTMLElement | null>;
+  finalFocus?: ComponentProps<typeof AlertDialogContent>["finalFocus"];
   onOpenChange: (open: boolean) => void;
   onDelete: (id: string) => Promise<boolean>;
 }) {

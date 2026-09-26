@@ -22,7 +22,7 @@ import {
 } from "@seenmark/ui/components/card";
 import { Skeleton } from "@seenmark/ui/components/skeleton";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { type RefObject, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import ErrorState from "@/components/error-state";
@@ -32,10 +32,19 @@ import { trpc } from "@/utils/trpc";
 import type { Band } from "../bands";
 import { formatDate, relativeTime } from "../check-in-dates";
 
-export default function IntroductionRequest({ band }: { band: Band | undefined }) {
+export default function IntroductionRequest({
+  band,
+  fallbackFocus,
+}: {
+  band: Band | undefined;
+  /** Takes focus when removing the request hides this whole section (any band but late). */
+  fallbackFocus: RefObject<HTMLElement | null>;
+}) {
   // Relative times are hints, so they are measured from when the page opened.
   const [now] = useState(() => Date.now());
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const heading = useRef<HTMLHeadingElement>(null);
+  const removeTrigger = useRef<HTMLButtonElement>(null);
   const introduction = useQuery(trpc.introduction.current.queryOptions());
   const fileIntroduction = useMutation(
     trpc.introduction.file.mutationOptions({ onSuccess: invalidateMemberLoop }),
@@ -63,8 +72,9 @@ export default function IntroductionRequest({ band }: { band: Band | undefined }
     }
   }
 
-  // Filing needs the late band; a request already recorded stays reachable on any band.
-  if (band !== "late" && !introduction.data) {
+  // Filing needs the late band; a request already recorded stays reachable on any band, and a
+  // failed read shows so a recorded request is never silently hidden.
+  if (band !== "late" && !introduction.data && !introduction.isError) {
     return null;
   }
 
@@ -74,14 +84,24 @@ export default function IntroductionRequest({ band }: { band: Band | undefined }
     <section aria-labelledby="introduction-heading" className="mt-12">
       <Card className="bg-accent/40">
         <CardHeader>
-          <h2 id="introduction-heading" className="font-display text-heading">
+          <h2
+            ref={heading}
+            id="introduction-heading"
+            tabIndex={-1}
+            className="font-display text-heading outline-none"
+          >
             {band === "late" ? "Ask for an introduction" : "Your introduction request"}
           </h2>
-          <CardDescription>
-            {band === "late"
-              ? "Your request is recorded for you. It is not sent to a clinic."
-              : "You asked on the late band. It is still recorded for you, and it is not sent to a clinic."}
-          </CardDescription>
+          {band === "late" ? (
+            <CardDescription>
+              Your request is recorded for you. It is not sent to a clinic.
+            </CardDescription>
+          ) : recorded ? (
+            <CardDescription>
+              You asked on the late band. It is still recorded for you, and it is not sent to a
+              clinic.
+            </CardDescription>
+          ) : null}
           {recorded ? (
             <CardAction>
               <Badge variant="success">Recorded</Badge>
@@ -108,10 +128,16 @@ export default function IntroductionRequest({ band }: { band: Band | undefined }
                 · {relativeTime(recorded.filedAt, now)}
               </p>
               <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-                <AlertDialogTrigger render={<Button variant="outline" />}>
+                <AlertDialogTrigger ref={removeTrigger} render={<Button variant="outline" />}>
                   Remove request
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent
+                  // A removed request takes its trigger with it, and off the late band the whole
+                  // section too.
+                  finalFocus={() =>
+                    removeTrigger.current ?? heading.current ?? fallbackFocus.current
+                  }
+                >
                   <AlertDialogHeader>
                     <AlertDialogTitle>Remove your introduction request?</AlertDialogTitle>
                     <AlertDialogDescription>

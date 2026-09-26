@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@seenmark/ui/components/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
-import { useRef, useState } from "react";
+import { type RefObject, useRef, useState } from "react";
 
 import { type CheckIn, formatDate, groupByMonth, relativeTime } from "./check-in-dates";
 import type { Slot } from "./comparison";
@@ -24,6 +24,8 @@ export default function Timeline({
   now,
   comparing,
   busy,
+  headingRef,
+  fallbackFocus,
   hasNextPage,
   isFetchingNextPage,
   onShowEarlier,
@@ -35,6 +37,10 @@ export default function Timeline({
   now: number;
   comparing: Partial<Record<Slot, CheckIn>>;
   busy: boolean;
+  /** Takes focus once a deleted check-in's row, and the menu it was deleted from, are gone. */
+  headingRef: RefObject<HTMLHeadingElement | null>;
+  /** Takes focus instead when the last check-in is deleted, and the timeline with it. */
+  fallbackFocus: RefObject<HTMLElement | null>;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   onShowEarlier: () => void;
@@ -44,7 +50,12 @@ export default function Timeline({
 }) {
   return (
     <section aria-labelledby="timeline-heading">
-      <h2 id="timeline-heading" className="font-display text-heading">
+      <h2
+        ref={headingRef}
+        id="timeline-heading"
+        tabIndex={-1}
+        className="font-display text-heading outline-none"
+      >
         Timeline
       </h2>
       <p className="mt-2 text-muted-foreground text-sm leading-6">
@@ -67,6 +78,8 @@ export default function Timeline({
                   canCompare={items.length > 1}
                   comparing={comparing}
                   busy={busy}
+                  headingRef={headingRef}
+                  fallbackFocus={fallbackFocus}
                   onOpen={onOpen}
                   onCompare={onCompare}
                   onDelete={onDelete}
@@ -99,6 +112,8 @@ function TimelineRow({
   canCompare,
   comparing,
   busy,
+  headingRef,
+  fallbackFocus,
   onOpen,
   onCompare,
   onDelete,
@@ -109,6 +124,8 @@ function TimelineRow({
   canCompare: boolean;
   comparing: Partial<Record<Slot, CheckIn>>;
   busy: boolean;
+  headingRef: RefObject<HTMLHeadingElement | null>;
+  fallbackFocus: RefObject<HTMLElement | null>;
   onOpen: (id: string) => void;
   onCompare: (slot: Slot, id: string) => void;
   onDelete: (id: string) => Promise<boolean>;
@@ -172,7 +189,7 @@ function TimelineRow({
         checkIn={item}
         open={confirming}
         busy={busy}
-        finalFocus={menuTrigger}
+        finalFocus={() => menuTrigger.current ?? headingRef.current ?? fallbackFocus.current}
         onOpenChange={setConfirming}
         onDelete={onDelete}
       />

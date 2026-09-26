@@ -62,7 +62,7 @@ export default function Header() {
                 key={link.href}
                 href={link.href}
                 aria-current={isCurrent ? "page" : undefined}
-                className={`rounded-md text-sm transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                className={`relative rounded-md text-sm transition-colors after:absolute after:inset-x-0 after:-bottom-1 after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-200 hover:text-primary hover:after:scale-x-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:after:scale-x-100 aria-[current=page]:after:scale-x-100 ${
                   isCurrent ? "font-semibold text-foreground" : "text-muted-foreground"
                 }`}
               >

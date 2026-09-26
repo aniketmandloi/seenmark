@@ -1,5 +1,6 @@
 "use client";
 
+import type { CheckIn } from "@seenmark/api/check-in-dates";
 import { Skeleton } from "@seenmark/ui/components/skeleton";
 import { cn } from "@seenmark/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -7,8 +8,6 @@ import Image from "next/image";
 
 import ErrorState from "@/components/error-state";
 import { trpc } from "@/utils/trpc";
-
-import type { CheckIn } from "./check-in-dates";
 
 export default function Photo({
   item,

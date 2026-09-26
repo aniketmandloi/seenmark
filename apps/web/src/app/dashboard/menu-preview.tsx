@@ -1,5 +1,6 @@
 "use client";
 
+import { type Band, bands } from "@seenmark/api/bands";
 import { Badge } from "@seenmark/ui/components/badge";
 import { Skeleton } from "@seenmark/ui/components/skeleton";
 import { useQuery } from "@tanstack/react-query";
@@ -9,8 +10,6 @@ import type { CSSProperties } from "react";
 
 import ErrorState from "@/components/error-state";
 import { trpc } from "@/utils/trpc";
-
-import { type Band, bands } from "./bands";
 
 /** Steps only: the early menu's paid link stays on the next steps page (ADR 0006). */
 export default function MenuPreview({ band }: { band: Band }) {

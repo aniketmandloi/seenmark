@@ -1,5 +1,6 @@
 "use client";
 
+import { type CheckIn, formatDate, relativeTime } from "@seenmark/api/check-in-dates";
 import { Button } from "@seenmark/ui/components/button";
 import {
   Dialog,
@@ -13,7 +14,6 @@ import {
 import { Trash2 } from "lucide-react";
 import { type ComponentProps, useRef, useState } from "react";
 
-import { type CheckIn, formatDate, relativeTime } from "./check-in-dates";
 import DeleteCheckIn from "./delete-check-in";
 import Photo from "./photo";
 

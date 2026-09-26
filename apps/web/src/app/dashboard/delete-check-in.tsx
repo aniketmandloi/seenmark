@@ -1,5 +1,6 @@
 "use client";
 
+import { type CheckIn, formatDate } from "@seenmark/api/check-in-dates";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,8 +13,6 @@ import {
 } from "@seenmark/ui/components/alert-dialog";
 import { Spinner } from "@seenmark/ui/components/spinner";
 import { type ComponentProps, useState } from "react";
-
-import { type CheckIn, formatDate } from "./check-in-dates";
 
 export default function DeleteCheckIn({
   checkIn,

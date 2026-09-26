@@ -1,5 +1,7 @@
 "use client";
 
+import type { Band } from "@seenmark/api/bands";
+import { formatDate, relativeTime } from "@seenmark/api/check-in-dates";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,9 +31,6 @@ import { toast } from "sonner";
 import ErrorState from "@/components/error-state";
 import { invalidateMemberLoop } from "@/lib/member-loop";
 import { trpc } from "@/utils/trpc";
-
-import type { Band } from "../bands";
-import { formatDate, relativeTime } from "../check-in-dates";
 
 export default function IntroductionRequest({
   band,

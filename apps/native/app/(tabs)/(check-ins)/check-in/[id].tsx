@@ -8,10 +8,10 @@ import {
 	FormEmptyState,
 	FormErrorState,
 	FormPhotos,
-	FormProgress,
 	FormRow,
 	FormScreen,
 	FormSection,
+	FormSkeleton,
 } from "@/components/form/form";
 import {
 	type CheckInPhoto,
@@ -33,7 +33,7 @@ export default function CheckInScreen() {
 			<FormScreen>
 				{photo.isLoading ? (
 					<FormSection>
-						<FormProgress label="Loading your photo…" />
+						<FormSkeleton shape="photos" count={1} label="Loading your photo" />
 					</FormSection>
 				) : photo.error?.data?.code === "NOT_FOUND" ? (
 					<FormEmptyState

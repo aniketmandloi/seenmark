@@ -7,10 +7,10 @@ import {
 	FormEmptyState,
 	FormErrorState,
 	FormLink,
-	FormProgress,
 	FormRow,
 	FormScreen,
 	FormSection,
+	FormSkeleton,
 	FormText,
 } from "@/components/form/form";
 import { useMemberActions, useNextSteps } from "@/lib/use-member-loop";
@@ -25,7 +25,7 @@ export default function NextStepsScreen() {
 		return (
 			<FormScreen>
 				<FormSection>
-					<FormProgress label="Loading your next steps…" />
+					<FormSkeleton shape="steps" label="Loading your next steps" />
 				</FormSection>
 			</FormScreen>
 		);

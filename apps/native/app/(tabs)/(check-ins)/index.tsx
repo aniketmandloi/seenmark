@@ -14,6 +14,7 @@ import {
 	FormRow,
 	FormScreen,
 	FormSection,
+	FormSkeleton,
 	FormText,
 } from "@/components/form/form";
 import {
@@ -91,14 +92,24 @@ export default function CheckInsScreen() {
 				/>
 			) : null}
 
-			{loop.isLoading || actions.isRecording ? (
+			{actions.isRecording ? (
 				<FormSection>
-					<FormProgress
-						label={
-							actions.isRecording ? "Saving check-in…" : "Loading your photos…"
-						}
-					/>
+					<FormProgress label="Saving check-in…" />
 				</FormSection>
+			) : null}
+
+			{loop.isLoading ? (
+				<>
+					<FormSection>
+						<FormSkeleton shape="photos" label="Loading your photos" />
+					</FormSection>
+					<FormSection>
+						<FormSkeleton shape="choice" label="Loading your band" />
+					</FormSection>
+					<FormSection>
+						<FormSkeleton shape="rows" label="Loading your photo record" />
+					</FormSection>
+				</>
 			) : null}
 
 			{loop.isEmpty ? (
@@ -146,7 +157,11 @@ export default function CheckInsScreen() {
 							}))}
 						/>
 					) : (
-						<FormProgress label="Loading your photos…" />
+						<FormSkeleton
+							shape="photos"
+							count={latest.length}
+							label="Loading your photos"
+						/>
 					)}
 				</FormSection>
 			) : null}

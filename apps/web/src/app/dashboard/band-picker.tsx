@@ -86,6 +86,7 @@ export default function BandPicker({
           aria-labelledby="band-heading"
           options={bands}
           value={band}
+          pendingValue={chooseBand.isPending ? chooseBand.variables : undefined}
           disabled={!hasCheckIns || busy}
           onChoose={handleChooseBand}
           className="mt-6 grid w-full grid-cols-3"

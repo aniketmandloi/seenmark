@@ -119,6 +119,7 @@
 
   --animate-fade-in: fade-in 200ms var(--ease-out-soft) both;
   --animate-rise: rise 300ms var(--ease-out-soft) both;
+  --animate-lift: lift 300ms var(--ease-out-soft) both;
   --animate-pop: pop 200ms var(--ease-out-soft) both;
   --animate-breathe: breathe 2.4s ease-in-out infinite;
 
@@ -130,6 +131,13 @@
   @keyframes rise {
     from {
       opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+  /* Rise without the fade. Chrome doesn't count an element at opacity 0 as an LCP candidate, so
+     the landing h1 moves only and still paints at once. */
+  @keyframes lift {
+    from {
       transform: translateY(6px);
     }
   }

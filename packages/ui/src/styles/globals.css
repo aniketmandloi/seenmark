@@ -154,6 +154,12 @@
   }
 }
 
+/* Each item sets --i to its index. The delay stops growing after the eighth, so a long list never
+   keeps the member waiting for its last rows. */
+@utility stagger {
+  animation-delay: calc(min(var(--i, 0), 8) * 40ms);
+}
+
 .skip-link {
   position: absolute;
   z-index: 100;

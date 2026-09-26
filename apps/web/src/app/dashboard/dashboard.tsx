@@ -19,6 +19,7 @@ import { type Band, bands } from "./bands";
 import { type CheckIn, formatDate, relativeTime } from "./check-in-dates";
 import Compare from "./compare";
 import { type ComparisonChoice, chooseSlot, defaultChoice, resolveComparison } from "./comparison";
+import DeleteCheckIn from "./delete-check-in";
 import IntroductionRequest from "./introduction-request";
 import { invalidateMemberLoop } from "./member-loop";
 import Photo from "./photo";
@@ -30,6 +31,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   claimMemberCache(session.user.id);
   const [choice, setChoice] = useState<ComparisonChoice>(defaultChoice);
   const [openedId, setOpenedId] = useState<string | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   // Relative times are hints, so they are measured from when the dashboard opened.
   const [now] = useState(() => Date.now());
   const [isPreparingPhoto, setIsPreparingPhoto] = useState(false);
@@ -96,7 +98,7 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
     }
   }
 
-  async function handleDeleteCheckIn(id: string) {
+  async function handleDeleteCheckIn(id: string): Promise<boolean> {
     try {
       await removeCheckIn.mutateAsync({ id });
       if (openedId === id) {
@@ -108,8 +110,10 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
       await queryClient.cancelQueries({ queryKey: photoKey });
       queryClient.removeQueries({ queryKey: photoKey });
       toast.success("Check-in deleted");
+      return true;
     } catch (cause) {
       toast.error(cause instanceof Error ? cause.message : "We could not delete that check-in.");
+      return false;
     }
   }
 
@@ -173,10 +177,15 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
                 <Photo item={opened} alt={`Your check-in from ${formatDate(opened.takenAt)}`} />
                 <figcaption className="mt-3 flex flex-wrap items-center justify-between gap-3 text-muted-foreground text-sm">
                   <span>{formatDate(opened.takenAt)}</span>
+                  <Button variant="ghost" size="sm" onClick={() => setConfirmingDelete(true)}>
+                    <Trash2 aria-hidden="true" />
+                    Delete
+                  </Button>
                   <DeleteCheckIn
-                    id={opened.id}
-                    date={formatDate(opened.takenAt)}
-                    disabled={isBusy}
+                    checkIn={opened}
+                    open={confirmingDelete}
+                    busy={isBusy}
+                    onOpenChange={setConfirmingDelete}
                     onDelete={handleDeleteCheckIn}
                   />
                 </figcaption>
@@ -345,67 +354,6 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
           <AccountPrivacy />
         </aside>
       </div>
-    </div>
-  );
-}
-
-function DeleteCheckIn({
-  date,
-  disabled,
-  id,
-  onDelete,
-}: {
-  date: string;
-  disabled: boolean;
-  id: string;
-  onDelete: (id: string) => void;
-}) {
-  const [isConfirming, setIsConfirming] = useState(false);
-  const confirmationId = `delete-checkin-${id}`;
-
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        aria-expanded={isConfirming}
-        aria-controls={confirmationId}
-        onClick={() => setIsConfirming(!isConfirming)}
-        className="flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-muted-foreground text-xs transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        <Trash2 aria-hidden="true" className="size-3.5" />
-        Delete
-      </button>
-      {isConfirming ? (
-        <div
-          id={confirmationId}
-          className="absolute right-0 z-10 mt-2 w-64 rounded-xl border border-border bg-card p-4 text-left shadow-xl"
-        >
-          <p className="font-medium text-sm">Delete the check-in from {date}?</p>
-          <p className="mt-1 text-muted-foreground text-xs leading-5">
-            This also removes the photo from your record.
-          </p>
-          <div className="mt-3 flex justify-end gap-2">
-            <button
-              type="button"
-              className="rounded-lg px-3 py-2 font-medium text-xs hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              onClick={() => setIsConfirming(false)}
-            >
-              Keep it
-            </button>
-            <Button
-              size="sm"
-              variant="destructive"
-              disabled={disabled}
-              onClick={() => {
-                setIsConfirming(false);
-                onDelete(id);
-              }}
-            >
-              Delete photo
-            </Button>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

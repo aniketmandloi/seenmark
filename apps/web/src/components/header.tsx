@@ -76,7 +76,7 @@ export default function Header() {
           <ModeToggle />
           <UserMenu />
           {!isPending && !session ? (
-            <Link href="/login" className={buttonVariants({ className: "hidden sm:inline-flex" })}>
+            <Link href="/signup" className={buttonVariants({ className: "hidden sm:inline-flex" })}>
               Get started
             </Link>
           ) : null}
@@ -122,7 +122,7 @@ export default function Header() {
                     >
                       Sign in
                     </Link>
-                    <Link href="/login" onClick={closeSheet} className={buttonVariants()}>
+                    <Link href="/signup" onClick={closeSheet} className={buttonVariants()}>
                       Get started
                     </Link>
                   </div>

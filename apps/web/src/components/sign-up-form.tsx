@@ -1,9 +1,13 @@
-import { Button } from "@seenmark/ui/components/button";
+"use client";
+
+import { Alert, AlertDescription } from "@seenmark/ui/components/alert";
+import { Button, buttonVariants } from "@seenmark/ui/components/button";
 import { Checkbox } from "@seenmark/ui/components/checkbox";
 import { Input } from "@seenmark/ui/components/input";
 import { Label } from "@seenmark/ui/components/label";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -12,9 +16,11 @@ import z from "zod";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 
-import Loader from "./loader";
+import AuthFormSkeleton from "./auth-form-skeleton";
+import FieldError from "./field-error";
+import PasswordInput from "./password-input";
 
-export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void }) {
+export default function SignUpForm() {
   const router = useRouter();
   const { isPending } = authClient.useSession();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -73,13 +79,18 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
   });
 
   if (isPending) {
-    return <Loader />;
+    return (
+      <AuthFormSkeleton
+        fields={["name", "email", "password"]}
+        affirmations={["affirmedAtLeast18", "affirmedInUnitedStates"]}
+      />
+    );
   }
 
   return (
     <div>
       <div className="mb-7">
-        <h2 className="font-semibold text-2xl tracking-[-0.04em]">Create your account</h2>
+        <h2 className="font-display text-heading">Create your account</h2>
         <p className="mt-2 text-muted-foreground text-sm leading-6">
           Your check-ins stay private to you.
         </p>
@@ -94,12 +105,9 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
         className="space-y-4"
       >
         {errorMessage ? (
-          <p
-            role="alert"
-            className="rounded-xl bg-destructive/10 px-4 py-3 text-destructive text-sm"
-          >
-            {errorMessage}
-          </p>
+          <Alert variant="destructive">
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
         ) : null}
 
         <form.Field name="name">
@@ -118,11 +126,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
                 onChange={(event) => field.handleChange(event.target.value)}
                 aria-invalid={field.state.meta.errors.length > 0}
               />
-              {field.state.meta.errors.map((error) => (
-                <p key={error?.message} className="text-destructive text-sm">
-                  {error?.message}
-                </p>
-              ))}
+              <FieldError errors={field.state.meta.errors} />
             </div>
           )}
         </form.Field>
@@ -145,11 +149,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
                 onChange={(event) => field.handleChange(event.target.value)}
                 aria-invalid={field.state.meta.errors.length > 0}
               />
-              {field.state.meta.errors.map((error) => (
-                <p key={error?.message} className="text-destructive text-sm">
-                  {error?.message}
-                </p>
-              ))}
+              <FieldError errors={field.state.meta.errors} />
             </div>
           )}
         </form.Field>
@@ -160,10 +160,9 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
               <Label htmlFor={field.name} className="font-medium text-sm">
                 Password
               </Label>
-              <Input
+              <PasswordInput
                 id={field.name}
                 name={field.name}
-                type="password"
                 autoComplete="new-password"
                 required
                 value={field.state.value}
@@ -172,11 +171,7 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
                 aria-invalid={field.state.meta.errors.length > 0}
               />
               <p className="text-muted-foreground text-xs">At least 8 characters.</p>
-              {field.state.meta.errors.map((error) => (
-                <p key={error?.message} className="text-destructive text-sm">
-                  {error?.message}
-                </p>
-              ))}
+              <FieldError errors={field.state.meta.errors} />
             </div>
           )}
         </form.Field>
@@ -234,14 +229,15 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
 
       <div className="mt-6 border-border/70 border-t pt-5 text-center">
         <p className="text-muted-foreground text-sm">Already have an account?</p>
-        <Button
-          type="button"
-          variant="link"
-          onClick={onSwitchToSignIn}
-          className="mt-1 h-auto px-2 py-1 font-semibold text-sm"
+        <Link
+          href="/login"
+          className={buttonVariants({
+            variant: "link",
+            className: "mt-1 h-auto px-2 py-1 font-semibold",
+          })}
         >
           Sign in
-        </Button>
+        </Link>
       </div>
     </div>
   );

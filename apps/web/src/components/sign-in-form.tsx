@@ -1,7 +1,11 @@
-import { Button } from "@seenmark/ui/components/button";
+"use client";
+
+import { Alert, AlertDescription } from "@seenmark/ui/components/alert";
+import { Button, buttonVariants } from "@seenmark/ui/components/button";
 import { Input } from "@seenmark/ui/components/input";
 import { Label } from "@seenmark/ui/components/label";
 import { useForm } from "@tanstack/react-form";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -9,9 +13,11 @@ import z from "zod";
 
 import { authClient } from "@/lib/auth-client";
 
-import Loader from "./loader";
+import AuthFormSkeleton from "./auth-form-skeleton";
+import FieldError from "./field-error";
+import PasswordInput from "./password-input";
 
-export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () => void }) {
+export default function SignInForm() {
   const router = useRouter();
   const { isPending } = authClient.useSession();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -50,13 +56,13 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
   });
 
   if (isPending) {
-    return <Loader />;
+    return <AuthFormSkeleton fields={["email", "password"]} />;
   }
 
   return (
     <div>
       <div className="mb-7">
-        <h2 className="font-semibold text-2xl tracking-[-0.04em]">Welcome back</h2>
+        <h2 className="font-display text-heading">Welcome back</h2>
         <p className="mt-2 text-muted-foreground text-sm leading-6">
           Sign in to see your private check-ins.
         </p>
@@ -71,12 +77,9 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
         className="space-y-5"
       >
         {errorMessage ? (
-          <p
-            role="alert"
-            className="rounded-xl bg-destructive/10 px-4 py-3 text-destructive text-sm"
-          >
-            {errorMessage}
-          </p>
+          <Alert variant="destructive">
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
         ) : null}
         <form.Field name="email">
           {(field) => (
@@ -99,11 +102,7 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
                 }}
                 aria-invalid={field.state.meta.errors.length > 0}
               />
-              {field.state.meta.errors.map((error) => (
-                <p key={error?.message} className="text-destructive text-sm">
-                  {error?.message}
-                </p>
-              ))}
+              <FieldError errors={field.state.meta.errors} />
             </div>
           )}
         </form.Field>
@@ -114,10 +113,9 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
               <Label htmlFor={field.name} className="font-medium text-sm">
                 Password
               </Label>
-              <Input
+              <PasswordInput
                 id={field.name}
                 name={field.name}
-                type="password"
                 autoComplete="current-password"
                 required
                 value={field.state.value}
@@ -128,11 +126,7 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
                 }}
                 aria-invalid={field.state.meta.errors.length > 0}
               />
-              {field.state.meta.errors.map((error) => (
-                <p key={error?.message} className="text-destructive text-sm">
-                  {error?.message}
-                </p>
-              ))}
+              <FieldError errors={field.state.meta.errors} />
             </div>
           )}
         </form.Field>
@@ -150,14 +144,15 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
 
       <div className="mt-6 border-border/70 border-t pt-5 text-center">
         <p className="text-muted-foreground text-sm">New to Seenmark?</p>
-        <Button
-          type="button"
-          variant="link"
-          onClick={onSwitchToSignUp}
-          className="mt-1 h-auto px-2 py-1 font-semibold text-sm"
+        <Link
+          href="/signup"
+          className={buttonVariants({
+            variant: "link",
+            className: "mt-1 h-auto px-2 py-1 font-semibold",
+          })}
         >
           Create an account
-        </Button>
+        </Link>
       </div>
     </div>
   );

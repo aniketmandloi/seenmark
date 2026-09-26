@@ -3,14 +3,14 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import AuthLayout from "@/components/auth-layout";
-import SignInForm from "@/components/sign-in-form";
+import SignUpForm from "@/components/sign-up-form";
 import { authClient } from "@/lib/auth-client";
 
 export const metadata: Metadata = {
-  title: "Sign in",
+  title: "Create your account",
 };
 
-export default async function LoginPage() {
+export default async function SignUpPage() {
   const session = await authClient.getSession({
     fetchOptions: {
       headers: await headers(),
@@ -24,7 +24,7 @@ export default async function LoginPage() {
 
   return (
     <AuthLayout>
-      <SignInForm />
+      <SignUpForm />
     </AuthLayout>
   );
 }

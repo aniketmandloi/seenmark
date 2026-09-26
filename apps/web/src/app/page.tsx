@@ -94,7 +94,7 @@ export default function Home() {
             right to you.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link href="/login" className={buttonVariants({ size: "lg" })}>
+            <Link href="/signup" className={buttonVariants({ size: "lg" })}>
               Get started
             </Link>
             <Link href="#how-it-works" className={buttonVariants({ variant: "ghost", size: "lg" })}>
@@ -213,7 +213,7 @@ export default function Home() {
               Take one photo today. Compare it with the next one whenever you're ready.
             </p>
           </div>
-          <Link href="/login" className={buttonVariants({ size: "lg" })}>
+          <Link href="/signup" className={buttonVariants({ size: "lg" })}>
             Get started
           </Link>
         </div>

@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@seenmark/ui/components/dropdown-menu";
+import { Spinner } from "@seenmark/ui/components/spinner";
 import { MoreHorizontal } from "lucide-react";
 import { type RefObject, useRef, useState } from "react";
 
@@ -96,8 +97,10 @@ export default function Timeline({
           size="sm"
           className="mt-6"
           disabled={isFetchingNextPage}
+          aria-busy={isFetchingNextPage || undefined}
           onClick={onShowEarlier}
         >
+          {isFetchingNextPage ? <Spinner data-icon="inline-start" /> : null}
           {isFetchingNextPage ? "Loading…" : "Show earlier check-ins"}
         </Button>
       ) : null}

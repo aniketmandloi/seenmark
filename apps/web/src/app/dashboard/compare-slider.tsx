@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronsLeftRight } from "lucide-react";
-import { type PointerEvent, useRef, useState } from "react";
+import { type PointerEvent, useState } from "react";
 
 import { type CheckIn, formatDate } from "./check-in-dates";
 import { dividerPercent } from "./comparison";
@@ -18,7 +18,6 @@ const layer = "pointer-events-none absolute inset-0 size-full rounded-none";
  */
 export default function CompareSlider({ earlier, latest }: { earlier: CheckIn; latest: CheckIn }) {
   const [position, setPosition] = useState(50);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   function follow(event: PointerEvent<HTMLDivElement>) {
     setPosition(dividerPercent(event.clientX, event.currentTarget.getBoundingClientRect()));
@@ -30,7 +29,6 @@ export default function CompareSlider({ earlier, latest }: { earlier: CheckIn; l
         className="relative aspect-3/4 w-full cursor-ew-resize touch-pan-y select-none overflow-hidden rounded-2xl bg-muted has-focus-visible:ring-2 has-focus-visible:ring-ring has-focus-visible:ring-offset-2"
         onPointerDown={(event) => {
           event.currentTarget.setPointerCapture(event.pointerId);
-          inputRef.current?.focus({ preventScroll: true });
           follow(event);
         }}
         onPointerMove={(event) => {
@@ -59,7 +57,6 @@ export default function CompareSlider({ earlier, latest }: { earlier: CheckIn; l
           </span>
         </div>
         <input
-          ref={inputRef}
           type="range"
           min={0}
           max={100}

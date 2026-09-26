@@ -28,7 +28,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         </ul>
       </div>
 
-      <div className="rounded-4xl border border-border/80 bg-card p-6 shadow-soft sm:p-10 lg:p-12">
+      <div className="animate-rise rounded-4xl border border-border/80 bg-card p-6 shadow-soft sm:p-10 lg:p-12">
         {children}
       </div>
     </section>

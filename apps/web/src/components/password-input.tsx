@@ -18,7 +18,7 @@ export default function PasswordInput(props: Omit<ComponentProps<typeof Input>, 
         onPressedChange={(pressed) => setVisible(pressed)}
         className="absolute top-1 right-1 px-0"
       >
-        {visible ? <EyeOff /> : <Eye />}
+        {visible ? <EyeOff className="animate-pop" /> : <Eye className="animate-pop" />}
       </Toggle>
     </div>
   );

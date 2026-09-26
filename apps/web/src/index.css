@@ -1,1 +1,21 @@
 @import "@seenmark/ui/globals.css";
+
+/* The reduced-motion rule does not stop a scroll-driven animation, so this one gates itself. Without
+   scroll timelines the header keeps only its border. */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .header-shadow {
+      animation-name: header-shadow;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: scroll(root);
+      animation-range: 0 16px;
+    }
+  }
+}
+
+@keyframes header-shadow {
+  to {
+    box-shadow: var(--shadow-soft);
+  }
+}

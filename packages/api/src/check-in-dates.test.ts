@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { groupByMonth, relativeTime } from "./check-in-dates";
+import { formatDate, groupByMonth, relativeTime } from "./check-in-dates";
 
 const local = (year: number, month: number, day: number, hour = 12) =>
 	new Date(year, month, day, hour).toISOString();
@@ -43,4 +43,9 @@ test("relative time rounds down to the largest whole unit", () => {
 test("a check-in stamped slightly in the future reads as today", () => {
 	const now = new Date(2026, 5, 30, 12).getTime();
 	expect(relativeTime(local(2026, 5, 30, 13), now)).toBe("today");
+});
+
+test("a date reads as month, day and year, and an unreadable one comes back as given", () => {
+	expect(formatDate(local(2026, 5, 30))).toBe("June 30, 2026");
+	expect(formatDate("not a date")).toBe("not a date");
 });

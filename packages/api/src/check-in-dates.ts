@@ -28,8 +28,11 @@ const relativeFormat = new Intl.RelativeTimeFormat("en-US", {
 	numeric: "always",
 });
 
+/** An unreadable date comes back as given, since format() throws a RangeError on it. */
 export function formatDate(value: string) {
-	return dateFormat.format(new Date(value));
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) return value;
+	return dateFormat.format(date);
 }
 
 /** Tells apart check-ins taken on the same day. */

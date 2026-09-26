@@ -4,7 +4,7 @@ import { HISTORY_PAGE_SIZE, nextHistoryCursor } from "@seenmark/api/history";
 import { Alert, AlertDescription } from "@seenmark/ui/components/alert";
 import { Button } from "@seenmark/ui/components/button";
 import { useInfiniteQuery, useIsMutating, useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, Check, Clock3, Trash2 } from "lucide-react";
+import { ArrowUpRight, Check, Clock3 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -17,12 +17,11 @@ import { claimMemberCache, queryClient, trpc } from "@/utils/trpc";
 import AccountPrivacy from "./account-privacy";
 import { type Band, bands } from "./bands";
 import { type CheckIn, formatDate, relativeTime } from "./check-in-dates";
+import CheckInDialog from "./check-in-dialog";
 import Compare from "./compare";
 import { type ComparisonChoice, chooseSlot, defaultChoice, resolveComparison } from "./comparison";
-import DeleteCheckIn from "./delete-check-in";
 import IntroductionRequest from "./introduction-request";
 import { invalidateMemberLoop } from "./member-loop";
-import Photo from "./photo";
 import PhotoPicker from "./photo-picker";
 import { preparePhoto } from "./prepare-photo";
 import Timeline from "./timeline";
@@ -31,8 +30,9 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   // Before any read below, so a previous member's cached reads are never shown.
   claimMemberCache(session.user.id);
   const [choice, setChoice] = useState<ComparisonChoice>(defaultChoice);
-  const [openedId, setOpenedId] = useState<string | null>(null);
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  // Kept after the dialog closes, so its content stays put while it animates out.
+  const [opened, setOpened] = useState<CheckIn | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   // Relative times are hints, so they are measured from when the dashboard opened.
   const [now] = useState(() => Date.now());
   const [isPreparingPhoto, setIsPreparingPhoto] = useState(false);
@@ -68,7 +68,6 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   const items: CheckIn[] = checkIns.data?.pages.flat() ?? [];
   const comparison = resolveComparison(items, choice);
   const latest = items[0];
-  const opened = openedId ? (items.find((item) => item.id === openedId) ?? null) : null;
   const selectedBand = bands.find((band) => band.value === currentBand.data)?.label;
   const currentMenu = menu.data?.menu ?? null;
   // The score and the menu are separate reads that can land in either order after a change,
@@ -82,7 +81,6 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
       return;
     }
 
-    setOpenedId(null);
     setIsPreparingPhoto(true);
 
     try {
@@ -102,8 +100,8 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
   async function handleDeleteCheckIn(id: string): Promise<boolean> {
     try {
       await removeCheckIn.mutateAsync({ id });
-      if (openedId === id) {
-        setOpenedId(null);
+      if (opened?.id === id) {
+        setDialogOpen(false);
       }
       // Photos never go stale, so a deleted one stays readable until evicted; a read still
       // in flight is cancelled so it cannot put the photo back.
@@ -169,29 +167,6 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
               retrying={checkIns.isFetching}
               onRetry={() => checkIns.refetch()}
             />
-          ) : opened ? (
-            <div className="max-w-xl">
-              <Button variant="ghost" className="mb-4 px-2" onClick={() => setOpenedId(null)}>
-                Back to your photos
-              </Button>
-              <figure>
-                <Photo item={opened} alt={`Your check-in from ${formatDate(opened.takenAt)}`} />
-                <figcaption className="mt-3 flex flex-wrap items-center justify-between gap-3 text-muted-foreground text-sm">
-                  <span>{formatDate(opened.takenAt)}</span>
-                  <Button variant="ghost" size="sm" onClick={() => setConfirmingDelete(true)}>
-                    <Trash2 aria-hidden="true" />
-                    Delete
-                  </Button>
-                  <DeleteCheckIn
-                    checkIn={opened}
-                    open={confirmingDelete}
-                    busy={isBusy}
-                    onOpenChange={setConfirmingDelete}
-                    onDelete={handleDeleteCheckIn}
-                  />
-                </figcaption>
-              </figure>
-            </div>
           ) : (
             <>
               <Compare
@@ -219,7 +194,10 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
                     hasNextPage={checkIns.hasNextPage}
                     isFetchingNextPage={checkIns.isFetchingNextPage}
                     onShowEarlier={() => checkIns.fetchNextPage()}
-                    onOpen={setOpenedId}
+                    onOpen={(id) => {
+                      setOpened(items.find((item) => item.id === id) ?? null);
+                      setDialogOpen(true);
+                    }}
                     onCompare={(slot, id) => {
                       setChoice(chooseSlot(comparison, slot, id));
                       document
@@ -341,6 +319,15 @@ export default function Dashboard({ session }: { session: typeof authClient.$Inf
           <AccountPrivacy />
         </aside>
       </div>
+
+      <CheckInDialog
+        checkIn={opened}
+        open={dialogOpen}
+        now={now}
+        busy={isBusy}
+        onOpenChange={setDialogOpen}
+        onDelete={handleDeleteCheckIn}
+      />
     </div>
   );
 }

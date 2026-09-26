@@ -13,6 +13,7 @@ import {
 	TextInput,
 	View,
 } from "react-native";
+import Animated, { Easing, FadeInDown } from "react-native-reanimated";
 
 import type {
 	FormButtonProps,
@@ -23,6 +24,7 @@ import type {
 	FormLinkProps,
 	FormPhotosProps,
 	FormProgressProps,
+	FormRevealProps,
 	FormRowProps,
 	FormScreenProps,
 	FormSectionProps,
@@ -30,6 +32,7 @@ import type {
 	FormTextProps,
 	FormToggleProps,
 } from "@/components/form/types";
+import { staggerDelay, useMotion } from "@/lib/motion";
 import { useColorScheme } from "@/lib/use-color-scheme";
 
 export function FormScreen({
@@ -359,6 +362,25 @@ export function FormEmptyState({ title, description }: FormEmptyStateProps) {
 				{description}
 			</Text>
 		</View>
+	);
+}
+
+export function FormReveal({ children, index = 0 }: FormRevealProps) {
+	const motion = useMotion();
+
+	return (
+		<Animated.View
+			entering={
+				motion.reduced
+					? undefined
+					: FadeInDown.duration(motion.slow)
+							.delay(staggerDelay(motion, index))
+							.easing(Easing.out(Easing.quad))
+							.withInitialValues({ transform: [{ translateY: motion.rise }] })
+			}
+		>
+			{children}
+		</Animated.View>
 	);
 }
 

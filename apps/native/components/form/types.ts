@@ -112,6 +112,12 @@ export type FormChoiceProps<T extends string> = {
 	disabled?: boolean;
 };
 
+export type FormRevealProps = {
+	children: ReactNode;
+	/** Position among the reveals on screen; each step starts one stagger later. */
+	index?: number;
+};
+
 export type FormEmptyStateProps = {
 	icon: IconName;
 	title: string;

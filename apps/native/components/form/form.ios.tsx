@@ -158,11 +158,20 @@ export function FormScreen({
 	);
 }
 
+function HeroPart({
+	reveal,
+	index,
+	children,
+}: FormRevealProps & { reveal: boolean }) {
+	return reveal ? <FormReveal index={index}>{children}</FormReveal> : children;
+}
+
 export function FormHero({
 	eyebrow,
 	title,
 	description,
 	image,
+	reveal = false,
 }: FormHeroProps) {
 	const { theme } = useColorScheme();
 
@@ -177,28 +186,36 @@ export function FormHero({
 				]}
 			>
 				{image ? (
-					<RNHostView matchContents>
-						<View pointerEvents="none" style={styles.heroImageFrame}>
-							<RNImage source={image} style={styles.heroImage} />
-						</View>
-					</RNHostView>
+					<HeroPart reveal={reveal} index={0}>
+						<RNHostView matchContents>
+							<View pointerEvents="none" style={styles.heroImageFrame}>
+								<RNImage source={image} style={styles.heroImage} />
+							</View>
+						</RNHostView>
+					</HeroPart>
 				) : null}
 				{eyebrow ? (
-					<Text
-						modifiers={[
-							font({ textStyle: "caption", weight: "semibold" }),
-							foregroundStyle(theme.primary),
-						]}
-					>
-						{eyebrow.toUpperCase()}
-					</Text>
+					<HeroPart reveal={reveal} index={1}>
+						<Text
+							modifiers={[
+								font({ textStyle: "caption", weight: "semibold" }),
+								foregroundStyle(theme.primary),
+							]}
+						>
+							{eyebrow.toUpperCase()}
+						</Text>
+					</HeroPart>
 				) : null}
-				<Text modifiers={[font({ textStyle: "largeTitle", weight: "bold" })]}>
-					{title}
-				</Text>
-				<Text modifiers={[font({ textStyle: "body" }), secondary]}>
-					{description}
-				</Text>
+				<HeroPart reveal={reveal} index={2}>
+					<Text modifiers={[font({ textStyle: "largeTitle", weight: "bold" })]}>
+						{title}
+					</Text>
+				</HeroPart>
+				<HeroPart reveal={reveal} index={3}>
+					<Text modifiers={[font({ textStyle: "body" }), secondary]}>
+						{description}
+					</Text>
+				</HeroPart>
 			</VStack>
 		</Section>
 	);

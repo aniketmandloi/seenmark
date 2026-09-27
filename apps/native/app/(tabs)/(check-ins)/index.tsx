@@ -1,16 +1,30 @@
 import { bands } from "@seenmark/api/bands";
-import { formatDate } from "@seenmark/api/check-in-dates";
+import {
+	type CheckIn,
+	formatDate,
+	formatDateTime,
+} from "@seenmark/api/check-in-dates";
+import {
+	type ComparisonChoice,
+	chooseSlot,
+	defaultChoice,
+	resolveComparison,
+} from "@seenmark/api/comparison";
 import { useQueries } from "@tanstack/react-query";
 import { router } from "expo-router";
+import { useState } from "react";
 import { Linking } from "react-native";
 
 import {
 	FormButton,
 	FormChoice,
+	FormCompareSlider,
 	FormEmptyState,
 	FormErrorState,
 	FormPhotos,
+	FormPicker,
 	FormProgress,
+	FormReveal,
 	FormRow,
 	FormScreen,
 	FormSection,
@@ -18,6 +32,7 @@ import {
 	FormText,
 } from "@/components/form/form";
 import {
+	type CheckInPhoto,
 	checkInPhotoQuery,
 	checkInPhotoUri,
 	useCheckIns,
@@ -27,11 +42,18 @@ import {
 export default function CheckInsScreen() {
 	const loop = useCheckIns();
 	const actions = useMemberActions();
-	const latest = useQueries({
-		queries: loop.items.slice(0, 2).map((item) => checkInPhotoQuery(item.id)),
+	const [choice, setChoice] = useState<ComparisonChoice>(defaultChoice);
+	const { earlier, latest } = resolveComparison(loop.items, choice);
+	// Only the compared check-ins' photos load; a history page can hold 30 of them.
+	const photos = useQueries({
+		queries: [earlier, latest].flatMap((item) =>
+			item ? [checkInPhotoQuery(item.id)] : [],
+		),
 	});
-	const latestPhotos = latest.flatMap(({ data }) => (data ? [data] : []));
-	const takeCheckIn = () => void actions.takeCheckIn();
+	const takeCheckIn = () =>
+		void actions.takeCheckIn().then((saved) => {
+			if (saved) setChoice(defaultChoice);
+		});
 	const bandLabel = bands.find((band) => band.value === loop.band)?.label;
 
 	return (
@@ -128,40 +150,40 @@ export default function CheckInsScreen() {
 				</>
 			) : null}
 
-			{latest.some((photo) => photo.isError) ? (
+			{photos.some((photo) => photo.isError) ? (
 				<FormErrorState
 					message="Your photos could not load."
 					footer="Nothing was changed. Pull down or try again."
-					retrying={latest.some((photo) => photo.isFetching)}
+					retrying={photos.some((photo) => photo.isFetching)}
 					onRetry={() => void loop.refresh()}
 				/>
-			) : latest.length > 0 ? (
+			) : earlier && latest ? (
+				<Compare
+					items={loop.items}
+					earlier={earlier}
+					latest={latest}
+					earlierPhoto={photos[0]?.data}
+					latestPhoto={photos[1]?.data}
+					onChoose={setChoice}
+				/>
+			) : latest ? (
 				<FormSection
-					title={latest.length > 1 ? "Side by side" : "Your baseline"}
-					footer={
-						latest.length > 1
-							? "Your two most recent photos."
-							: "Take another check-in later to compare."
-					}
+					title="Your baseline"
+					footer="Take another check-in later to compare."
 				>
-					{latestPhotos.length === latest.length ? (
+					{photos[0]?.data ? (
 						<FormPhotos
-							photos={latestPhotos.map((photo, index) => ({
-								id: photo.id,
-								uri: checkInPhotoUri(photo),
-								accessibilityLabel:
-									index === 0
-										? "Newest check-in photo"
-										: "Previous check-in photo",
-								caption: formatDate(photo.takenAt),
-							}))}
+							photos={[
+								{
+									id: latest.id,
+									uri: checkInPhotoUri(photos[0].data),
+									accessibilityLabel: `Check-in photo from ${formatDate(latest.takenAt)}`,
+									caption: formatDate(latest.takenAt),
+								},
+							]}
 						/>
 					) : (
-						<FormSkeleton
-							shape="photos"
-							count={latest.length}
-							label="Loading your photos"
-						/>
+						<FormSkeleton shape="photos" count={1} label="Loading your photo" />
 					)}
 				</FormSection>
 			) : null}
@@ -228,5 +250,107 @@ export default function CheckInsScreen() {
 				</FormSection>
 			) : null}
 		</FormScreen>
+	);
+}
+
+type Mode = "side" | "slider";
+
+const MODES: { value: Mode; label: string }[] = [
+	{ value: "side", label: "Side by side" },
+	{ value: "slider", label: "Slider" },
+];
+
+function comparedPhoto(slot: "Earlier" | "Latest", photo: CheckInPhoto) {
+	const takenOn = formatDate(photo.takenAt);
+	return {
+		id: photo.id,
+		uri: checkInPhotoUri(photo),
+		accessibilityLabel: `${slot} check-in photo from ${takenOn}`,
+		caption: `${slot} · ${takenOn}`,
+	};
+}
+
+/** Any two check-ins, picked per slot, shown side by side or under a slider. */
+function Compare({
+	items,
+	earlier,
+	latest,
+	earlierPhoto,
+	latestPhoto,
+	onChoose,
+}: {
+	items: readonly CheckIn[];
+	earlier: CheckIn;
+	latest: CheckIn;
+	earlierPhoto?: CheckInPhoto;
+	latestPhoto?: CheckInPhoto;
+	onChoose: (choice: ComparisonChoice) => void;
+}) {
+	const [mode, setMode] = useState<Mode>("side");
+	const current = { earlier, latest };
+	// Times tell apart two check-ins from the same day; the other slot's check-in can't be picked.
+	const options = (other: CheckIn) =>
+		items.map((item) => ({
+			value: item.id,
+			label: formatDateTime(item.takenAt),
+			disabled: item.id === other.id,
+		}));
+
+	return (
+		<>
+			<FormSection title="Compare">
+				<FormChoice
+					options={MODES}
+					selection={mode}
+					onSelectionChange={setMode}
+				/>
+				<FormPicker
+					label="Earlier"
+					options={options(latest)}
+					selection={earlier.id}
+					onSelectionChange={(id) =>
+						onChoose(chooseSlot(current, "earlier", id))
+					}
+				/>
+				<FormPicker
+					label="Latest"
+					options={options(earlier)}
+					selection={latest.id}
+					onSelectionChange={(id) =>
+						onChoose(chooseSlot(current, "latest", id))
+					}
+				/>
+				<FormButton
+					label="Swap earlier and latest"
+					icon="swap"
+					onPress={() =>
+						onChoose({ earlierId: latest.id, latestId: earlier.id })
+					}
+				/>
+			</FormSection>
+			<FormReveal key={mode}>
+				<FormSection>
+					{!earlierPhoto || !latestPhoto ? (
+						<FormSkeleton
+							shape="photos"
+							count={mode === "side" ? 2 : 1}
+							label="Loading your photos"
+						/>
+					) : mode === "side" ? (
+						<FormPhotos
+							photos={[
+								comparedPhoto("Earlier", earlierPhoto),
+								comparedPhoto("Latest", latestPhoto),
+							]}
+						/>
+					) : (
+						<FormCompareSlider
+							earlier={comparedPhoto("Earlier", earlierPhoto)}
+							latest={comparedPhoto("Latest", latestPhoto)}
+						/>
+					)}
+				</FormSection>
+			</FormReveal>
+		</>
 	);
 }

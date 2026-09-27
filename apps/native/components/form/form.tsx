@@ -3,6 +3,7 @@ import { useState } from "react";
 import {
 	ActivityIndicator,
 	Alert,
+	type AlertButton,
 	Image,
 	Pressable,
 	RefreshControl,
@@ -21,6 +22,7 @@ import type {
 	FormButtonProps,
 	FormChoiceProps,
 	FormCompareSliderProps,
+	FormConfirmation,
 	FormConfirmButtonProps,
 	FormEmptyStateProps,
 	FormErrorStateProps,
@@ -144,8 +146,27 @@ function ListRow({
 	showsChevron = false,
 	disabled = false,
 	pending = false,
+	actions,
 }: FormRowProps & { pending?: boolean }) {
 	const { theme } = useColorScheme();
+	const showActions = actions?.length
+		? () =>
+				Alert.alert(title, undefined, [
+					...actions
+						.filter((action) => !action.disabled)
+						.map(
+							(action): AlertButton => ({
+								text: action.label,
+								style: action.destructive ? "destructive" : "default",
+								onPress: () =>
+									action.confirm
+										? confirm(action.confirm, action.onPress)
+										: action.onPress(),
+							}),
+						),
+					{ text: "Cancel", style: "cancel" },
+				])
+		: undefined;
 	const color =
 		tone === "destructive"
 			? theme.notification
@@ -157,7 +178,8 @@ function ListRow({
 		<Pressable
 			accessibilityRole={onPress ? "button" : undefined}
 			onPress={onPress}
-			disabled={disabled || pending || !onPress}
+			onLongPress={showActions}
+			disabled={disabled || pending || !(onPress || showActions)}
 			accessibilityState={{ disabled: disabled || pending, busy: pending }}
 			style={[styles.row, disabled && styles.disabled]}
 		>
@@ -255,13 +277,20 @@ export function FormConfirmButton({
 			disabled={disabled}
 			pending={pending}
 			onPress={() =>
-				Alert.alert(title, message, [
-					{ text: cancelLabel, style: "cancel" },
-					{ text: confirmLabel, style: "destructive", onPress: onConfirm },
-				])
+				confirm({ title, message, confirmLabel, cancelLabel }, onConfirm)
 			}
 		/>
 	);
+}
+
+function confirm(
+	{ title, message, confirmLabel, cancelLabel = "Cancel" }: FormConfirmation,
+	onConfirm: () => void,
+) {
+	Alert.alert(title, message, [
+		{ text: cancelLabel, style: "cancel" },
+		{ text: confirmLabel, style: "destructive", onPress: onConfirm },
+	]);
 }
 
 export function FormLink({ label, destination }: FormLinkProps) {

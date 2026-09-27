@@ -15,10 +15,12 @@ import {
 } from "react-native";
 import Animated, { Easing, FadeInDown } from "react-native-reanimated";
 
+import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
 import type {
 	FormButtonProps,
 	FormChoiceProps,
+	FormCompareSliderProps,
 	FormConfirmButtonProps,
 	FormEmptyStateProps,
 	FormErrorStateProps,
@@ -289,6 +291,53 @@ export function FormPhotos({ photos }: FormPhotosProps) {
 					</Text>
 				</View>
 			))}
+		</View>
+	);
+}
+
+const DIVIDER_STEP = 10;
+
+export function FormCompareSlider({ earlier, latest }: FormCompareSliderProps) {
+	const { theme } = useColorScheme();
+	const [position, setPosition] = useState(50);
+	const move = (delta: number) =>
+		setPosition((current) => Math.min(100, Math.max(0, current + delta)));
+	const caption = [styles.footnote, { color: theme.muted }];
+
+	return (
+		<View style={[styles.row, styles.compare]}>
+			<ComparedPhotos
+				earlier={earlier}
+				latest={latest}
+				position={position}
+				style={[styles.photo, { backgroundColor: theme.border }]}
+			/>
+			<View style={styles.captions}>
+				<Text style={caption}>{earlier.caption}</Text>
+				<Text style={caption}>{latest.caption}</Text>
+			</View>
+			<View
+				accessible
+				accessibilityRole="adjustable"
+				accessibilityLabel="Divider between the earlier and latest photos"
+				accessibilityValue={{ min: 0, max: 100, now: position }}
+				accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
+				onAccessibilityAction={(event) =>
+					move(
+						event.nativeEvent.actionName === "increment"
+							? DIVIDER_STEP
+							: -DIVIDER_STEP,
+					)
+				}
+				style={styles.captions}
+			>
+				<Pressable onPress={() => move(-DIVIDER_STEP)}>
+					<Text style={{ color: theme.primary }}>− Earlier</Text>
+				</Pressable>
+				<Pressable onPress={() => move(DIVIDER_STEP)}>
+					<Text style={{ color: theme.primary }}>Latest +</Text>
+				</Pressable>
+			</View>
 		</View>
 	);
 }
@@ -580,6 +629,15 @@ const styles = StyleSheet.create({
 		width: "100%",
 		aspectRatio: 4 / 5,
 		borderRadius: 12,
+	},
+	compare: {
+		flexDirection: "column",
+		alignItems: "stretch",
+		gap: 6,
+	},
+	captions: {
+		flexDirection: "row",
+		justifyContent: "space-between",
 	},
 	input: {
 		fontSize: 17,

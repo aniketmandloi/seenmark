@@ -55,6 +55,8 @@ export type FormButtonProps = {
 	onPress: () => void;
 	icon?: IconName;
 	disabled?: boolean;
+	/** Disabled with an inline spinner; the label passed in still names the action in flight. */
+	pending?: boolean;
 	/** A full-width filled button that ends a flow, like submitting a form. */
 	prominent?: boolean;
 };
@@ -68,6 +70,8 @@ export type FormConfirmButtonProps = {
 	cancelLabel?: string;
 	onConfirm: () => void;
 	disabled?: boolean;
+	/** Disabled with an inline spinner; the label passed in still names the action in flight. */
+	pending?: boolean;
 };
 
 export type FormLinkProps = {
@@ -116,6 +120,31 @@ export type FormRevealProps = {
 	children: ReactNode;
 	/** Position among the reveals on screen; each step starts one stagger later. */
 	index?: number;
+};
+
+export type FormSkeletonShape = "rows" | "photos" | "choice" | "steps";
+
+export type FormSkeletonProps = {
+	/** The content it stands in for, drawn static in the same shape. */
+	shape: FormSkeletonShape;
+	count?: number;
+	/** Read by screen readers in place of the placeholder, like "Loading your photos". */
+	label: string;
+};
+
+export const SKELETON_COUNT: Record<FormSkeletonShape, number> = {
+	rows: 3,
+	photos: 2,
+	choice: 3,
+	steps: 3,
+};
+
+export type FormErrorStateProps = {
+	/** What failed to load, like "Your check-ins could not load." */
+	message: string;
+	footer?: string;
+	retrying: boolean;
+	onRetry: () => void;
 };
 
 export type FormEmptyStateProps = {

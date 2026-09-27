@@ -171,7 +171,7 @@ export default function SignUpScreen() {
 						<FormButton
 							label={isBusy ? "Creating account…" : "Create account"}
 							onPress={() => void form.handleSubmit()}
-							disabled={isBusy}
+							pending={isBusy}
 							prominent
 						/>
 						<FormSection>

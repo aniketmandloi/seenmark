@@ -11,6 +11,7 @@ import {
 	Picker,
 	ProgressView,
 	RNHostView,
+	RoundedRectangle,
 	Section,
 	SecureField,
 	Spacer,
@@ -21,8 +22,12 @@ import {
 	VStack,
 } from "@expo/ui/swift-ui";
 import {
+	accessibilityElement,
+	accessibilityHidden,
+	accessibilityLabel,
 	aspectRatio,
 	autocorrectionDisabled,
+	background,
 	buttonStyle,
 	clipShape,
 	controlSize,
@@ -42,6 +47,7 @@ import {
 	opacity,
 	padding,
 	pickerStyle,
+	redacted,
 	refreshable,
 	scrollDismissesKeyboard,
 	submitLabel,
@@ -53,11 +59,13 @@ import { Stack } from "expo-router";
 import { useState } from "react";
 import { Platform, Image as RNImage, StyleSheet, View } from "react-native";
 
+import { FadeInPhoto } from "@/components/form/fade-in-photo";
 import type {
 	FormButtonProps,
 	FormChoiceProps,
 	FormConfirmButtonProps,
 	FormEmptyStateProps,
+	FormErrorStateProps,
 	FormHeroProps,
 	FormLinkProps,
 	FormPhotosProps,
@@ -66,11 +74,13 @@ import type {
 	FormRowProps,
 	FormScreenProps,
 	FormSectionProps,
+	FormSkeletonProps,
 	FormTextFieldProps,
 	FormTextProps,
 	FormToggleProps,
 	Tone,
 } from "@/components/form/types";
+import { SKELETON_COUNT } from "@/components/form/types";
 import { ICONS } from "@/lib/icons";
 import { staggerDelay, useMotion } from "@/lib/motion";
 import { easeOut } from "@/lib/swift-ui-motion";
@@ -82,6 +92,10 @@ const hasContentUnavailableView =
 
 const secondary = foregroundStyle({ type: "hierarchical", style: "secondary" });
 const tertiary = foregroundStyle({ type: "hierarchical", style: "tertiary" });
+const quaternary = foregroundStyle({
+	type: "hierarchical",
+	style: "quaternary",
+});
 
 function useToneStyle(tone: Tone): ModifierConfig[] {
 	const { theme } = useColorScheme();
@@ -261,16 +275,33 @@ export function FormText({
 	);
 }
 
+function PendingLabel({
+	label,
+	modifiers = [],
+}: {
+	label: string;
+	modifiers?: ModifierConfig[];
+}) {
+	return (
+		<HStack spacing={8} modifiers={modifiers}>
+			<ProgressView modifiers={[controlSize("small")]} />
+			<Text>{label}</Text>
+		</HStack>
+	);
+}
+
 export function FormButton({
 	label,
 	onPress,
 	icon,
 	disabled = false,
+	pending = false,
 	prominent = false,
 }: FormButtonProps) {
-	const disabledModifiers = disabled ? [disableControl(true)] : [];
+	const disabledModifiers = disabled || pending ? [disableControl(true)] : [];
 
 	if (prominent) {
+		const fill = frame({ maxWidth: Number.POSITIVE_INFINITY });
 		return (
 			<Button
 				onPress={onPress}
@@ -282,14 +313,24 @@ export function FormButton({
 					...disabledModifiers,
 				]}
 			>
-				<Text
-					modifiers={[
-						font({ textStyle: "headline" }),
-						frame({ maxWidth: Number.POSITIVE_INFINITY }),
-					]}
-				>
-					{label}
-				</Text>
+				{pending ? (
+					<PendingLabel
+						label={label}
+						modifiers={[font({ textStyle: "headline" }), fill]}
+					/>
+				) : (
+					<Text modifiers={[font({ textStyle: "headline" }), fill]}>
+						{label}
+					</Text>
+				)}
+			</Button>
+		);
+	}
+
+	if (pending) {
+		return (
+			<Button onPress={onPress} modifiers={disabledModifiers}>
+				<PendingLabel label={label} />
 			</Button>
 		);
 	}
@@ -313,17 +354,27 @@ export function FormConfirmButton({
 	cancelLabel = "Cancel",
 	onConfirm,
 	disabled = false,
+	pending = false,
 }: FormConfirmButtonProps) {
+	const modifiers = disabled || pending ? [disableControl(true)] : undefined;
+
 	return (
 		<ConfirmationDialog title={title} titleVisibility="visible">
 			<ConfirmationDialog.Trigger>
-				{/* biome-ignore lint/a11y/useValidAriaRole: Expo UI maps this prop to SwiftUI's ButtonRole. */}
-				<Button
-					label={label}
-					systemImage={icon ? ICONS[icon].ios : undefined}
-					role="destructive"
-					modifiers={disabled ? [disableControl(true)] : undefined}
-				/>
+				{pending ? (
+					// biome-ignore lint/a11y/useValidAriaRole: Expo UI maps this prop to SwiftUI's ButtonRole.
+					<Button role="destructive" modifiers={modifiers}>
+						<PendingLabel label={label} />
+					</Button>
+				) : (
+					// biome-ignore lint/a11y/useValidAriaRole: Expo UI maps this prop to SwiftUI's ButtonRole.
+					<Button
+						label={label}
+						systemImage={icon ? ICONS[icon].ios : undefined}
+						role="destructive"
+						modifiers={modifiers}
+					/>
+				)}
 			</ConfirmationDialog.Trigger>
 			<ConfirmationDialog.Message>
 				<Text>{message}</Text>
@@ -356,15 +407,16 @@ export function FormPhotos({ photos }: FormPhotosProps) {
 					<VStack
 						modifiers={[
 							aspectRatio({ ratio: 4 / 5, contentMode: "fit" }),
+							background({ type: "hierarchical", style: "quaternary" }),
 							clipShape("roundedRectangle", photos.length > 1 ? 12 : 16),
 						]}
 					>
 						<RNHostView>
-							<RNImage
-								source={{ uri: photo.uri }}
-								style={styles.fill}
-								resizeMode="cover"
+							<FadeInPhoto
+								key={photo.id}
+								uri={photo.uri}
 								accessibilityLabel={photo.accessibilityLabel}
+								style={styles.fill}
 							/>
 						</RNHostView>
 					</VStack>
@@ -529,6 +581,107 @@ export function FormReveal({ children, index = 0 }: FormRevealProps) {
 		>
 			{children}
 		</Group>
+	);
+}
+
+const PLACEHOLDER_DATE = "September 27, 2026";
+const PLACEHOLDER_STEP =
+	"A placeholder step about as long as the one that will replace it.";
+const PLACEHOLDER_OPTIONS = ["one", "two", "three", "four", "five"].map(
+	(value) => ({ value, label: "Option" }),
+);
+
+/** Kit rows redacted as placeholders, so the loaded content lands where they stood. */
+export function FormSkeleton({
+	shape,
+	count = SKELETON_COUNT[shape],
+	label,
+}: FormSkeletonProps) {
+	// VoiceOver reads the label once, on the first placeholder, and skips the rest.
+	const readAs = (index: number) =>
+		index === 0
+			? [accessibilityElement("ignore"), accessibilityLabel(label)]
+			: [accessibilityHidden(true)];
+	const slots = Array.from({ length: count }, (_, index) => index);
+
+	if (shape === "photos") {
+		return (
+			<HStack
+				spacing={10}
+				alignment="top"
+				modifiers={[
+					listRowInsets({ top: 12, leading: 12, bottom: 12, trailing: 12 }),
+					redacted("placeholder"),
+					...readAs(0),
+				]}
+			>
+				{slots.map((index) => (
+					<VStack key={index} alignment="leading" spacing={6}>
+						<RoundedRectangle
+							cornerRadius={count > 1 ? 12 : 16}
+							modifiers={[
+								aspectRatio({ ratio: 4 / 5, contentMode: "fit" }),
+								quaternary,
+							]}
+						/>
+						<Text modifiers={[font({ textStyle: "footnote" }), secondary]}>
+							{PLACEHOLDER_DATE}
+						</Text>
+					</VStack>
+				))}
+			</HStack>
+		);
+	}
+
+	if (shape === "choice") {
+		return (
+			<Group modifiers={[redacted("placeholder"), ...readAs(0)]}>
+				<FormChoice
+					options={PLACEHOLDER_OPTIONS.slice(0, count)}
+					selection={null}
+					onSelectionChange={() => undefined}
+					disabled
+				/>
+			</Group>
+		);
+	}
+
+	return (
+		<>
+			{slots.map((index) => (
+				<Group
+					key={index}
+					modifiers={[redacted("placeholder"), ...readAs(index)]}
+				>
+					{shape === "rows" ? (
+						<FormRow icon="camera" title={PLACEHOLDER_DATE} />
+					) : (
+						<FormText>{PLACEHOLDER_STEP}</FormText>
+					)}
+				</Group>
+			))}
+		</>
+	);
+}
+
+/** A failed read with a way to try it again; shared so every screen fails the same way. */
+export function FormErrorState({
+	message,
+	footer,
+	retrying,
+	onRetry,
+}: FormErrorStateProps) {
+	return (
+		<FormReveal>
+			<FormSection footer={footer}>
+				<FormRow icon="error" title={message} tone="destructive" />
+				<FormButton
+					label={retrying ? "Trying…" : "Try again"}
+					onPress={onRetry}
+					pending={retrying}
+				/>
+			</FormSection>
+		</FormReveal>
 	);
 }
 

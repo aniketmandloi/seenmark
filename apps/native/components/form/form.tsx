@@ -15,11 +15,13 @@ import {
 } from "react-native";
 import Animated, { Easing, FadeInDown } from "react-native-reanimated";
 
+import { FadeInPhoto } from "@/components/form/fade-in-photo";
 import type {
 	FormButtonProps,
 	FormChoiceProps,
 	FormConfirmButtonProps,
 	FormEmptyStateProps,
+	FormErrorStateProps,
 	FormHeroProps,
 	FormLinkProps,
 	FormPhotosProps,
@@ -28,10 +30,12 @@ import type {
 	FormRowProps,
 	FormScreenProps,
 	FormSectionProps,
+	FormSkeletonProps,
 	FormTextFieldProps,
 	FormTextProps,
 	FormToggleProps,
 } from "@/components/form/types";
+import { SKELETON_COUNT } from "@/components/form/types";
 import { staggerDelay, useMotion } from "@/lib/motion";
 import { useColorScheme } from "@/lib/use-color-scheme";
 
@@ -122,7 +126,12 @@ export function FormSection({ title, footer, children }: FormSectionProps) {
 
 export const FormFields = FormSection;
 
-export function FormRow({
+export function FormRow(props: FormRowProps) {
+	return <ListRow {...props} />;
+}
+
+/** A kit row that can also stand for a button in flight, with a spinner at its end. */
+function ListRow({
 	title,
 	subtitle,
 	value,
@@ -130,7 +139,8 @@ export function FormRow({
 	onPress,
 	showsChevron = false,
 	disabled = false,
-}: FormRowProps) {
+	pending = false,
+}: FormRowProps & { pending?: boolean }) {
 	const { theme } = useColorScheme();
 	const color =
 		tone === "destructive"
@@ -143,7 +153,8 @@ export function FormRow({
 		<Pressable
 			accessibilityRole={onPress ? "button" : undefined}
 			onPress={onPress}
-			disabled={disabled || !onPress}
+			disabled={disabled || pending || !onPress}
+			accessibilityState={{ disabled: disabled || pending, busy: pending }}
 			style={[styles.row, disabled && styles.disabled]}
 		>
 			<View style={styles.rowCopy}>
@@ -154,6 +165,7 @@ export function FormRow({
 					</Text>
 				) : null}
 			</View>
+			{pending ? <ActivityIndicator color={color} /> : null}
 			{value ? <Text style={{ color: theme.muted }}>{value}</Text> : null}
 			{showsChevron ? <Text style={{ color: theme.muted }}>›</Text> : null}
 		</Pressable>
@@ -185,6 +197,7 @@ export function FormButton({
 	label,
 	onPress,
 	disabled = false,
+	pending = false,
 	prominent = false,
 }: FormButtonProps) {
 	const { theme } = useColorScheme();
@@ -193,14 +206,16 @@ export function FormButton({
 		return (
 			<Pressable
 				accessibilityRole="button"
+				accessibilityState={{ disabled: disabled || pending, busy: pending }}
 				onPress={onPress}
-				disabled={disabled}
+				disabled={disabled || pending}
 				style={[
 					styles.prominent,
 					{ backgroundColor: theme.primary },
 					disabled && styles.disabled,
 				]}
 			>
+				{pending ? <ActivityIndicator color={theme.background} /> : null}
 				<Text style={[styles.prominentLabel, { color: theme.background }]}>
 					{label}
 				</Text>
@@ -209,11 +224,12 @@ export function FormButton({
 	}
 
 	return (
-		<FormRow
+		<ListRow
 			title={label}
 			tone="accent"
 			onPress={onPress}
 			disabled={disabled}
+			pending={pending}
 		/>
 	);
 }
@@ -226,12 +242,14 @@ export function FormConfirmButton({
 	cancelLabel = "Cancel",
 	onConfirm,
 	disabled = false,
+	pending = false,
 }: FormConfirmButtonProps) {
 	return (
-		<FormRow
+		<ListRow
 			title={label}
 			tone="destructive"
 			disabled={disabled}
+			pending={pending}
 			onPress={() =>
 				Alert.alert(title, message, [
 					{ text: cancelLabel, style: "cancel" },
@@ -259,10 +277,11 @@ export function FormPhotos({ photos }: FormPhotosProps) {
 		<View style={[styles.row, styles.photos]}>
 			{photos.map((photo) => (
 				<View key={photo.id} style={styles.photoColumn}>
-					<Image
-						source={{ uri: photo.uri }}
-						style={styles.photo}
+					<FadeInPhoto
+						key={photo.id}
+						uri={photo.uri}
 						accessibilityLabel={photo.accessibilityLabel}
+						style={[styles.photo, { backgroundColor: theme.border }]}
 					/>
 					<Text style={[styles.footnote, { color: theme.muted }]}>
 						{photo.caption}
@@ -384,6 +403,62 @@ export function FormReveal({ children, index = 0 }: FormRevealProps) {
 	);
 }
 
+export function FormSkeleton({
+	shape,
+	count = SKELETON_COUNT[shape],
+	label,
+}: FormSkeletonProps) {
+	const { theme } = useColorScheme();
+	const block = { backgroundColor: theme.border };
+	const slots = Array.from({ length: count }, (_, index) => index);
+
+	return (
+		<View accessible accessibilityLabel={label}>
+			{shape === "photos" ? (
+				<View style={[styles.row, styles.photos]}>
+					{slots.map((index) => (
+						<View key={index} style={styles.photoColumn}>
+							<View style={[styles.photo, block]} />
+							<View style={[styles.skeletonLine, styles.short, block]} />
+						</View>
+					))}
+				</View>
+			) : shape === "choice" ? (
+				<View style={styles.row}>
+					<View style={[styles.skeletonChoice, block]} />
+				</View>
+			) : (
+				slots.map((index) => (
+					<View key={index} style={styles.row}>
+						<View style={[styles.skeletonLine, styles.long, block]} />
+					</View>
+				))
+			)}
+		</View>
+	);
+}
+
+/** A failed read with a way to try it again; shared so every screen fails the same way. */
+export function FormErrorState({
+	message,
+	footer,
+	retrying,
+	onRetry,
+}: FormErrorStateProps) {
+	return (
+		<FormReveal>
+			<FormSection footer={footer}>
+				<FormRow icon="error" title={message} tone="destructive" />
+				<FormButton
+					label={retrying ? "Trying…" : "Try again"}
+					onPress={onRetry}
+					pending={retrying}
+				/>
+			</FormSection>
+		</FormReveal>
+	);
+}
+
 const styles = StyleSheet.create({
 	screen: {
 		padding: 16,
@@ -450,6 +525,8 @@ const styles = StyleSheet.create({
 	prominent: {
 		minHeight: 50,
 		borderRadius: 12,
+		flexDirection: "row",
+		gap: 8,
 		alignItems: "center",
 		justifyContent: "center",
 	},
@@ -481,6 +558,21 @@ const styles = StyleSheet.create({
 		paddingVertical: 8,
 		borderRadius: 8,
 		borderWidth: 1,
+	},
+	skeletonLine: {
+		height: 14,
+		borderRadius: 4,
+	},
+	long: {
+		width: "70%",
+	},
+	short: {
+		width: "50%",
+	},
+	skeletonChoice: {
+		flex: 1,
+		height: 32,
+		borderRadius: 8,
 	},
 	empty: {
 		alignItems: "center",

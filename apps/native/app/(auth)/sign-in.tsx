@@ -96,7 +96,7 @@ export default function SignInScreen() {
 						<FormButton
 							label={isSubmitting ? "Signing in…" : "Sign in"}
 							onPress={() => void form.handleSubmit()}
-							disabled={isSubmitting}
+							pending={isSubmitting}
 							prominent
 						/>
 						<FormSection>

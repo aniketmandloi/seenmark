@@ -5,11 +5,12 @@ import {
 	FormButton,
 	FormConfirmButton,
 	FormEmptyState,
+	FormErrorState,
 	FormLink,
-	FormProgress,
 	FormRow,
 	FormScreen,
 	FormSection,
+	FormSkeleton,
 	FormText,
 } from "@/components/form/form";
 import { useMemberActions, useNextSteps } from "@/lib/use-member-loop";
@@ -24,7 +25,7 @@ export default function NextStepsScreen() {
 		return (
 			<FormScreen>
 				<FormSection>
-					<FormProgress label="Loading your next steps…" />
+					<FormSkeleton shape="steps" label="Loading your next steps" />
 				</FormSection>
 			</FormScreen>
 		);
@@ -42,14 +43,12 @@ export default function NextStepsScreen() {
 			) : null}
 
 			{steps.loadFailed ? (
-				<FormSection footer="Nothing was changed. Pull down or try again.">
-					<FormRow
-						icon="error"
-						title="Your next steps could not load."
-						tone="destructive"
-					/>
-					<FormButton label="Try again" onPress={() => void steps.refresh()} />
-				</FormSection>
+				<FormErrorState
+					message="Your next steps could not load."
+					footer="Nothing was changed. Pull down or try again."
+					retrying={steps.isRefreshing}
+					onRetry={() => void steps.refresh()}
+				/>
 			) : menu ? (
 				<FormSection title={bandLabel ? `${bandLabel} band` : undefined}>
 					{menu.steps.map((step, index) => (

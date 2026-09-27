@@ -15,6 +15,8 @@ import {
 	Row,
 	SegmentedButton,
 	SingleChoiceSegmentedButtonRow,
+	SnackbarHost,
+	type SnackbarHostRef,
 	Text,
 	TextButton,
 	type TextFieldKeyboardOptions,
@@ -31,18 +33,23 @@ import {
 	fillMaxWidth,
 	graphicsLayer,
 	height,
+	type ModifierConfig,
 	onGloballyPositioned,
 	padding,
 	Shapes,
+	size,
 	verticalScroll,
 } from "@expo/ui/jetpack-compose/modifiers";
 import * as ExpoLinking from "expo-linking";
+import { useFocusEffect } from "expo-router";
 import {
 	Children,
 	Fragment,
 	isValidElement,
 	type ReactElement,
 	type ReactNode,
+	useCallback,
+	useRef,
 	useState,
 } from "react";
 import {
@@ -53,11 +60,13 @@ import {
 	View,
 } from "react-native";
 
+import { FadeInPhoto } from "@/components/form/fade-in-photo";
 import type {
 	FormButtonProps,
 	FormChoiceProps,
 	FormConfirmButtonProps,
 	FormEmptyStateProps,
+	FormErrorStateProps,
 	FormFieldsProps,
 	FormHeroProps,
 	FormLinkProps,
@@ -67,16 +76,18 @@ import type {
 	FormRowProps,
 	FormScreenProps,
 	FormSectionProps,
+	FormSkeletonProps,
 	FormTextFieldProps,
 	FormTextProps,
 	FormToggleProps,
 } from "@/components/form/types";
+import { SKELETON_COUNT } from "@/components/form/types";
 import { enter } from "@/lib/compose-motion";
+import { showResultsIn } from "@/lib/feedback";
 import { ICONS } from "@/lib/icons";
 import { staggerDelay, useMotion } from "@/lib/motion";
 import { useColorScheme } from "@/lib/use-color-scheme";
 
-const TRANSPARENT = "#00000000";
 const SCREEN_PADDING = 16;
 const ROW_PADDING = 12;
 const PHOTO_GAP = 10;
@@ -162,6 +173,7 @@ function ScreenBody({ children, primaryAction, onRefresh }: FormScreenProps) {
 					</ExtendedFloatingActionButton.Text>
 				</ExtendedFloatingActionButton>
 			) : null}
+			<ResultHost aboveAction={Boolean(primaryAction)} />
 		</>
 	);
 
@@ -178,6 +190,31 @@ function ScreenBody({ children, primaryAction, onRefresh }: FormScreenProps) {
 		>
 			{content}
 		</PullToRefreshBox>
+	);
+}
+
+/** Shows notifyResult messages while this screen is in front, above its action button. */
+function ResultHost({ aboveAction }: { aboveAction: boolean }) {
+	const host = useRef<SnackbarHostRef>(null);
+
+	useFocusEffect(
+		useCallback(
+			() =>
+				showResultsIn((message) => {
+					void host.current?.showSnackbar({ message });
+				}),
+			[],
+		),
+	);
+
+	return (
+		<SnackbarHost
+			ref={host}
+			modifiers={[
+				align("bottomCenter"),
+				padding(SCREEN_PADDING, 0, SCREEN_PADDING, aboveAction ? 88 : 16),
+			]}
+		/>
 	);
 }
 
@@ -277,7 +314,22 @@ export function FormFields({ title, footer, children }: FormFieldsProps) {
 	);
 }
 
-export function FormRow({
+export function FormRow(props: FormRowProps) {
+	return <ListRow {...props} />;
+}
+
+function Spinner({ color }: { color: string }) {
+	return (
+		<CircularProgressIndicator
+			color={color}
+			strokeWidth={2}
+			modifiers={[size(18, 18)]}
+		/>
+	);
+}
+
+/** A kit row that can also stand for a button in flight, with a spinner at its end. */
+function ListRow({
 	title,
 	subtitle,
 	value,
@@ -286,7 +338,8 @@ export function FormRow({
 	onPress,
 	showsChevron = false,
 	disabled = false,
-}: FormRowProps) {
+	pending = false,
+}: FormRowProps & { pending?: boolean }) {
 	const colors = useMaterialColors();
 	const titleColor =
 		tone === "destructive"
@@ -303,9 +356,9 @@ export function FormRow({
 
 	return (
 		<ListItem
-			colors={{ containerColor: TRANSPARENT }}
+			colors={{ containerColor: "transparent" }}
 			modifiers={[
-				...(onPress && !disabled ? [clickable(onPress)] : []),
+				...(onPress && !disabled && !pending ? [clickable(onPress)] : []),
 				...(disabled ? [alpha(0.38)] : []),
 			]}
 		>
@@ -322,12 +375,13 @@ export function FormRow({
 					<Icon source={ICONS[icon].android} tint={iconColor} size={24} />
 				</ListItem.LeadingContent>
 			) : null}
-			{value || showsChevron ? (
+			{value || showsChevron || pending ? (
 				<ListItem.TrailingContent>
 					<Row
 						verticalAlignment="center"
 						horizontalArrangement={{ spacedBy: 4 }}
 					>
+						{pending ? <Spinner color={iconColor} /> : null}
 						{value ? (
 							<Text color={colors.onSurfaceVariant}>{value}</Text>
 						) : null}
@@ -375,27 +429,34 @@ export function FormButton({
 	onPress,
 	icon,
 	disabled = false,
+	pending = false,
 	prominent = false,
 }: FormButtonProps) {
+	const colors = useMaterialColors();
+
 	if (prominent) {
 		return (
 			<Button
 				onClick={onPress}
-				enabled={!disabled}
+				enabled={!disabled && !pending}
 				modifiers={[fillMaxWidth(), height(52)]}
 			>
-				<Text style={{ typography: "labelLarge" }}>{label}</Text>
+				<Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
+					{pending ? <Spinner color={colors.onSurfaceVariant} /> : null}
+					<Text style={{ typography: "labelLarge" }}>{label}</Text>
+				</Row>
 			</Button>
 		);
 	}
 
 	return (
-		<FormRow
+		<ListRow
 			title={label}
 			icon={icon}
 			tone="accent"
 			onPress={onPress}
 			disabled={disabled}
+			pending={pending}
 		/>
 	);
 }
@@ -409,18 +470,20 @@ export function FormConfirmButton({
 	cancelLabel = "Cancel",
 	onConfirm,
 	disabled = false,
+	pending = false,
 }: FormConfirmButtonProps) {
 	const colors = useMaterialColors();
 	const [isPresented, setIsPresented] = useState(false);
 
 	return (
 		<>
-			<FormRow
+			<ListRow
 				title={label}
 				icon={icon}
 				tone="destructive"
 				onPress={() => setIsPresented(true)}
 				disabled={disabled}
+				pending={pending}
 			/>
 			{isPresented ? (
 				<AlertDialog onDismissRequest={() => setIsPresented(false)}>
@@ -463,13 +526,16 @@ export function FormLink({ label, destination }: FormLinkProps) {
 	);
 }
 
+// Compose has no aspect-ratio modifier, so photos size from the window like the section around them.
+function usePhotoWidth(count: number) {
+	const { width } = useWindowDimensions();
+	const rowWidth = width - SCREEN_PADDING * 2 - ROW_PADDING * 2;
+	return count > 1 ? (rowWidth - PHOTO_GAP * (count - 1)) / count : rowWidth;
+}
+
 export function FormPhotos({ photos }: FormPhotosProps) {
 	const colors = useMaterialColors();
-	const { width } = useWindowDimensions();
-	// Compose has no aspect-ratio modifier, so size from the window like the section around it.
-	const rowWidth = width - SCREEN_PADDING * 2 - ROW_PADDING * 2;
-	const photoWidth =
-		photos.length > 1 ? (rowWidth - PHOTO_GAP) / photos.length : rowWidth;
+	const photoWidth = usePhotoWidth(photos.length);
 
 	return (
 		<Column
@@ -479,18 +545,16 @@ export function FormPhotos({ photos }: FormPhotosProps) {
 				<View style={styles.photoRow}>
 					{photos.map((photo) => (
 						<View key={photo.id} style={{ width: photoWidth }}>
-							<RNImage
-								source={{ uri: photo.uri }}
-								style={[
-									styles.photo,
-									{
-										width: photoWidth,
-										height: (photoWidth * 5) / 4,
-										borderRadius: photos.length > 1 ? 12 : 16,
-									},
-								]}
-								resizeMode="cover"
+							<FadeInPhoto
+								key={photo.id}
+								uri={photo.uri}
 								accessibilityLabel={photo.accessibilityLabel}
+								style={{
+									width: photoWidth,
+									height: (photoWidth * 5) / 4,
+									borderRadius: photos.length > 1 ? 12 : 16,
+									backgroundColor: colors.surfaceContainerHighest,
+								}}
 							/>
 							<RNText
 								style={[styles.caption, { color: colors.onSurfaceVariant }]}
@@ -667,6 +731,130 @@ export function FormReveal({ children, index = 0 }: FormRevealProps) {
 	);
 }
 
+function Placeholder({ modifiers }: { modifiers: ModifierConfig[] }) {
+	const colors = useMaterialColors();
+	return (
+		<Box
+			modifiers={[...modifiers, background(colors.surfaceContainerHighest)]}
+		/>
+	);
+}
+
+const line = (fraction: number, lineHeight = 14) => [
+	fillMaxWidth(fraction),
+	height(lineHeight),
+	clip(Shapes.RoundedCorner(4)),
+];
+
+/** Static blocks in the shape of the content, so it lands where they stood. */
+export function FormSkeleton({
+	shape,
+	count = SKELETON_COUNT[shape],
+	label,
+}: FormSkeletonProps) {
+	const photoWidth = usePhotoWidth(count);
+	const slots = Array.from({ length: count }, (_, index) => index);
+
+	const blocks =
+		shape === "photos" ? (
+			<Row
+				horizontalArrangement={{ spacedBy: PHOTO_GAP }}
+				modifiers={[
+					padding(ROW_PADDING, ROW_PADDING, ROW_PADDING, ROW_PADDING),
+				]}
+			>
+				{slots.map((index) => (
+					<Column key={index} verticalArrangement={{ spacedBy: 6 }}>
+						<Placeholder
+							modifiers={[
+								size(photoWidth, (photoWidth * 5) / 4),
+								clip(Shapes.RoundedCorner(count > 1 ? 12 : 16)),
+							]}
+						/>
+						<Placeholder
+							modifiers={[
+								size(photoWidth * 0.6, 12),
+								clip(Shapes.RoundedCorner(4)),
+							]}
+						/>
+					</Column>
+				))}
+			</Row>
+		) : shape === "choice" ? (
+			<Box
+				modifiers={[
+					fillMaxWidth(),
+					padding(ROW_PADDING, ROW_PADDING, ROW_PADDING, ROW_PADDING),
+				]}
+			>
+				<Placeholder
+					modifiers={[
+						fillMaxWidth(),
+						height(40),
+						clip(Shapes.RoundedCorner(20)),
+					]}
+				/>
+			</Box>
+		) : (
+			<Column modifiers={[fillMaxWidth()]}>
+				{slots.map((index) =>
+					shape === "rows" ? (
+						<Row
+							key={index}
+							verticalAlignment="center"
+							horizontalArrangement={{ spacedBy: 16 }}
+							modifiers={[fillMaxWidth(), padding(16, 18, 24, 18)]}
+						>
+							<Placeholder
+								modifiers={[size(24, 24), clip(Shapes.RoundedCorner(12))]}
+							/>
+							<Placeholder modifiers={line(0.6, 16)} />
+						</Row>
+					) : (
+						<Column
+							key={index}
+							verticalArrangement={{ spacedBy: 8 }}
+							modifiers={[fillMaxWidth(), padding(16, 14, 16, 14)]}
+						>
+							<Placeholder modifiers={line(1)} />
+							<Placeholder modifiers={line(0.7)} />
+						</Column>
+					),
+				)}
+			</Column>
+		);
+
+	// Compose here has no content description for a plain block, but TalkBack still reads
+	// text drawn at zero alpha, so the label rides on an invisible Text over the blocks.
+	return (
+		<Box modifiers={[fillMaxWidth()]}>
+			{blocks}
+			<Text modifiers={[align("center"), alpha(0)]}>{label}</Text>
+		</Box>
+	);
+}
+
+/** A failed read with a way to try it again; shared so every screen fails the same way. */
+export function FormErrorState({
+	message,
+	footer,
+	retrying,
+	onRetry,
+}: FormErrorStateProps) {
+	return (
+		<FormReveal>
+			<FormSection footer={footer}>
+				<FormRow icon="error" title={message} tone="destructive" />
+				<FormButton
+					label={retrying ? "Trying…" : "Try again"}
+					onPress={onRetry}
+					pending={retrying}
+				/>
+			</FormSection>
+		</FormReveal>
+	);
+}
+
 const styles = StyleSheet.create({
 	fill: {
 		flex: 1,
@@ -684,9 +872,6 @@ const styles = StyleSheet.create({
 	photoRow: {
 		flexDirection: "row",
 		gap: PHOTO_GAP,
-	},
-	photo: {
-		backgroundColor: "#D8D8D0",
 	},
 	caption: {
 		fontSize: 12,

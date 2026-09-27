@@ -20,6 +20,10 @@ export const ICONS = {
 		ios: "chevron.right",
 		android: require("@/assets/icons/chevron_right.xml"),
 	},
+	compare: {
+		ios: "square.split.2x1",
+		android: require("@/assets/icons/compare.xml"),
+	},
 	delete: { ios: "trash", android: require("@/assets/icons/delete.xml") },
 	done: {
 		ios: "checkmark.circle.fill",
@@ -34,6 +38,7 @@ export const ICONS = {
 		android: require("@/assets/icons/open_in_new.xml"),
 	},
 	info: { ios: "info.circle", android: require("@/assets/icons/info.xml") },
+	open: { ios: "photo", android: require("@/assets/icons/image.xml") },
 	privacy: {
 		ios: "lock.shield.fill",
 		android: require("@/assets/icons/lock.xml"),

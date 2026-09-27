@@ -35,6 +35,16 @@ export type FormSectionProps = {
 /** A section of inputs; Android lays these out bare instead of inside list rows. */
 export type FormFieldsProps = FormSectionProps;
 
+export type FormRowAction = {
+	label: string;
+	icon?: IconName;
+	disabled?: boolean;
+	destructive?: boolean;
+	/** Asked first, in the same native dialog as FormConfirmButton; onPress runs once confirmed. */
+	confirm?: FormConfirmation;
+	onPress: () => void;
+};
+
 export type FormRowProps = {
 	title: string;
 	subtitle?: string;
@@ -44,6 +54,8 @@ export type FormRowProps = {
 	onPress?: () => void;
 	showsChevron?: boolean;
 	disabled?: boolean;
+	/** iOS: a context menu. Android and the fallback: a long press. */
+	actions?: FormRowAction[];
 };
 
 export type FormTextProps = {
@@ -75,6 +87,11 @@ export type FormConfirmButtonProps = {
 	/** Disabled with an inline spinner; the label passed in still names the action in flight. */
 	pending?: boolean;
 };
+
+export type FormConfirmation = Pick<
+	FormConfirmButtonProps,
+	"title" | "message" | "confirmLabel" | "cancelLabel"
+>;
 
 export type FormLinkProps = {
 	label: string;

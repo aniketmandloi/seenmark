@@ -2,6 +2,7 @@ import {
 	Button,
 	ConfirmationDialog,
 	ContentUnavailableView,
+	ContextMenu,
 	Form,
 	Group,
 	Host,
@@ -41,6 +42,7 @@ import {
 	listRowBackground,
 	listRowInsets,
 	type ModifierConfig,
+	monospacedDigit,
 	multilineTextAlignment,
 	offset,
 	onAppear,
@@ -57,7 +59,7 @@ import {
 	textInputAutocapitalization,
 } from "@expo/ui/swift-ui/modifiers";
 import { Stack } from "expo-router";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { Platform, Image as RNImage, StyleSheet, View } from "react-native";
 
 import { ComparedPhotos } from "@/components/form/compared-photos";
@@ -66,6 +68,7 @@ import type {
 	FormButtonProps,
 	FormChoiceProps,
 	FormCompareSliderProps,
+	FormConfirmation,
 	FormConfirmButtonProps,
 	FormEmptyStateProps,
 	FormErrorStateProps,
@@ -75,6 +78,7 @@ import type {
 	FormPickerProps,
 	FormProgressProps,
 	FormRevealProps,
+	FormRowAction,
 	FormRowProps,
 	FormScreenProps,
 	FormSectionProps,
@@ -211,9 +215,12 @@ export function FormRow({
 	onPress,
 	showsChevron = false,
 	disabled = false,
+	actions,
 }: FormRowProps) {
 	const toneStyle = useToneStyle(tone);
 	const { theme } = useColorScheme();
+	const [confirming, setConfirming] = useState<FormRowAction | null>(null);
+	const [isConfirming, setIsConfirming] = useState(false);
 
 	const content = (
 		<HStack spacing={12}>
@@ -243,7 +250,9 @@ export function FormRow({
 				) : null}
 			</VStack>
 			<Spacer />
-			{value ? <Text modifiers={[secondary]}>{value}</Text> : null}
+			{value ? (
+				<Text modifiers={[secondary, monospacedDigit()]}>{value}</Text>
+			) : null}
 			{showsChevron ? (
 				<Image
 					systemName="chevron.right"
@@ -253,17 +262,58 @@ export function FormRow({
 		</HStack>
 	);
 
-	if (!onPress) return content;
-
-	return (
+	const row = onPress ? (
 		<Button
 			onPress={onPress}
 			modifiers={disabled ? [disableControl(true)] : undefined}
 		>
 			{content}
 		</Button>
+	) : (
+		content
+	);
+
+	if (!actions?.length) return row;
+
+	// The dialog keeps the last action it asked about while it animates away.
+	return (
+		<ConfirmDialog
+			{...(confirming?.confirm ?? NO_CONFIRMATION)}
+			onConfirm={() => confirming?.onPress()}
+			isPresented={isConfirming}
+			onIsPresentedChange={setIsConfirming}
+		>
+			<ContextMenu>
+				<ContextMenu.Trigger>{row}</ContextMenu.Trigger>
+				<ContextMenu.Items>
+					{actions.map((action) => (
+						<Button
+							key={action.label}
+							label={action.label}
+							systemImage={action.icon ? ICONS[action.icon].ios : undefined}
+							role={action.destructive ? "destructive" : undefined}
+							onPress={() => {
+								if (!action.confirm) {
+									action.onPress();
+									return;
+								}
+								setConfirming(action);
+								setIsConfirming(true);
+							}}
+							modifiers={action.disabled ? [disableControl(true)] : undefined}
+						/>
+					))}
+				</ContextMenu.Items>
+			</ContextMenu>
+		</ConfirmDialog>
 	);
 }
+
+const NO_CONFIRMATION: FormConfirmation = {
+	title: "",
+	message: "",
+	confirmLabel: "",
+};
 
 export function FormText({
 	children,
@@ -361,25 +411,62 @@ export function FormConfirmButton({
 	pending = false,
 }: FormConfirmButtonProps) {
 	const modifiers = disabled || pending ? [disableControl(true)] : undefined;
+	const [isPresented, setIsPresented] = useState(false);
+	const present = () => setIsPresented(true);
 
 	return (
-		<ConfirmationDialog title={title} titleVisibility="visible">
-			<ConfirmationDialog.Trigger>
-				{pending ? (
-					// biome-ignore lint/a11y/useValidAriaRole: Expo UI maps this prop to SwiftUI's ButtonRole.
-					<Button role="destructive" modifiers={modifiers}>
-						<PendingLabel label={label} />
-					</Button>
-				) : (
-					// biome-ignore lint/a11y/useValidAriaRole: Expo UI maps this prop to SwiftUI's ButtonRole.
-					<Button
-						label={label}
-						systemImage={icon ? ICONS[icon].ios : undefined}
-						role="destructive"
-						modifiers={modifiers}
-					/>
-				)}
-			</ConfirmationDialog.Trigger>
+		<ConfirmDialog
+			title={title}
+			message={message}
+			confirmLabel={confirmLabel}
+			cancelLabel={cancelLabel}
+			onConfirm={onConfirm}
+			isPresented={isPresented}
+			onIsPresentedChange={setIsPresented}
+		>
+			{pending ? (
+				// biome-ignore lint/a11y/useValidAriaRole: Expo UI maps this prop to SwiftUI's ButtonRole.
+				<Button role="destructive" onPress={present} modifiers={modifiers}>
+					<PendingLabel label={label} />
+				</Button>
+			) : (
+				// biome-ignore lint/a11y/useValidAriaRole: Expo UI maps this prop to SwiftUI's ButtonRole.
+				<Button
+					label={label}
+					systemImage={icon ? ICONS[icon].ios : undefined}
+					role="destructive"
+					onPress={present}
+					modifiers={modifiers}
+				/>
+			)}
+		</ConfirmDialog>
+	);
+}
+
+/** A destructive confirmation attached to `children`, shown while `isPresented`. */
+function ConfirmDialog({
+	title,
+	message,
+	confirmLabel,
+	cancelLabel = "Cancel",
+	onConfirm,
+	isPresented,
+	onIsPresentedChange,
+	children,
+}: FormConfirmation & {
+	onConfirm: () => void;
+	isPresented: boolean;
+	onIsPresentedChange: (isPresented: boolean) => void;
+	children: ReactNode;
+}) {
+	return (
+		<ConfirmationDialog
+			title={title}
+			titleVisibility="visible"
+			isPresented={isPresented}
+			onIsPresentedChange={onIsPresentedChange}
+		>
+			<ConfirmationDialog.Trigger>{children}</ConfirmationDialog.Trigger>
 			<ConfirmationDialog.Message>
 				<Text>{message}</Text>
 			</ConfirmationDialog.Message>

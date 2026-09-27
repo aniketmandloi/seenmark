@@ -5,6 +5,7 @@ import {
 	Checkbox,
 	CircularProgressIndicator,
 	Column,
+	DropdownMenu,
 	DropdownMenuItem,
 	ExposedDropdownMenu,
 	ExposedDropdownMenuBox,
@@ -33,6 +34,7 @@ import {
 	background,
 	clickable,
 	clip,
+	combinedClickable,
 	fillMaxSize,
 	fillMaxWidth,
 	graphicsLayer,
@@ -72,6 +74,7 @@ import type {
 	FormButtonProps,
 	FormChoiceProps,
 	FormCompareSliderProps,
+	FormConfirmation,
 	FormConfirmButtonProps,
 	FormEmptyStateProps,
 	FormErrorStateProps,
@@ -82,6 +85,7 @@ import type {
 	FormPickerProps,
 	FormProgressProps,
 	FormRevealProps,
+	FormRowAction,
 	FormRowProps,
 	FormScreenProps,
 	FormSectionProps,
@@ -358,8 +362,12 @@ function ListRow({
 	showsChevron = false,
 	disabled = false,
 	pending = false,
+	actions,
 }: FormRowProps & { pending?: boolean }) {
 	const colors = useMaterialColors();
+	const [menuExpanded, setMenuExpanded] = useState(false);
+	const [confirming, setConfirming] = useState<FormRowAction | null>(null);
+	const pressable = !disabled && !pending;
 	const titleColor =
 		tone === "destructive"
 			? colors.error
@@ -373,13 +381,22 @@ function ListRow({
 				? colors.primary
 				: colors.onSurfaceVariant;
 
-	return (
+	const gesture =
+		pressable && actions?.length
+			? [
+					combinedClickable({
+						onClick: onPress,
+						onLongClick: () => setMenuExpanded(true),
+					}),
+				]
+			: pressable && onPress
+				? [clickable(onPress)]
+				: [];
+
+	const item = (
 		<ListItem
 			colors={{ containerColor: "transparent" }}
-			modifiers={[
-				...(onPress && !disabled && !pending ? [clickable(onPress)] : []),
-				...(disabled ? [alpha(0.38)] : []),
-			]}
+			modifiers={[...gesture, ...(disabled ? [alpha(0.38)] : [])]}
 		>
 			<ListItem.HeadlineContent>
 				<Text color={titleColor}>{title}</Text>
@@ -415,6 +432,54 @@ function ListRow({
 				</ListItem.TrailingContent>
 			) : null}
 		</ListItem>
+	);
+
+	if (!actions?.length) return item;
+
+	return (
+		<>
+			<DropdownMenu
+				expanded={menuExpanded}
+				onDismissRequest={() => setMenuExpanded(false)}
+				modifiers={[fillMaxWidth()]}
+			>
+				<DropdownMenu.Trigger>{item}</DropdownMenu.Trigger>
+				<DropdownMenu.Items>
+					{actions.map((action) => (
+						<DropdownMenuItem
+							key={action.label}
+							enabled={!action.disabled}
+							elementColors={
+								action.destructive
+									? { textColor: colors.error, leadingIconColor: colors.error }
+									: undefined
+							}
+							onClick={() => {
+								setMenuExpanded(false);
+								if (action.confirm) setConfirming(action);
+								else action.onPress();
+							}}
+						>
+							<DropdownMenuItem.Text>
+								<Text>{action.label}</Text>
+							</DropdownMenuItem.Text>
+							{action.icon ? (
+								<DropdownMenuItem.LeadingIcon>
+									<Icon source={ICONS[action.icon].android} />
+								</DropdownMenuItem.LeadingIcon>
+							) : null}
+						</DropdownMenuItem>
+					))}
+				</DropdownMenu.Items>
+			</DropdownMenu>
+			{confirming?.confirm ? (
+				<ConfirmDialog
+					{...confirming.confirm}
+					onConfirm={confirming.onPress}
+					onDismiss={() => setConfirming(null)}
+				/>
+			) : null}
+		</>
 	);
 }
 
@@ -491,7 +556,6 @@ export function FormConfirmButton({
 	disabled = false,
 	pending = false,
 }: FormConfirmButtonProps) {
-	const colors = useMaterialColors();
 	const [isPresented, setIsPresented] = useState(false);
 
 	return (
@@ -505,32 +569,55 @@ export function FormConfirmButton({
 				pending={pending}
 			/>
 			{isPresented ? (
-				<AlertDialog onDismissRequest={() => setIsPresented(false)}>
-					<AlertDialog.Title>
-						<Text>{title}</Text>
-					</AlertDialog.Title>
-					<AlertDialog.Text>
-						<Text>{message}</Text>
-					</AlertDialog.Text>
-					<AlertDialog.DismissButton>
-						<TextButton onClick={() => setIsPresented(false)}>
-							<Text>{cancelLabel}</Text>
-						</TextButton>
-					</AlertDialog.DismissButton>
-					<AlertDialog.ConfirmButton>
-						<TextButton
-							colors={{ contentColor: colors.error }}
-							onClick={() => {
-								setIsPresented(false);
-								onConfirm();
-							}}
-						>
-							<Text>{confirmLabel}</Text>
-						</TextButton>
-					</AlertDialog.ConfirmButton>
-				</AlertDialog>
+				<ConfirmDialog
+					title={title}
+					message={message}
+					confirmLabel={confirmLabel}
+					cancelLabel={cancelLabel}
+					onConfirm={onConfirm}
+					onDismiss={() => setIsPresented(false)}
+				/>
 			) : null}
 		</>
+	);
+}
+
+/** A destructive confirmation; the caller renders it only while it is shown. */
+function ConfirmDialog({
+	title,
+	message,
+	confirmLabel,
+	cancelLabel = "Cancel",
+	onConfirm,
+	onDismiss,
+}: FormConfirmation & { onConfirm: () => void; onDismiss: () => void }) {
+	const colors = useMaterialColors();
+
+	return (
+		<AlertDialog onDismissRequest={onDismiss}>
+			<AlertDialog.Title>
+				<Text>{title}</Text>
+			</AlertDialog.Title>
+			<AlertDialog.Text>
+				<Text>{message}</Text>
+			</AlertDialog.Text>
+			<AlertDialog.DismissButton>
+				<TextButton onClick={onDismiss}>
+					<Text>{cancelLabel}</Text>
+				</TextButton>
+			</AlertDialog.DismissButton>
+			<AlertDialog.ConfirmButton>
+				<TextButton
+					colors={{ contentColor: colors.error }}
+					onClick={() => {
+						onDismiss();
+						onConfirm();
+					}}
+				>
+					<Text>{confirmLabel}</Text>
+				</TextButton>
+			</AlertDialog.ConfirmButton>
+		</AlertDialog>
 	);
 }
 

@@ -1,4 +1,4 @@
-import { formatDate } from "@seenmark/api/check-in-dates";
+import { formatDate, relativeTime } from "@seenmark/api/check-in-dates";
 import { useQuery } from "@tanstack/react-query";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
@@ -8,6 +8,7 @@ import {
 	FormEmptyState,
 	FormErrorState,
 	FormPhotos,
+	FormReveal,
 	FormRow,
 	FormScreen,
 	FormSection,
@@ -27,6 +28,7 @@ export default function CheckInScreen() {
 	const [leaving, setLeaving] = useState<CheckInPhoto | null>(null);
 	const photo = useQuery({ ...checkInPhotoQuery(id), enabled: !leaving });
 	const checkIn = leaving ?? photo.data;
+	const [now] = useState(() => Date.now());
 
 	if (!checkIn) {
 		return (
@@ -60,9 +62,11 @@ export default function CheckInScreen() {
 			<Stack.Screen options={{ title: takenOn }} />
 			<FormScreen>
 				{actions.error ? (
-					<FormSection>
-						<FormRow icon="error" title={actions.error} tone="destructive" />
-					</FormSection>
+					<FormReveal>
+						<FormSection>
+							<FormRow icon="error" title={actions.error} tone="destructive" />
+						</FormSection>
+					</FormReveal>
 				) : null}
 				<FormSection footer="Only you can see this photo.">
 					<FormPhotos
@@ -71,14 +75,14 @@ export default function CheckInScreen() {
 								id: checkIn.id,
 								uri: checkInPhotoUri(checkIn),
 								accessibilityLabel: `Check-in photo from ${takenOn}`,
-								caption: `Taken ${takenOn}`,
+								caption: `Taken ${takenOn} · ${relativeTime(checkIn.takenAt, now)}`,
 							},
 						]}
 					/>
 				</FormSection>
 				<FormSection>
 					<FormConfirmButton
-						label="Delete photo"
+						label={actions.isDeleting ? "Deleting…" : "Delete photo"}
 						icon="delete"
 						title="Delete this photo?"
 						message="This check-in will be removed from your record."
@@ -90,6 +94,7 @@ export default function CheckInScreen() {
 							else setLeaving(null);
 						}}
 						disabled={actions.isBusy}
+						pending={actions.isDeleting}
 					/>
 				</FormSection>
 			</FormScreen>

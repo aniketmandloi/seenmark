@@ -122,7 +122,7 @@ export function FormScreen({
 					<Stack.Toolbar.Button
 						icon={ICONS[primaryAction.icon].ios}
 						accessibilityLabel={primaryAction.label}
-						disabled={primaryAction.disabled}
+						disabled={primaryAction.disabled || primaryAction.pending}
 						onPress={primaryAction.onPress}
 					/>
 				</Stack.Toolbar>

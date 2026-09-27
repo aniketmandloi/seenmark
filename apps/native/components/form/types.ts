@@ -14,6 +14,8 @@ export type FormScreenProps = {
 		icon: IconName;
 		onPress: () => void;
 		disabled?: boolean;
+		/** Disabled while the action is in flight; Android also shows a spinner in the button. */
+		pending?: boolean;
 	};
 };
 

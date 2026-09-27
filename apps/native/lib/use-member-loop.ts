@@ -11,6 +11,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useEffect, useEffectEvent, useState } from "react";
 import { AppState } from "react-native";
 
+import { confirmDeleted, confirmSaved, notifyResult } from "@/lib/feedback";
 import { queryClient, trpc } from "@/utils/trpc";
 
 export type CheckInPhoto = {
@@ -142,8 +143,37 @@ export function useMemberActions() {
 		return () => subscription.remove();
 	}, [cameraDenied]);
 
-	const record = useMutation(trpc.checkIn.record.mutationOptions());
-	const remove = useMutation(trpc.checkIn.delete.mutationOptions());
+	const record = useMutation(
+		trpc.checkIn.record.mutationOptions({
+			// Stays pending until the record lists the new check-in, so the saving placeholder
+			// hands straight over to its photo, which is seeded rather than downloaded back.
+			onSuccess: (saved, { imageBase64, mediaType }) => {
+				queryClient.setQueryData(
+					trpc.checkIn.photo.queryKey({ id: saved.id }),
+					{ ...saved, imageBase64, mediaType },
+				);
+				return refresh(checkInsKey, reminderKey);
+			},
+		}),
+	);
+	const remove = useMutation(
+		trpc.checkIn.delete.mutationOptions({
+			// Stays pending until the reads it changes are refreshed, so a delete button cannot
+			// be pressed again while the check-in is still listed.
+			onSuccess: async (_, { id }) => {
+				// The photo never goes stale, so it stays readable until evicted; a read still
+				// in flight is cancelled so it cannot put the photo back.
+				const photoKey = trpc.checkIn.photo.queryKey({ id });
+				await queryClient.cancelQueries({ queryKey: photoKey });
+				queryClient.removeQueries({ queryKey: photoKey });
+				// Deleting the last check-in also clears the band.
+				await Promise.all([
+					refresh(checkInsKey, reminderKey, bandKey),
+					forgetMenu(),
+				]);
+			},
+		}),
+	);
 	const choose = useMutation(trpc.score.choose.mutationOptions());
 	const fileIntroduction = useMutation(
 		trpc.introduction.file.mutationOptions(),
@@ -183,7 +213,8 @@ export function useMemberActions() {
 			recordedCaptures.delete(asset.uri);
 			throw cause;
 		}
-		await refresh(checkInsKey, reminderKey);
+		confirmSaved();
+		notifyResult("Check-in saved");
 		return true;
 	}
 
@@ -241,16 +272,8 @@ export function useMemberActions() {
 		setError(null);
 		try {
 			await remove.mutateAsync({ id });
-			// The photo never goes stale, so it stays readable until evicted; a read still
-			// in flight is cancelled so it cannot put the photo back.
-			const photoKey = trpc.checkIn.photo.queryKey({ id });
-			await queryClient.cancelQueries({ queryKey: photoKey });
-			queryClient.removeQueries({ queryKey: photoKey });
-			// Deleting the last check-in also clears the band.
-			await Promise.all([
-				refresh(checkInsKey, reminderKey, bandKey),
-				forgetMenu(),
-			]);
+			confirmDeleted();
+			notifyResult("Check-in deleted");
 			return true;
 		} catch (cause) {
 			setError(messageFrom(cause, "Failed to delete check-in"));
@@ -304,6 +327,7 @@ export function useMemberActions() {
 
 	return {
 		isRecording: record.isPending,
+		isDeleting: remove.isPending,
 		isBusy:
 			record.isPending ||
 			remove.isPending ||

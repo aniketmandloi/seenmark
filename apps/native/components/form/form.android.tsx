@@ -5,6 +5,9 @@ import {
 	Checkbox,
 	CircularProgressIndicator,
 	Column,
+	DropdownMenuItem,
+	ExposedDropdownMenu,
+	ExposedDropdownMenuBox,
 	ExtendedFloatingActionButton,
 	Host,
 	Icon,
@@ -34,6 +37,7 @@ import {
 	graphicsLayer,
 	height,
 	type ModifierConfig,
+	menuAnchor,
 	onGloballyPositioned,
 	padding,
 	Shapes,
@@ -71,6 +75,7 @@ import type {
 	FormHeroProps,
 	FormLinkProps,
 	FormPhotosProps,
+	FormPickerProps,
 	FormProgressProps,
 	FormRevealProps,
 	FormRowProps,
@@ -675,6 +680,58 @@ export function FormChoice<T extends string>({
 				</SegmentedButton>
 			))}
 		</SingleChoiceSegmentedButtonRow>
+	);
+}
+
+export function FormPicker({
+	label,
+	options,
+	selection,
+	onSelectionChange,
+}: FormPickerProps) {
+	const colors = useMaterialColors();
+	const [expanded, setExpanded] = useState(false);
+	const selected = options.find((option) => option.value === selection);
+
+	return (
+		<ExposedDropdownMenuBox
+			expanded={expanded}
+			onExpandedChange={setExpanded}
+			modifiers={[fillMaxWidth()]}
+		>
+			<ListItem
+				colors={{ containerColor: "transparent" }}
+				modifiers={[menuAnchor("primaryNotEditable")]}
+			>
+				<ListItem.HeadlineContent>
+					<Text color={colors.onSurface}>{label}</Text>
+				</ListItem.HeadlineContent>
+				{selected ? (
+					<ListItem.TrailingContent>
+						<Text color={colors.onSurfaceVariant}>{selected.label}</Text>
+					</ListItem.TrailingContent>
+				) : null}
+			</ListItem>
+			<ExposedDropdownMenu
+				expanded={expanded}
+				onDismissRequest={() => setExpanded(false)}
+			>
+				{options.map((option) => (
+					<DropdownMenuItem
+						key={option.value}
+						enabled={!option.disabled}
+						onClick={() => {
+							setExpanded(false);
+							onSelectionChange(option.value);
+						}}
+					>
+						<DropdownMenuItem.Text>
+							<Text>{option.label}</Text>
+						</DropdownMenuItem.Text>
+					</DropdownMenuItem>
+				))}
+			</ExposedDropdownMenu>
+		</ExposedDropdownMenuBox>
 	);
 }
 

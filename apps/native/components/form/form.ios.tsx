@@ -256,6 +256,7 @@ export function FormRow({
 						font({ textStyle: "body" }),
 						foregroundStyle(tone === "destructive" ? "red" : theme.primary),
 						frame({ width: 28 }),
+						accessibilityHidden(true),
 					]}
 				/>
 			) : null}
@@ -281,7 +282,11 @@ export function FormRow({
 			{showsChevron ? (
 				<Image
 					systemName="chevron.right"
-					modifiers={[font({ size: 13, weight: "semibold" }), tertiary]}
+					modifiers={[
+						font({ size: 13, weight: "semibold" }),
+						tertiary,
+						accessibilityHidden(true),
+					]}
 				/>
 			) : null}
 		</HStack>
@@ -363,7 +368,9 @@ function PendingLabel({
 }) {
 	return (
 		<HStack spacing={8} modifiers={modifiers}>
-			<ProgressView modifiers={[controlSize("small")]} />
+			<ProgressView
+				modifiers={[controlSize("small"), accessibilityHidden(true)]}
+			/>
 			<Text>{label}</Text>
 		</HStack>
 	);
@@ -721,6 +728,7 @@ function ChoiceStatusRow({ status }: { status: ChoiceStatus }) {
 					modifiers={[
 						footnote,
 						foregroundStyle(theme.success),
+						accessibilityHidden(true),
 						...(motion.reduced
 							? []
 							: [
@@ -731,7 +739,9 @@ function ChoiceStatusRow({ status }: { status: ChoiceStatus }) {
 					]}
 				/>
 			) : (
-				<ProgressView modifiers={[controlSize("small")]} />
+				<ProgressView
+					modifiers={[controlSize("small"), accessibilityHidden(true)]}
+				/>
 			)}
 			<Text
 				modifiers={[
@@ -832,7 +842,7 @@ export function FormEmptyState({
 			>
 				<Image
 					systemName={ICONS[icon].ios}
-					modifiers={[font({ size: 44 }), secondary]}
+					modifiers={[font({ size: 44 }), secondary, accessibilityHidden(true)]}
 				/>
 				<Text modifiers={[font({ textStyle: "title2", weight: "bold" })]}>
 					{title}

@@ -47,6 +47,7 @@ import {
 	multilineTextAlignment,
 	offset,
 	onAppear,
+	onDisappear,
 	onSubmit,
 	opacity,
 	padding,
@@ -708,6 +709,7 @@ function ChoiceStatusRow({ status }: { status: ChoiceStatus }) {
 							: [
 									symbolEffect({ effect: "appear" }, { isActive: checkShown }),
 									onAppear(() => checkShown.set(true)),
+									onDisappear(() => checkShown.set(false)),
 								]),
 					]}
 				/>

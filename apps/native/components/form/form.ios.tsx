@@ -266,7 +266,7 @@ export function FormRow({
 					modifiers={[
 						font({ textStyle: "body" }),
 						foregroundStyle(tone === "destructive" ? "red" : theme.primary),
-						frame({ width: 28 }),
+						frame({ minWidth: 28 }),
 						accessibilityHidden(true),
 					]}
 				/>
@@ -293,7 +293,7 @@ export function FormRow({
 				<Image
 					systemName="chevron.right"
 					modifiers={[
-						font({ size: 13, weight: "semibold" }),
+						font({ textStyle: "footnote", weight: "semibold" }),
 						tertiary,
 						accessibilityHidden(true),
 					]}

@@ -72,6 +72,7 @@ export function FormScreen({
 					label={primaryAction.label}
 					onPress={primaryAction.onPress}
 					disabled={primaryAction.disabled}
+					pending={primaryAction.pending}
 					prominent
 				/>
 			) : null}

@@ -25,6 +25,7 @@ import type {
 	FormHeroProps,
 	FormLinkProps,
 	FormPhotosProps,
+	FormPickerProps,
 	FormProgressProps,
 	FormRevealProps,
 	FormRowProps,
@@ -368,6 +369,40 @@ export function FormChoice<T extends string>({
 				);
 			})}
 		</View>
+	);
+}
+
+export function FormPicker({
+	label,
+	options,
+	selection,
+	onSelectionChange,
+}: FormPickerProps) {
+	const [expanded, setExpanded] = useState(false);
+	const selected = options.find((option) => option.value === selection);
+
+	return (
+		<>
+			<ListRow
+				title={label}
+				value={selected?.label}
+				onPress={() => setExpanded(!expanded)}
+			/>
+			{expanded
+				? options.map((option) => (
+						<ListRow
+							key={option.value}
+							title={option.label}
+							value={option.value === selection ? "✓" : undefined}
+							disabled={option.disabled}
+							onPress={() => {
+								setExpanded(false);
+								onSelectionChange(option.value);
+							}}
+						/>
+					))
+				: null}
+		</>
 	);
 }
 

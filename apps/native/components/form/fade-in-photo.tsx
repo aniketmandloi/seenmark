@@ -47,11 +47,12 @@ export function FadeInPhoto({
 					style={StyleSheet.absoluteFill}
 					resizeMode="cover"
 					onLoad={() => {
-						if (motion.reduced) return;
-						opacity.value = withTiming(1, {
-							duration: motion.base,
-							easing: Easing.out(Easing.quad),
-						});
+						opacity.value = motion.reduced
+							? 1
+							: withTiming(1, {
+									duration: motion.base,
+									easing: Easing.out(Easing.quad),
+								});
 					}}
 				/>
 			</Animated.View>

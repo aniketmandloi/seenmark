@@ -69,6 +69,7 @@ import type {
 	FormHeroProps,
 	FormLinkProps,
 	FormPhotosProps,
+	FormPickerProps,
 	FormProgressProps,
 	FormRevealProps,
 	FormRowProps,
@@ -509,6 +510,34 @@ export function FormChoice<T extends string>({
 		>
 			{options.map((option) => (
 				<Text key={option.value} modifiers={[tag(option.value)]}>
+					{option.label}
+				</Text>
+			))}
+		</Picker>
+	);
+}
+
+export function FormPicker({
+	label,
+	options,
+	selection,
+	onSelectionChange,
+}: FormPickerProps) {
+	return (
+		<Picker
+			label={label}
+			selection={selection}
+			onSelectionChange={onSelectionChange}
+			modifiers={[pickerStyle("menu")]}
+		>
+			{options.map((option) => (
+				<Text
+					key={option.value}
+					modifiers={[
+						tag(option.value),
+						...(option.disabled ? [disableControl(true)] : []),
+					]}
+				>
 					{option.label}
 				</Text>
 			))}

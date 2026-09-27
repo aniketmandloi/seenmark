@@ -116,6 +116,13 @@ export type FormChoiceProps<T extends string> = {
 	disabled?: boolean;
 };
 
+export type FormPickerProps = {
+	label: string;
+	options: { value: string; label: string; disabled?: boolean }[];
+	selection: string;
+	onSelectionChange: (value: string) => void;
+};
+
 export type FormRevealProps = {
 	children: ReactNode;
 	/** Position among the reveals on screen; each step starts one stagger later. */

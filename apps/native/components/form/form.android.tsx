@@ -1,5 +1,6 @@
 import {
 	AlertDialog,
+	AnimatedVisibility,
 	Box,
 	Button,
 	Checkbox,
@@ -7,6 +8,8 @@ import {
 	Column,
 	DropdownMenu,
 	DropdownMenuItem,
+	EnterTransition,
+	ExitTransition,
 	ExposedDropdownMenu,
 	ExposedDropdownMenuBox,
 	ExtendedFloatingActionButton,
@@ -68,6 +71,10 @@ import {
 	View,
 } from "react-native";
 
+import {
+	type ChoiceStatus,
+	useChoiceStatus,
+} from "@/components/form/choice-status";
 import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
 import type {
@@ -825,27 +832,82 @@ export function FormChoice<T extends string>({
 	selection,
 	onSelectionChange,
 	disabled = false,
+	pendingValue,
 }: FormChoiceProps<T>) {
+	const status = useChoiceStatus(pendingValue, selection);
+
 	return (
-		<SingleChoiceSegmentedButtonRow
+		<Column
 			modifiers={[
 				fillMaxWidth(),
 				padding(ROW_PADDING, ROW_PADDING, ROW_PADDING, ROW_PADDING),
 			]}
 		>
-			{options.map((option) => (
-				<SegmentedButton
-					key={option.value}
-					selected={selection === option.value}
-					enabled={!disabled}
-					onClick={() => onSelectionChange(option.value)}
+			<SingleChoiceSegmentedButtonRow modifiers={[fillMaxWidth()]}>
+				{options.map((option) => (
+					<SegmentedButton
+						key={option.value}
+						selected={selection === option.value}
+						enabled={!disabled && pendingValue === undefined}
+						onClick={() => onSelectionChange(option.value)}
+					>
+						<SegmentedButton.Label>
+							<Text>{option.label}</Text>
+						</SegmentedButton.Label>
+					</SegmentedButton>
+				))}
+			</SingleChoiceSegmentedButtonRow>
+			<ChoiceStatusRow status={status} />
+		</Column>
+	);
+}
+
+/** A segmented button can't hold a spinner, so a save shows in a line under the row. */
+function ChoiceStatusRow({ status }: { status: ChoiceStatus | null }) {
+	const colors = useMaterialColors();
+	const motion = useMotion();
+	const { theme } = useColorScheme();
+	const statusLine = (icon: ReactNode, label: string) => (
+		<Row
+			verticalAlignment="center"
+			horizontalArrangement={{ spacedBy: 8 }}
+			modifiers={[padding(4, 10, 4, 0)]}
+		>
+			{icon}
+			<Text color={colors.onSurfaceVariant} style={{ typography: "bodySmall" }}>
+				{label}
+			</Text>
+		</Row>
+	);
+	const saved = statusLine(
+		<Icon source={ICONS.done.android} tint={theme.success} size={18} />,
+		"Saved",
+	);
+
+	// AnimatedVisibility takes no animation spec to snap, so under reduced motion it is skipped.
+	return (
+		<>
+			{status === "saving"
+				? statusLine(<Spinner color={colors.onSurfaceVariant} />, "Saving…")
+				: null}
+			{motion.reduced ? (
+				status === "saved" ? (
+					saved
+				) : null
+			) : (
+				<AnimatedVisibility
+					visible={status === "saved"}
+					enterTransition={EnterTransition.fadeIn().plus(
+						EnterTransition.scaleIn({ initialScale: 0.9 }),
+					)}
+					exitTransition={ExitTransition.fadeOut().plus(
+						ExitTransition.shrinkVertically(),
+					)}
 				>
-					<SegmentedButton.Label>
-						<Text>{option.label}</Text>
-					</SegmentedButton.Label>
-				</SegmentedButton>
-			))}
-		</SingleChoiceSegmentedButtonRow>
+					{saved}
+				</AnimatedVisibility>
+			)}
+		</>
 	);
 }
 

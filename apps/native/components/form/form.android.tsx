@@ -49,6 +49,7 @@ import {
 	padding,
 	Shapes,
 	size,
+	toggleable,
 	verticalScroll,
 	weight,
 } from "@expo/ui/jetpack-compose/modifiers";
@@ -838,11 +839,12 @@ export function FormToggle({ label, value, onValueChange }: FormToggleProps) {
 			modifiers={[
 				fillMaxWidth(),
 				clip(Shapes.RoundedCorner(12)),
-				clickable(() => onValueChange(!value)),
+				toggleable(value, () => onValueChange(!value), { role: "checkbox" }),
 				padding(0, 2, 12, 2),
 			]}
 		>
-			<Checkbox value={value} onCheckedChange={onValueChange} />
+			{/* Without its own handler the box merges into the row, so TalkBack reads one checkbox with the label. */}
+			<Checkbox value={value} />
 			<Text color={colors.onSurface} style={{ typography: "bodyLarge" }}>
 				{label}
 			</Text>

@@ -150,6 +150,13 @@ export type FormPickerProps = {
 	onSelectionChange: (value: string) => void;
 };
 
+/** One step of a numbered list, shown as "01"; screen readers hear "Step 1 of 3: …" instead. */
+export type FormStepProps = {
+	number: number;
+	total: number;
+	text: string;
+};
+
 export type FormRevealProps = {
 	children: ReactNode;
 	/** Position among the reveals on screen; each step starts one stagger later. */

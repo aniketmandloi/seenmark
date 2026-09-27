@@ -89,6 +89,7 @@ import type {
 	FormScreenProps,
 	FormSectionProps,
 	FormSkeletonProps,
+	FormStepProps,
 	FormTextFieldProps,
 	FormTextProps,
 	FormToggleProps,
@@ -747,6 +748,33 @@ export function FormPicker({
 	);
 }
 
+export function FormStep({ number, total, text }: FormStepProps) {
+	const { theme } = useColorScheme();
+
+	return (
+		<HStack
+			alignment="firstTextBaseline"
+			spacing={14}
+			modifiers={[
+				padding({ vertical: 6 }),
+				accessibilityElement("ignore"),
+				accessibilityLabel(`Step ${number} of ${total}: ${text}`),
+			]}
+		>
+			<Text
+				modifiers={[
+					font({ textStyle: "title3", weight: "semibold" }),
+					monospacedDigit(),
+					foregroundStyle(theme.primary),
+				]}
+			>
+				{String(number).padStart(2, "0")}
+			</Text>
+			<Text>{text}</Text>
+		</HStack>
+	);
+}
+
 export function FormEmptyState({
 	icon,
 	title,
@@ -887,7 +915,11 @@ export function FormSkeleton({
 					{shape === "rows" ? (
 						<FormRow icon="camera" title={PLACEHOLDER_DATE} />
 					) : (
-						<FormText>{PLACEHOLDER_STEP}</FormText>
+						<FormStep
+							number={index + 1}
+							total={count}
+							text={PLACEHOLDER_STEP}
+						/>
 					)}
 				</Group>
 			))}

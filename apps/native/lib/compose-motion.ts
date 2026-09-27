@@ -20,10 +20,3 @@ export function enter(
 				easing: "linearOutSlowIn",
 			});
 }
-
-/** How something leaves over `duration` ms; it jumps straight there under reduced motion. */
-export function exit(motion: Motion, duration: number): AnimationSpec {
-	return motion.reduced
-		? snap()
-		: tween({ durationMillis: duration, easing: "fastOutLinearIn" });
-}

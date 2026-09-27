@@ -1,6 +1,11 @@
 import { router, Stack } from "expo-router";
 
-import { FormButton, FormEmptyState, FormScreen } from "@/components/form/form";
+import {
+	FormButton,
+	FormEmptyState,
+	FormReveal,
+	FormScreen,
+} from "@/components/form/form";
 import { useStackScreenOptions } from "@/lib/native-chrome";
 
 export default function NotFoundScreen() {
@@ -12,16 +17,20 @@ export default function NotFoundScreen() {
 				options={{ ...screenOptions, headerShown: true, title: "Not found" }}
 			/>
 			<FormScreen>
-				<FormEmptyState
-					icon="info"
-					title="We can’t find that page."
-					description="Your check-ins are still right where you left them."
-				/>
-				<FormButton
-					label="Back to check-ins"
-					onPress={() => router.replace("/")}
-					prominent
-				/>
+				<FormReveal>
+					<FormEmptyState
+						icon="info"
+						title="We can’t find that page."
+						description="Your check-ins are still right where you left them."
+					/>
+				</FormReveal>
+				<FormReveal index={1}>
+					<FormButton
+						label="Back to check-ins"
+						onPress={() => router.replace("/")}
+						prominent
+					/>
+				</FormReveal>
 			</FormScreen>
 		</>
 	);

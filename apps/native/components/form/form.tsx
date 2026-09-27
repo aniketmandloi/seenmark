@@ -85,24 +85,43 @@ export function FormScreen({
 	);
 }
 
+function HeroPart({
+	reveal,
+	index,
+	children,
+}: FormRevealProps & { reveal: boolean }) {
+	return reveal ? <FormReveal index={index}>{children}</FormReveal> : children;
+}
+
 export function FormHero({
 	eyebrow,
 	title,
 	description,
 	image,
+	reveal = false,
 }: FormHeroProps) {
 	const { theme } = useColorScheme();
 
 	return (
 		<View style={styles.hero}>
-			{image ? <Image source={image} style={styles.heroImage} /> : null}
-			{eyebrow ? (
-				<Text style={[styles.eyebrow, { color: theme.primary }]}>
-					{eyebrow.toUpperCase()}
-				</Text>
+			{image ? (
+				<HeroPart reveal={reveal} index={0}>
+					<Image source={image} style={styles.heroImage} />
+				</HeroPart>
 			) : null}
-			<Text style={[styles.heroTitle, { color: theme.text }]}>{title}</Text>
-			<Text style={[styles.body, { color: theme.muted }]}>{description}</Text>
+			{eyebrow ? (
+				<HeroPart reveal={reveal} index={1}>
+					<Text style={[styles.eyebrow, { color: theme.primary }]}>
+						{eyebrow.toUpperCase()}
+					</Text>
+				</HeroPart>
+			) : null}
+			<HeroPart reveal={reveal} index={2}>
+				<Text style={[styles.heroTitle, { color: theme.text }]}>{title}</Text>
+			</HeroPart>
+			<HeroPart reveal={reveal} index={3}>
+				<Text style={[styles.body, { color: theme.muted }]}>{description}</Text>
+			</HeroPart>
 		</View>
 	);
 }

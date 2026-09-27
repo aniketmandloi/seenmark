@@ -24,6 +24,8 @@ export type FormHeroProps = {
 	title: string;
 	description: string;
 	image?: ImageSourcePropType;
+	/** Staggers the image, eyebrow, title, and description in as reveals 0–3, on first mount only. */
+	reveal?: boolean;
 };
 
 export type FormSectionProps = {

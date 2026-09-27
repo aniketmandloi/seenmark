@@ -7,6 +7,7 @@ import z from "zod";
 import {
 	FormButton,
 	FormFields,
+	FormReveal,
 	FormRow,
 	FormScreen,
 	FormSection,
@@ -14,6 +15,7 @@ import {
 	FormToggle,
 } from "@/components/form/form";
 import { authClient } from "@/lib/auth-client";
+import { announce } from "@/lib/feedback";
 import { getErrorMessage } from "@/lib/form-error";
 import { queryClient, trpc } from "@/utils/trpc";
 
@@ -40,6 +42,11 @@ export default function SignUpScreen() {
 	const [error, setError] = useState<string | null>(null);
 	const openAccount = useMutation(trpc.member.openAccount.mutationOptions());
 
+	function fail(message: string) {
+		setError(message);
+		announce(message);
+	}
+
 	const form = useForm({
 		defaultValues: {
 			name: "",
@@ -49,9 +56,13 @@ export default function SignUpScreen() {
 			affirmedInUnitedStates: false,
 		},
 		validators: { onSubmit: signUpSchema },
+		onSubmitInvalid: ({ formApi }) => {
+			const message = getErrorMessage(formApi.state.errorMap.onSubmit);
+			if (message) announce(message);
+		},
 		onSubmit: async ({ value }) => {
 			if (!value.affirmedAtLeast18 || !value.affirmedInUnitedStates) {
-				setError("Confirm both statements to create an account.");
+				fail("Confirm both statements to create an account.");
 				return;
 			}
 
@@ -68,7 +79,7 @@ export default function SignUpScreen() {
 					password: value.password,
 				});
 				if (signedIn.error) {
-					setError(
+					fail(
 						signedIn.error.message ||
 							"Account created. Please sign in to continue.",
 					);
@@ -77,9 +88,7 @@ export default function SignUpScreen() {
 				setError(null);
 				await queryClient.refetchQueries();
 			} catch (cause) {
-				setError(
-					cause instanceof Error ? cause.message : "Failed to open account",
-				);
+				fail(cause instanceof Error ? cause.message : "Failed to open account");
 			}
 		},
 	});
@@ -97,9 +106,11 @@ export default function SignUpScreen() {
 				return (
 					<FormScreen>
 						{formError ? (
-							<FormSection>
-								<FormRow icon="error" title={formError} tone="destructive" />
-							</FormSection>
+							<FormReveal key={formError}>
+								<FormSection>
+									<FormRow icon="error" title={formError} tone="destructive" />
+								</FormSection>
+							</FormReveal>
 						) : null}
 						<FormFields title="Your details">
 							<form.Field name="name">

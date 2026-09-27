@@ -249,11 +249,20 @@ function ResultHost({ aboveAction }: { aboveAction: boolean }) {
 	);
 }
 
+function HeroPart({
+	reveal,
+	index,
+	children,
+}: FormRevealProps & { reveal: boolean }) {
+	return reveal ? <FormReveal index={index}>{children}</FormReveal> : children;
+}
+
 export function FormHero({
 	eyebrow,
 	title,
 	description,
 	image,
+	reveal = false,
 }: FormHeroProps) {
 	const colors = useMaterialColors();
 
@@ -263,23 +272,34 @@ export function FormHero({
 			modifiers={[fillMaxWidth(), padding(8, 16, 8, 0)]}
 		>
 			{image ? (
-				<RNHostView matchContents>
-					<View pointerEvents="none" style={styles.heroImageFrame}>
-						<RNImage source={image} style={styles.heroImage} />
-					</View>
-				</RNHostView>
+				<HeroPart reveal={reveal} index={0}>
+					<RNHostView matchContents>
+						<View pointerEvents="none" style={styles.heroImageFrame}>
+							<RNImage source={image} style={styles.heroImage} />
+						</View>
+					</RNHostView>
+				</HeroPart>
 			) : null}
 			{eyebrow ? (
-				<Text color={colors.primary} style={{ typography: "labelLarge" }}>
-					{eyebrow.toUpperCase()}
-				</Text>
+				<HeroPart reveal={reveal} index={1}>
+					<Text color={colors.primary} style={{ typography: "labelLarge" }}>
+						{eyebrow.toUpperCase()}
+					</Text>
+				</HeroPart>
 			) : null}
-			<Text color={colors.onSurface} style={{ typography: "headlineLarge" }}>
-				{title}
-			</Text>
-			<Text color={colors.onSurfaceVariant} style={{ typography: "bodyLarge" }}>
-				{description}
-			</Text>
+			<HeroPart reveal={reveal} index={2}>
+				<Text color={colors.onSurface} style={{ typography: "headlineLarge" }}>
+					{title}
+				</Text>
+			</HeroPart>
+			<HeroPart reveal={reveal} index={3}>
+				<Text
+					color={colors.onSurfaceVariant}
+					style={{ typography: "bodyLarge" }}
+				>
+					{description}
+				</Text>
+			</HeroPart>
 		</Column>
 	);
 }

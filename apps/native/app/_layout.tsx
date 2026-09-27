@@ -7,7 +7,7 @@ import {
 } from "expo-router/react-navigation";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
@@ -27,6 +27,9 @@ const DARK_THEME = {
 	colors: NAV_THEME.dark,
 };
 
+// Signing in or out swaps these stacks, which cross-fade instead of pushing.
+const SWAPPED_STACK = { animation: "fade" } as const;
+
 // Held until the stored session is read, so a signed-in member never sees the welcome screen flash.
 void SplashScreen.preventAutoHideAsync();
 connectQueryLifecycle();
@@ -35,12 +38,20 @@ export default function RootLayout() {
 	const { isDarkColorScheme } = useColorScheme();
 	const { data: session, isPending } = authClient.useSession();
 	const isSignedIn = Boolean(session?.user);
+	// isPending turns true again whenever a signed-out session refetches, so only the first read
+	// gates the stack.
+	const [isSessionRead, setIsSessionRead] = useState(false);
+	if (!isPending && !isSessionRead) setIsSessionRead(true);
 	// Before the member screens render, so none reads a previous member's cache.
 	if (!isPending) claimMemberCache(session?.user.id ?? null);
 
 	useEffect(() => {
-		if (!isPending) SplashScreen.hide();
-	}, [isPending]);
+		if (isSessionRead) SplashScreen.hide();
+	}, [isSessionRead]);
+
+	// Without a stack until then, the welcome screen can't mount under the splash, play its
+	// entrance unseen, and cross-fade out as a signed-in member's tabs replace it.
+	if (!isSessionRead) return null;
 
 	return (
 		<QueryClientProvider client={queryClient}>
@@ -49,10 +60,10 @@ export default function RootLayout() {
 				<GestureHandlerRootView style={styles.container}>
 					<Stack screenOptions={{ headerShown: false }}>
 						<Stack.Protected guard={isSignedIn}>
-							<Stack.Screen name="(tabs)" />
+							<Stack.Screen name="(tabs)" options={SWAPPED_STACK} />
 						</Stack.Protected>
 						<Stack.Protected guard={!isSignedIn}>
-							<Stack.Screen name="(auth)" />
+							<Stack.Screen name="(auth)" options={SWAPPED_STACK} />
 						</Stack.Protected>
 						<Stack.Screen
 							name="about"

@@ -6,12 +6,14 @@ import z from "zod";
 import {
 	FormButton,
 	FormFields,
+	FormReveal,
 	FormRow,
 	FormScreen,
 	FormSection,
 	FormTextField,
 } from "@/components/form/form";
 import { authClient } from "@/lib/auth-client";
+import { announce } from "@/lib/feedback";
 import { getErrorMessage } from "@/lib/form-error";
 import { queryClient } from "@/utils/trpc";
 
@@ -30,15 +32,24 @@ const signInSchema = z.object({
 export default function SignInScreen() {
 	const [error, setError] = useState<string | null>(null);
 
+	function fail(message: string) {
+		setError(message);
+		announce(message);
+	}
+
 	const form = useForm({
 		defaultValues: { email: "", password: "" },
 		validators: { onSubmit: signInSchema },
+		onSubmitInvalid: ({ formApi }) => {
+			const message = getErrorMessage(formApi.state.errorMap.onSubmit);
+			if (message) announce(message);
+		},
 		onSubmit: async ({ value }) => {
 			await authClient.signIn.email(
 				{ email: value.email.trim(), password: value.password },
 				{
 					onError(error) {
-						setError(error.error?.message || "Failed to sign in");
+						fail(error.error?.message || "Failed to sign in");
 					},
 					onSuccess() {
 						setError(null);
@@ -61,9 +72,11 @@ export default function SignInScreen() {
 				return (
 					<FormScreen>
 						{formError ? (
-							<FormSection>
-								<FormRow icon="error" title={formError} tone="destructive" />
-							</FormSection>
+							<FormReveal key={formError}>
+								<FormSection>
+									<FormRow icon="error" title={formError} tone="destructive" />
+								</FormSection>
+							</FormReveal>
 						) : null}
 						<FormFields>
 							<form.Field name="email">

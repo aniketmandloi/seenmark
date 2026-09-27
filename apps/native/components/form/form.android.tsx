@@ -43,6 +43,7 @@ import {
 	graphicsLayer,
 	height,
 	type ModifierConfig,
+	matchParentSize,
 	menuAnchor,
 	onGloballyPositioned,
 	padding,
@@ -736,7 +737,7 @@ export function FormCompareSlider({ earlier, latest }: FormCompareSliderProps) {
 				</View>
 			</RNHostView>
 			<Box modifiers={[fillMaxWidth(), padding(0, 6, 0, 0)]}>
-				<Text modifiers={[align("center"), alpha(0)]}>
+				<Text color="transparent" modifiers={[matchParentSize()]}>
 					Divider between the earlier and latest photos
 				</Text>
 				<Row
@@ -989,7 +990,7 @@ export function FormStep({ number, total, text }: FormStepProps) {
 	const colors = useMaterialColors();
 
 	// Compose here can't hide text from TalkBack, so React Native draws the number and hides it
-	// there, and "Step 1 of 3:" rides on an invisible Text ahead of the step.
+	// there, and "Step 1 of 3:" rides on transparent text ahead of the step.
 	return (
 		<ListItem colors={{ containerColor: "transparent" }}>
 			<ListItem.LeadingContent>
@@ -1003,7 +1004,9 @@ export function FormStep({ number, total, text }: FormStepProps) {
 			</ListItem.LeadingContent>
 			<ListItem.HeadlineContent>
 				<Box>
-					<Text modifiers={[alpha(0)]}>{`Step ${number} of ${total}:`}</Text>
+					<Text color="transparent" modifiers={[matchParentSize()]}>
+						{`Step ${number} of ${total}:`}
+					</Text>
 					<Text color={colors.onSurface}>{text}</Text>
 				</Box>
 			</ListItem.HeadlineContent>
@@ -1166,12 +1169,15 @@ export function FormSkeleton({
 			</Column>
 		);
 
-	// Compose here has no content description for a plain block, but TalkBack still reads
-	// text drawn at zero alpha, so the label rides on an invisible Text over the blocks.
+	// Compose here has no content description for a plain block, so the label rides on text
+	// over the blocks. It is drawn in a transparent color, not at zero alpha: TalkBack skips a
+	// node on a fully transparent layer. matchParentSize keeps it from sizing the Box.
 	return (
 		<Box modifiers={[fillMaxWidth()]}>
 			{blocks}
-			<Text modifiers={[align("center"), alpha(0)]}>{label}</Text>
+			<Text color="transparent" modifiers={[matchParentSize()]}>
+				{label}
+			</Text>
 		</Box>
 	);
 }

@@ -969,9 +969,9 @@ export function FormPicker({
 					<Text color={colors.onSurface}>{label}</Text>
 				</ListItem.HeadlineContent>
 				{selected ? (
-					<ListItem.TrailingContent>
+					<ListItem.SupportingContent>
 						<Text color={colors.onSurfaceVariant}>{selected.label}</Text>
-					</ListItem.TrailingContent>
+					</ListItem.SupportingContent>
 				) : null}
 			</ListItem>
 			<ExposedDropdownMenu

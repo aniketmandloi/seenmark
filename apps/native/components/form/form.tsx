@@ -222,7 +222,15 @@ function ListRow({
 			</View>
 			{pending ? <ActivityIndicator color={color} /> : null}
 			{value ? <Text style={{ color: theme.muted }}>{value}</Text> : null}
-			{showsChevron ? <Text style={{ color: theme.muted }}>›</Text> : null}
+			{showsChevron ? (
+				<Text
+					accessibilityElementsHidden
+					importantForAccessibility="no"
+					style={{ color: theme.muted }}
+				>
+					›
+				</Text>
+			) : null}
 		</Pressable>
 	);
 }
@@ -433,6 +441,7 @@ export function FormTextField({
 
 	return (
 		<TextInput
+			accessibilityLabel={placeholder}
 			placeholder={placeholder}
 			placeholderTextColor={theme.muted}
 			secureTextEntry={kind === "password" || kind === "newPassword"}
@@ -451,7 +460,11 @@ export function FormToggle({ label, value, onValueChange }: FormToggleProps) {
 	return (
 		<View style={styles.row}>
 			<Text style={[styles.rowCopy, { color: theme.text }]}>{label}</Text>
-			<Switch value={value} onValueChange={onValueChange} />
+			<Switch
+				accessibilityLabel={label}
+				value={value}
+				onValueChange={onValueChange}
+			/>
 		</View>
 	);
 }

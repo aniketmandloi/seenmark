@@ -12,6 +12,7 @@ import { useEffect, useEffectEvent, useState } from "react";
 import { AppState } from "react-native";
 
 import {
+	announce,
 	confirmChoice,
 	confirmDeleted,
 	confirmSaved,
@@ -328,6 +329,7 @@ export function useMemberActions() {
 		try {
 			await fileIntroduction.mutateAsync();
 			confirmSaved();
+			announce("Introduction request saved");
 		} catch (cause) {
 			setError(messageFrom(cause, "Failed to file an introduction"));
 		}
@@ -338,6 +340,7 @@ export function useMemberActions() {
 		try {
 			await deleteIntroduction.mutateAsync();
 			confirmDeleted();
+			announce("Introduction request deleted");
 		} catch (cause) {
 			setError(messageFrom(cause, "Failed to delete the introduction"));
 		}

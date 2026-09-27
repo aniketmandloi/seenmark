@@ -14,6 +14,7 @@ import {
 	RoundedRectangle,
 	Section,
 	SecureField,
+	Slider,
 	Spacer,
 	Text,
 	TextField,
@@ -59,10 +60,12 @@ import { Stack } from "expo-router";
 import { useState } from "react";
 import { Platform, Image as RNImage, StyleSheet, View } from "react-native";
 
+import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
 import type {
 	FormButtonProps,
 	FormChoiceProps,
+	FormCompareSliderProps,
 	FormConfirmButtonProps,
 	FormEmptyStateProps,
 	FormErrorStateProps,
@@ -427,6 +430,54 @@ export function FormPhotos({ photos }: FormPhotosProps) {
 				</VStack>
 			))}
 		</HStack>
+	);
+}
+
+export function FormCompareSlider({ earlier, latest }: FormCompareSliderProps) {
+	const [position, setPosition] = useState(50);
+	const caption = [font({ textStyle: "footnote" }), secondary];
+
+	// iOS never draws a slider's label; VoiceOver reads it.
+	return (
+		<VStack
+			alignment="leading"
+			spacing={6}
+			modifiers={[
+				listRowInsets({ top: 12, leading: 12, bottom: 12, trailing: 12 }),
+			]}
+		>
+			<VStack
+				modifiers={[
+					aspectRatio({ ratio: 4 / 5, contentMode: "fit" }),
+					background({ type: "hierarchical", style: "quaternary" }),
+					clipShape("roundedRectangle", 16),
+				]}
+			>
+				<RNHostView>
+					<ComparedPhotos
+						earlier={earlier}
+						latest={latest}
+						position={position}
+						style={styles.fill}
+					/>
+				</RNHostView>
+			</VStack>
+			<HStack>
+				<Text modifiers={caption}>{earlier.caption}</Text>
+				<Spacer />
+				<Text modifiers={caption}>{latest.caption}</Text>
+			</HStack>
+			<Slider
+				value={position}
+				min={0}
+				max={100}
+				onValueChange={setPosition}
+				label={<Text>Divider between the earlier and latest photos</Text>}
+				minimumValueLabel={<Text modifiers={caption}>Earlier</Text>}
+				maximumValueLabel={<Text modifiers={caption}>Latest</Text>}
+				modifiers={[padding({ top: 6 })]}
+			/>
+		</VStack>
 	);
 }
 

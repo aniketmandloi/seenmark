@@ -91,6 +91,8 @@ export type FormPhotosProps = {
 	photos: FormPhoto[];
 };
 
+export type FormCompareSliderProps = { earlier: FormPhoto; latest: FormPhoto };
+
 export type FormProgressProps = {
 	label: string;
 };

@@ -72,6 +72,7 @@ import {
 } from "@/components/form/choice-status";
 import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
+import { useStackedRows } from "@/components/form/text-scale";
 import type {
 	FormButtonProps,
 	FormChoiceProps,
@@ -252,6 +253,10 @@ export function FormRow({
 	const { theme } = useColorScheme();
 	const [confirming, setConfirming] = useState<FormRowAction | null>(null);
 	const [isConfirming, setIsConfirming] = useState(false);
+	const stacked = useStackedRows();
+	const valueText = value ? (
+		<Text modifiers={[secondary, monospacedDigit()]}>{value}</Text>
+	) : null;
 
 	const content = (
 		<HStack spacing={12}>
@@ -280,11 +285,10 @@ export function FormRow({
 						{subtitle}
 					</Text>
 				) : null}
+				{stacked ? valueText : null}
 			</VStack>
 			<Spacer />
-			{value ? (
-				<Text modifiers={[secondary, monospacedDigit()]}>{value}</Text>
-			) : null}
+			{stacked ? null : valueText}
 			{showsChevron ? (
 				<Image
 					systemName="chevron.right"
@@ -519,13 +523,25 @@ function ConfirmDialog({
 }
 
 export function FormLink({ label, destination }: FormLinkProps) {
+	const stacked = useStackedRows();
+	const host = (
+		<Text modifiers={[secondary]}>{new URL(destination).hostname}</Text>
+	);
+
 	return (
 		<Link destination={destination}>
-			<HStack spacing={12}>
-				<Text>{label}</Text>
-				<Spacer />
-				<Text modifiers={[secondary]}>{new URL(destination).hostname}</Text>
-			</HStack>
+			{stacked ? (
+				<VStack alignment="leading" spacing={2}>
+					<Text>{label}</Text>
+					{host}
+				</VStack>
+			) : (
+				<HStack spacing={12}>
+					<Text>{label}</Text>
+					<Spacer />
+					{host}
+				</HStack>
+			)}
 		</Link>
 	);
 }

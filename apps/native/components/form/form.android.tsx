@@ -79,6 +79,7 @@ import {
 } from "@/components/form/choice-status";
 import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
+import { useStackedRows } from "@/components/form/text-scale";
 import type {
 	FormButtonProps,
 	FormChoiceProps,
@@ -397,6 +398,7 @@ function ListRow({
 	const colors = useMaterialColors();
 	const [menuExpanded, setMenuExpanded] = useState(false);
 	const [confirming, setConfirming] = useState<FormRowAction | null>(null);
+	const stacked = useStackedRows();
 	const pressable = !disabled && !pending;
 	const titleColor =
 		tone === "destructive"
@@ -431,9 +433,16 @@ function ListRow({
 			<ListItem.HeadlineContent>
 				<Text color={titleColor}>{title}</Text>
 			</ListItem.HeadlineContent>
-			{subtitle ? (
+			{subtitle || (stacked && value) ? (
 				<ListItem.SupportingContent>
-					<Text color={colors.onSurfaceVariant}>{subtitle}</Text>
+					<Column>
+						{subtitle ? (
+							<Text color={colors.onSurfaceVariant}>{subtitle}</Text>
+						) : null}
+						{stacked && value ? (
+							<Text color={colors.onSurfaceVariant}>{value}</Text>
+						) : null}
+					</Column>
 				</ListItem.SupportingContent>
 			) : null}
 			{icon ? (
@@ -441,14 +450,14 @@ function ListRow({
 					<Icon source={ICONS[icon].android} tint={iconColor} size={24} />
 				</ListItem.LeadingContent>
 			) : null}
-			{value || showsChevron || pending ? (
+			{(value && !stacked) || showsChevron || pending ? (
 				<ListItem.TrailingContent>
 					<Row
 						verticalAlignment="center"
 						horizontalArrangement={{ spacedBy: 4 }}
 					>
 						{pending ? <Spinner color={iconColor} /> : null}
-						{value ? (
+						{value && !stacked ? (
 							<Text color={colors.onSurfaceVariant}>{value}</Text>
 						) : null}
 						{showsChevron ? (

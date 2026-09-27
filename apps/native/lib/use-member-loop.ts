@@ -12,6 +12,7 @@ import { useEffect, useEffectEvent, useState } from "react";
 import { AppState } from "react-native";
 
 import {
+	announce,
 	confirmChoice,
 	confirmDeleted,
 	confirmSaved,
@@ -135,6 +136,12 @@ export function useMemberActions() {
 	const [error, setError] = useState<string | null>(null);
 	const [cameraDenied, setCameraDenied] = useState(false);
 
+	// The error row appears away from where the member is, so a screen reader hears it too.
+	function fail(message: string) {
+		fail(message);
+		announce(message);
+	}
+
 	// Camera access is usually granted in the device settings, so coming back to the app
 	// checks again rather than waiting for another tap.
 	useEffect(() => {
@@ -199,17 +206,17 @@ export function useMemberActions() {
 
 		const asset = result.assets[0];
 		if (!asset?.base64) {
-			setError("The camera did not return a photo. Please try again.");
+			fail("The camera did not return a photo. Please try again.");
 			return false;
 		}
 		if (recordedCaptures.has(asset.uri)) return false;
 		const mediaType = asset.mimeType ?? "image/jpeg";
 		if (!isPhotoMediaType(mediaType)) {
-			setError("The camera returned a photo format Seenmark cannot keep.");
+			fail("The camera returned a photo format Seenmark cannot keep.");
 			return false;
 		}
 		if (asset.base64.length > MAX_PHOTO_BASE64_LENGTH) {
-			setError("That photo is too large to keep. Please try again.");
+			fail("That photo is too large to keep. Please try again.");
 			return false;
 		}
 
@@ -236,14 +243,14 @@ export function useMemberActions() {
 			const pending = await ImagePicker.getPendingResultAsync();
 			if (!pending) return;
 			if ("code" in pending) {
-				setError(
+				fail(
 					pending.message || "The camera could not finish. Please try again.",
 				);
 				return;
 			}
 			await recordCapture(pending);
 		} catch (cause) {
-			setError(messageFrom(cause, "Failed to record check-in"));
+			fail(messageFrom(cause, "Failed to record check-in"));
 		}
 	});
 
@@ -261,6 +268,7 @@ export function useMemberActions() {
 			const permission = await ImagePicker.requestCameraPermissionsAsync();
 			if (!permission.granted) {
 				setCameraDenied(true);
+				announce("Camera access is needed for a check-in.");
 				return false;
 			}
 
@@ -274,7 +282,7 @@ export function useMemberActions() {
 				}),
 			);
 		} catch (cause) {
-			setError(messageFrom(cause, "Failed to record check-in"));
+			fail(messageFrom(cause, "Failed to record check-in"));
 			return false;
 		}
 	}
@@ -287,7 +295,7 @@ export function useMemberActions() {
 			notifyResult("Check-in deleted");
 			return true;
 		} catch (cause) {
-			setError(messageFrom(cause, "Failed to delete check-in"));
+			fail(messageFrom(cause, "Failed to delete check-in"));
 			return false;
 		}
 	}
@@ -305,7 +313,7 @@ export function useMemberActions() {
 			confirmChoice();
 			await forgetMenu();
 		} catch (cause) {
-			setError(messageFrom(cause, "Failed to save your band"));
+			fail(messageFrom(cause, "Failed to save your band"));
 			// Back to the last confirmed band first, so a failed recovery read cannot leave
 			// the rejected band selected. setQueryData ignores undefined, so a band that was
 			// never read is reset instead.
@@ -328,8 +336,9 @@ export function useMemberActions() {
 		try {
 			await fileIntroduction.mutateAsync();
 			confirmSaved();
+			announce("Introduction request saved");
 		} catch (cause) {
-			setError(messageFrom(cause, "Failed to file an introduction"));
+			fail(messageFrom(cause, "Failed to file an introduction"));
 		}
 	}
 
@@ -338,8 +347,9 @@ export function useMemberActions() {
 		try {
 			await deleteIntroduction.mutateAsync();
 			confirmDeleted();
+			announce("Introduction request deleted");
 		} catch (cause) {
-			setError(messageFrom(cause, "Failed to delete the introduction"));
+			fail(messageFrom(cause, "Failed to delete the introduction"));
 		}
 	}
 

@@ -24,6 +24,7 @@ import {
 	VStack,
 } from "@expo/ui/swift-ui";
 import {
+	accessibilityAddTraits,
 	accessibilityElement,
 	accessibilityHidden,
 	accessibilityLabel,
@@ -71,6 +72,7 @@ import {
 } from "@/components/form/choice-status";
 import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
+import { useStackedRows } from "@/components/form/text-scale";
 import type {
 	FormButtonProps,
 	FormChoiceProps,
@@ -207,7 +209,12 @@ export function FormHero({
 					</HeroPart>
 				) : null}
 				<HeroPart reveal={reveal} index={2}>
-					<Text modifiers={[font({ textStyle: "largeTitle", weight: "bold" })]}>
+					<Text
+						modifiers={[
+							font({ textStyle: "largeTitle", weight: "bold" }),
+							accessibilityAddTraits(["isHeader"]),
+						]}
+					>
 						{title}
 					</Text>
 				</HeroPart>
@@ -246,6 +253,10 @@ export function FormRow({
 	const { theme } = useColorScheme();
 	const [confirming, setConfirming] = useState<FormRowAction | null>(null);
 	const [isConfirming, setIsConfirming] = useState(false);
+	const stacked = useStackedRows();
+	const valueText = value ? (
+		<Text modifiers={[secondary, monospacedDigit()]}>{value}</Text>
+	) : null;
 
 	const content = (
 		<HStack spacing={12}>
@@ -255,7 +266,8 @@ export function FormRow({
 					modifiers={[
 						font({ textStyle: "body" }),
 						foregroundStyle(tone === "destructive" ? "red" : theme.primary),
-						frame({ width: 28 }),
+						frame({ minWidth: 28 }),
+						accessibilityHidden(true),
 					]}
 				/>
 			) : null}
@@ -273,15 +285,18 @@ export function FormRow({
 						{subtitle}
 					</Text>
 				) : null}
+				{stacked ? valueText : null}
 			</VStack>
 			<Spacer />
-			{value ? (
-				<Text modifiers={[secondary, monospacedDigit()]}>{value}</Text>
-			) : null}
+			{stacked ? null : valueText}
 			{showsChevron ? (
 				<Image
 					systemName="chevron.right"
-					modifiers={[font({ size: 13, weight: "semibold" }), tertiary]}
+					modifiers={[
+						font({ textStyle: "footnote", weight: "semibold" }),
+						tertiary,
+						accessibilityHidden(true),
+					]}
 				/>
 			) : null}
 		</HStack>
@@ -363,7 +378,9 @@ function PendingLabel({
 }) {
 	return (
 		<HStack spacing={8} modifiers={modifiers}>
-			<ProgressView modifiers={[controlSize("small")]} />
+			<ProgressView
+				modifiers={[controlSize("small"), accessibilityHidden(true)]}
+			/>
 			<Text>{label}</Text>
 		</HStack>
 	);
@@ -506,13 +523,25 @@ function ConfirmDialog({
 }
 
 export function FormLink({ label, destination }: FormLinkProps) {
+	const stacked = useStackedRows();
+	const host = (
+		<Text modifiers={[secondary]}>{new URL(destination).hostname}</Text>
+	);
+
 	return (
 		<Link destination={destination}>
-			<HStack spacing={12}>
-				<Text>{label}</Text>
-				<Spacer />
-				<Text modifiers={[secondary]}>{new URL(destination).hostname}</Text>
-			</HStack>
+			{stacked ? (
+				<VStack alignment="leading" spacing={2}>
+					<Text>{label}</Text>
+					{host}
+				</VStack>
+			) : (
+				<HStack spacing={12}>
+					<Text>{label}</Text>
+					<Spacer />
+					{host}
+				</HStack>
+			)}
 		</Link>
 	);
 }
@@ -544,7 +573,13 @@ export function FormPhotos({ photos }: FormPhotosProps) {
 							/>
 						</RNHostView>
 					</VStack>
-					<Text modifiers={[font({ textStyle: "footnote" }), secondary]}>
+					<Text
+						modifiers={[
+							font({ textStyle: "footnote" }),
+							secondary,
+							accessibilityHidden(true),
+						]}
+					>
 						{photo.caption}
 					</Text>
 				</VStack>
@@ -583,9 +618,13 @@ export function FormCompareSlider({ earlier, latest }: FormCompareSliderProps) {
 				</RNHostView>
 			</VStack>
 			<HStack>
-				<Text modifiers={caption}>{earlier.caption}</Text>
+				<Text modifiers={[...caption, accessibilityHidden(true)]}>
+					{earlier.caption}
+				</Text>
 				<Spacer />
-				<Text modifiers={caption}>{latest.caption}</Text>
+				<Text modifiers={[...caption, accessibilityHidden(true)]}>
+					{latest.caption}
+				</Text>
 			</HStack>
 			<Slider
 				value={position}
@@ -721,6 +760,7 @@ function ChoiceStatusRow({ status }: { status: ChoiceStatus }) {
 					modifiers={[
 						footnote,
 						foregroundStyle(theme.success),
+						accessibilityHidden(true),
 						...(motion.reduced
 							? []
 							: [
@@ -731,7 +771,9 @@ function ChoiceStatusRow({ status }: { status: ChoiceStatus }) {
 					]}
 				/>
 			) : (
-				<ProgressView modifiers={[controlSize("small")]} />
+				<ProgressView
+					modifiers={[controlSize("small"), accessibilityHidden(true)]}
+				/>
 			)}
 			<Text
 				modifiers={[
@@ -832,7 +874,7 @@ export function FormEmptyState({
 			>
 				<Image
 					systemName={ICONS[icon].ios}
-					modifiers={[font({ size: 44 }), secondary]}
+					modifiers={[font({ size: 44 }), secondary, accessibilityHidden(true)]}
 				/>
 				<Text modifiers={[font({ textStyle: "title2", weight: "bold" })]}>
 					{title}

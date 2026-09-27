@@ -117,7 +117,12 @@ export function FormHero({
 				</HeroPart>
 			) : null}
 			<HeroPart reveal={reveal} index={2}>
-				<Text style={[styles.heroTitle, { color: theme.text }]}>{title}</Text>
+				<Text
+					accessibilityRole="header"
+					style={[styles.heroTitle, { color: theme.text }]}
+				>
+					{title}
+				</Text>
 			</HeroPart>
 			<HeroPart reveal={reveal} index={3}>
 				<Text style={[styles.body, { color: theme.muted }]}>{description}</Text>
@@ -132,7 +137,10 @@ export function FormSection({ title, footer, children }: FormSectionProps) {
 	return (
 		<View style={styles.section}>
 			{title ? (
-				<Text style={[styles.sectionTitle, { color: theme.muted }]}>
+				<Text
+					accessibilityRole="header"
+					style={[styles.sectionTitle, { color: theme.muted }]}
+				>
 					{title}
 				</Text>
 			) : null}
@@ -214,7 +222,15 @@ function ListRow({
 			</View>
 			{pending ? <ActivityIndicator color={color} /> : null}
 			{value ? <Text style={{ color: theme.muted }}>{value}</Text> : null}
-			{showsChevron ? <Text style={{ color: theme.muted }}>›</Text> : null}
+			{showsChevron ? (
+				<Text
+					accessibilityElementsHidden
+					importantForAccessibility="no"
+					style={{ color: theme.muted }}
+				>
+					›
+				</Text>
+			) : null}
 		</Pressable>
 	);
 }
@@ -338,7 +354,11 @@ export function FormPhotos({ photos }: FormPhotosProps) {
 						accessibilityLabel={photo.accessibilityLabel}
 						style={[styles.photo, { backgroundColor: theme.border }]}
 					/>
-					<Text style={[styles.footnote, { color: theme.muted }]}>
+					<Text
+						accessibilityElementsHidden
+						importantForAccessibility="no"
+						style={[styles.footnote, { color: theme.muted }]}
+					>
 						{photo.caption}
 					</Text>
 				</View>
@@ -364,9 +384,15 @@ export function FormCompareSlider({ earlier, latest }: FormCompareSliderProps) {
 				position={position}
 				style={[styles.photo, { backgroundColor: theme.border }]}
 			/>
-			<View style={styles.captions}>
-				<Text style={caption}>{earlier.caption}</Text>
-				<Text style={caption}>{latest.caption}</Text>
+			<View
+				accessibilityElementsHidden
+				importantForAccessibility="no-hide-descendants"
+				style={styles.captions}
+			>
+				<Text style={[caption, styles.shrink]}>{earlier.caption}</Text>
+				<Text style={[caption, styles.shrink, styles.trailing]}>
+					{latest.caption}
+				</Text>
 			</View>
 			<View
 				accessible
@@ -415,6 +441,7 @@ export function FormTextField({
 
 	return (
 		<TextInput
+			accessibilityLabel={placeholder}
 			placeholder={placeholder}
 			placeholderTextColor={theme.muted}
 			secureTextEntry={kind === "password" || kind === "newPassword"}
@@ -433,7 +460,11 @@ export function FormToggle({ label, value, onValueChange }: FormToggleProps) {
 	return (
 		<View style={styles.row}>
 			<Text style={[styles.rowCopy, { color: theme.text }]}>{label}</Text>
-			<Switch value={value} onValueChange={onValueChange} />
+			<Switch
+				accessibilityLabel={label}
+				value={value}
+				onValueChange={onValueChange}
+			/>
 		</View>
 	);
 }
@@ -724,6 +755,13 @@ const styles = StyleSheet.create({
 	captions: {
 		flexDirection: "row",
 		justifyContent: "space-between",
+		gap: 10,
+	},
+	shrink: {
+		flexShrink: 1,
+	},
+	trailing: {
+		textAlign: "right",
 	},
 	input: {
 		fontSize: 17,

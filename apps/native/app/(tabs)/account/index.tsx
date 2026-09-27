@@ -11,7 +11,7 @@ import {
 	FormSection,
 } from "@/components/form/form";
 import { authClient } from "@/lib/auth-client";
-import { announce, confirmDeleted } from "@/lib/feedback";
+import { announce, confirmDeleted, notifyResult } from "@/lib/feedback";
 import { forgetMemberData } from "@/lib/member-session";
 import { trpc } from "@/utils/trpc";
 
@@ -52,6 +52,7 @@ export default function AccountScreen() {
 		try {
 			await deleteAccount.mutateAsync();
 			confirmDeleted();
+			notifyResult("Account deleted");
 			await authClient.signOut().catch(() => undefined);
 			await forgetMemberData();
 		} catch (cause) {

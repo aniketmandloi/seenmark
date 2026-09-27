@@ -38,16 +38,19 @@ import {
 	clickable,
 	clip,
 	combinedClickable,
+	defaultMinSize,
 	fillMaxSize,
 	fillMaxWidth,
 	graphicsLayer,
 	height,
 	type ModifierConfig,
+	matchParentSize,
 	menuAnchor,
 	onGloballyPositioned,
 	padding,
 	Shapes,
 	size,
+	toggleable,
 	verticalScroll,
 	weight,
 } from "@expo/ui/jetpack-compose/modifiers";
@@ -77,6 +80,7 @@ import {
 } from "@/components/form/choice-status";
 import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
+import { useStackedRows } from "@/components/form/text-scale";
 import type {
 	FormButtonProps,
 	FormChoiceProps,
@@ -395,6 +399,7 @@ function ListRow({
 	const colors = useMaterialColors();
 	const [menuExpanded, setMenuExpanded] = useState(false);
 	const [confirming, setConfirming] = useState<FormRowAction | null>(null);
+	const stacked = useStackedRows();
 	const pressable = !disabled && !pending;
 	const titleColor =
 		tone === "destructive"
@@ -429,9 +434,16 @@ function ListRow({
 			<ListItem.HeadlineContent>
 				<Text color={titleColor}>{title}</Text>
 			</ListItem.HeadlineContent>
-			{subtitle ? (
+			{subtitle || (stacked && value) ? (
 				<ListItem.SupportingContent>
-					<Text color={colors.onSurfaceVariant}>{subtitle}</Text>
+					<Column>
+						{subtitle ? (
+							<Text color={colors.onSurfaceVariant}>{subtitle}</Text>
+						) : null}
+						{stacked && value ? (
+							<Text color={colors.onSurfaceVariant}>{value}</Text>
+						) : null}
+					</Column>
 				</ListItem.SupportingContent>
 			) : null}
 			{icon ? (
@@ -439,14 +451,14 @@ function ListRow({
 					<Icon source={ICONS[icon].android} tint={iconColor} size={24} />
 				</ListItem.LeadingContent>
 			) : null}
-			{value || showsChevron || pending ? (
+			{(value && !stacked) || showsChevron || pending ? (
 				<ListItem.TrailingContent>
 					<Row
 						verticalAlignment="center"
 						horizontalArrangement={{ spacedBy: 4 }}
 					>
 						{pending ? <Spinner color={iconColor} /> : null}
-						{value ? (
+						{value && !stacked ? (
 							<Text color={colors.onSurfaceVariant}>{value}</Text>
 						) : null}
 						{showsChevron ? (
@@ -551,7 +563,7 @@ export function FormButton({
 			<Button
 				onClick={onPress}
 				enabled={!disabled && !pending}
-				modifiers={[fillMaxWidth(), height(52)]}
+				modifiers={[fillMaxWidth(), defaultMinSize({ minHeight: 52 })]}
 			>
 				<Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
 					{pending ? <Spinner color={colors.onSurfaceVariant} /> : null}
@@ -692,6 +704,7 @@ export function FormPhotos({ photos }: FormPhotosProps) {
 								}}
 							/>
 							<RNText
+								importantForAccessibility="no"
 								style={[styles.caption, { color: colors.onSurfaceVariant }]}
 							>
 								{photo.caption}
@@ -729,14 +742,21 @@ export function FormCompareSlider({ earlier, latest }: FormCompareSliderProps) {
 							backgroundColor: colors.surfaceContainerHighest,
 						}}
 					/>
-					<View style={styles.captions}>
-						<RNText style={captionStyle}>{earlier.caption}</RNText>
-						<RNText style={captionStyle}>{latest.caption}</RNText>
+					<View
+						importantForAccessibility="no-hide-descendants"
+						style={styles.captions}
+					>
+						<RNText style={[captionStyle, styles.shrink]}>
+							{earlier.caption}
+						</RNText>
+						<RNText style={[captionStyle, styles.shrink, styles.trailing]}>
+							{latest.caption}
+						</RNText>
 					</View>
 				</View>
 			</RNHostView>
 			<Box modifiers={[fillMaxWidth(), padding(0, 6, 0, 0)]}>
-				<Text modifiers={[align("center"), alpha(0)]}>
+				<Text color="transparent" modifiers={[matchParentSize()]}>
 					Divider between the earlier and latest photos
 				</Text>
 				<Row
@@ -837,11 +857,12 @@ export function FormToggle({ label, value, onValueChange }: FormToggleProps) {
 			modifiers={[
 				fillMaxWidth(),
 				clip(Shapes.RoundedCorner(12)),
-				clickable(() => onValueChange(!value)),
+				toggleable(value, () => onValueChange(!value), { role: "checkbox" }),
 				padding(0, 2, 12, 2),
 			]}
 		>
-			<Checkbox value={value} onCheckedChange={onValueChange} />
+			{/* Without its own handler the box merges into the row, so TalkBack reads one checkbox with the label. */}
+			<Checkbox value={value} />
 			<Text color={colors.onSurface} style={{ typography: "bodyLarge" }}>
 				{label}
 			</Text>
@@ -957,9 +978,9 @@ export function FormPicker({
 					<Text color={colors.onSurface}>{label}</Text>
 				</ListItem.HeadlineContent>
 				{selected ? (
-					<ListItem.TrailingContent>
+					<ListItem.SupportingContent>
 						<Text color={colors.onSurfaceVariant}>{selected.label}</Text>
-					</ListItem.TrailingContent>
+					</ListItem.SupportingContent>
 				) : null}
 			</ListItem>
 			<ExposedDropdownMenu
@@ -989,7 +1010,7 @@ export function FormStep({ number, total, text }: FormStepProps) {
 	const colors = useMaterialColors();
 
 	// Compose here can't hide text from TalkBack, so React Native draws the number and hides it
-	// there, and "Step 1 of 3:" rides on an invisible Text ahead of the step.
+	// there, and "Step 1 of 3:" rides on transparent text ahead of the step.
 	return (
 		<ListItem colors={{ containerColor: "transparent" }}>
 			<ListItem.LeadingContent>
@@ -1003,7 +1024,9 @@ export function FormStep({ number, total, text }: FormStepProps) {
 			</ListItem.LeadingContent>
 			<ListItem.HeadlineContent>
 				<Box>
-					<Text modifiers={[alpha(0)]}>{`Step ${number} of ${total}:`}</Text>
+					<Text color="transparent" modifiers={[matchParentSize()]}>
+						{`Step ${number} of ${total}:`}
+					</Text>
 					<Text color={colors.onSurface}>{text}</Text>
 				</Box>
 			</ListItem.HeadlineContent>
@@ -1166,12 +1189,15 @@ export function FormSkeleton({
 			</Column>
 		);
 
-	// Compose here has no content description for a plain block, but TalkBack still reads
-	// text drawn at zero alpha, so the label rides on an invisible Text over the blocks.
+	// Compose here has no content description for a plain block, so the label rides on text
+	// over the blocks. It is drawn in a transparent color, not at zero alpha: TalkBack skips a
+	// node on a fully transparent layer. matchParentSize keeps it from sizing the Box.
 	return (
 		<Box modifiers={[fillMaxWidth()]}>
 			{blocks}
-			<Text modifiers={[align("center"), alpha(0)]}>{label}</Text>
+			<Text color="transparent" modifiers={[matchParentSize()]}>
+				{label}
+			</Text>
 		</Box>
 	);
 }
@@ -1231,5 +1257,11 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		justifyContent: "space-between",
 		gap: PHOTO_GAP,
+	},
+	shrink: {
+		flexShrink: 1,
+	},
+	trailing: {
+		textAlign: "right",
 	},
 });

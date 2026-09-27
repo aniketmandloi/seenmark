@@ -104,6 +104,7 @@ export type FormLinkProps = {
 export type FormPhoto = {
 	id: string;
 	uri: string;
+	/** Everything a screen reader hears about the photo; the caption is hidden from it. */
 	accessibilityLabel: string;
 	caption: string;
 };

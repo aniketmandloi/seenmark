@@ -11,7 +11,12 @@ import * as ImagePicker from "expo-image-picker";
 import { useEffect, useEffectEvent, useState } from "react";
 import { AppState } from "react-native";
 
-import { confirmDeleted, confirmSaved, notifyResult } from "@/lib/feedback";
+import {
+	confirmChoice,
+	confirmDeleted,
+	confirmSaved,
+	notifyResult,
+} from "@/lib/feedback";
 import { queryClient, trpc } from "@/utils/trpc";
 
 export type CheckInPhoto = {
@@ -175,11 +180,17 @@ export function useMemberActions() {
 		}),
 	);
 	const choose = useMutation(trpc.score.choose.mutationOptions());
+	// A mutation stays pending until its onSuccess settles, so an introduction button stays
+	// pending until the changed request shows.
 	const fileIntroduction = useMutation(
-		trpc.introduction.file.mutationOptions(),
+		trpc.introduction.file.mutationOptions({
+			onSuccess: () => refresh(introductionKey),
+		}),
 	);
 	const deleteIntroduction = useMutation(
-		trpc.introduction.delete.mutationOptions(),
+		trpc.introduction.delete.mutationOptions({
+			onSuccess: () => refresh(introductionKey),
+		}),
 	);
 
 	/** Records the photo from a finished camera session, once per captured file. */
@@ -281,13 +292,17 @@ export function useMemberActions() {
 		}
 	}
 
+	const [savingBand, setSavingBand] = useState<Band>();
+
 	async function chooseBand(band: Band) {
 		setError(null);
+		setSavingBand(band);
 		await queryClient.cancelQueries({ queryKey: bandKey });
 		const confirmed = queryClient.getQueryData<Band | null>(bandKey);
 		queryClient.setQueryData(bandKey, band);
 		try {
 			await choose.mutateAsync(band);
+			confirmChoice();
 			await forgetMenu();
 		} catch (cause) {
 			setError(messageFrom(cause, "Failed to save your band"));
@@ -302,6 +317,9 @@ export function useMemberActions() {
 			// The change may still have been saved before the reply was lost, so both the
 			// band and its menu are read again.
 			await Promise.all([refresh(bandKey), forgetMenu()]);
+		} finally {
+			// Cleared only once the band has settled, so FormChoice can tell a save from a rollback.
+			setSavingBand(undefined);
 		}
 	}
 
@@ -309,7 +327,7 @@ export function useMemberActions() {
 		setError(null);
 		try {
 			await fileIntroduction.mutateAsync();
-			await refresh(introductionKey);
+			confirmSaved();
 		} catch (cause) {
 			setError(messageFrom(cause, "Failed to file an introduction"));
 		}
@@ -319,7 +337,7 @@ export function useMemberActions() {
 		setError(null);
 		try {
 			await deleteIntroduction.mutateAsync();
-			await refresh(introductionKey);
+			confirmDeleted();
 		} catch (cause) {
 			setError(messageFrom(cause, "Failed to delete the introduction"));
 		}
@@ -339,7 +357,11 @@ export function useMemberActions() {
 		takeCheckIn,
 		deleteCheckIn,
 		chooseBand,
+		/** The band being saved, until the choice has settled either way. */
+		savingBand,
 		fileAnIntroduction,
+		isFiling: fileIntroduction.isPending,
 		takeBackIntroduction,
+		isDeletingIntroduction: deleteIntroduction.isPending,
 	};
 }

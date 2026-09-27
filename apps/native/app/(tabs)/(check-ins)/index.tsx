@@ -23,7 +23,6 @@ import {
 	FormErrorState,
 	FormPhotos,
 	FormPicker,
-	FormProgress,
 	FormReveal,
 	FormRow,
 	FormScreen,
@@ -63,46 +62,53 @@ export default function CheckInsScreen() {
 				loop.isEmpty
 					? undefined
 					: {
-							label: "Take check-in",
+							label: actions.isRecording ? "Saving check-in…" : "Take check-in",
 							icon: "camera",
 							onPress: takeCheckIn,
 							disabled: actions.isBusy,
+							pending: actions.isRecording,
 						}
 			}
 		>
 			{loop.reminder ? (
-				<FormSection>
-					<FormRow
-						icon="reminder"
-						title={loop.reminder}
-						tone="accent"
-						onPress={takeCheckIn}
-						disabled={actions.isBusy}
-					/>
-				</FormSection>
+				<FormReveal>
+					<FormSection>
+						<FormRow
+							icon="reminder"
+							title={loop.reminder}
+							tone="accent"
+							onPress={takeCheckIn}
+							disabled={actions.isBusy}
+						/>
+					</FormSection>
+				</FormReveal>
 			) : null}
 
 			{actions.error ? (
-				<FormSection>
-					<FormRow icon="error" title={actions.error} tone="destructive" />
-				</FormSection>
+				<FormReveal>
+					<FormSection>
+						<FormRow icon="error" title={actions.error} tone="destructive" />
+					</FormSection>
+				</FormReveal>
 			) : null}
 
 			{actions.cameraDenied ? (
-				<FormSection
-					title="Camera access"
-					footer="Photos cannot be imported from your library."
-				>
-					<FormText>
-						Camera access is needed for a check-in. After allowing it in
-						settings, take the check-in again.
-					</FormText>
-					<FormButton
-						label="Open device settings"
-						icon="external"
-						onPress={() => void Linking.openSettings()}
-					/>
-				</FormSection>
+				<FormReveal>
+					<FormSection
+						title="Camera access"
+						footer="Photos cannot be imported from your library."
+					>
+						<FormText>
+							Camera access is needed for a check-in. After allowing it in
+							settings, take the check-in again.
+						</FormText>
+						<FormButton
+							label="Open device settings"
+							icon="external"
+							onPress={() => void Linking.openSettings()}
+						/>
+					</FormSection>
+				</FormReveal>
 			) : null}
 
 			{loop.loadFailed ? (
@@ -112,12 +118,6 @@ export default function CheckInsScreen() {
 					retrying={loop.isRefreshing}
 					onRetry={() => void loop.refresh()}
 				/>
-			) : null}
-
-			{actions.isRecording ? (
-				<FormSection>
-					<FormProgress label="Saving check-in…" />
-				</FormSection>
 			) : null}
 
 			{loop.isLoading ? (
@@ -142,12 +142,21 @@ export default function CheckInsScreen() {
 						description="Use the camera when you’re ready. The photo stays visible only to you."
 					/>
 					<FormButton
-						label="Take first check-in"
+						label={
+							actions.isRecording ? "Saving check-in…" : "Take first check-in"
+						}
 						onPress={takeCheckIn}
 						disabled={actions.isBusy}
+						pending={actions.isRecording}
 						prominent
 					/>
 				</>
+			) : null}
+
+			{actions.isRecording ? (
+				<FormSection>
+					<FormSkeleton shape="photos" count={1} label="Saving check-in…" />
+				</FormSection>
 			) : null}
 
 			{photos.some((photo) => photo.isError) ? (

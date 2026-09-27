@@ -167,15 +167,25 @@ function ScreenBody({ children, primaryAction, onRefresh }: FormScreenProps) {
 			</Column>
 			{primaryAction ? (
 				<ExtendedFloatingActionButton
-					onClick={primaryAction.disabled ? undefined : primaryAction.onPress}
+					onClick={
+						primaryAction.disabled || primaryAction.pending
+							? undefined
+							: primaryAction.onPress
+					}
 					modifiers={[
 						align("bottomEnd"),
 						padding(0, 0, SCREEN_PADDING, SCREEN_PADDING),
-						...(primaryAction.disabled ? [alpha(0.6)] : []),
+						...(primaryAction.disabled || primaryAction.pending
+							? [alpha(0.6)]
+							: []),
 					]}
 				>
 					<ExtendedFloatingActionButton.Icon>
-						<Icon source={ICONS[primaryAction.icon].android} />
+						{primaryAction.pending ? (
+							<Spinner color={colors.onPrimaryContainer} />
+						) : (
+							<Icon source={ICONS[primaryAction.icon].android} />
+						)}
 					</ExtendedFloatingActionButton.Icon>
 					<ExtendedFloatingActionButton.Text>
 						<Text>{primaryAction.label}</Text>

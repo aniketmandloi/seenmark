@@ -93,6 +93,7 @@ export type FormConfirmation = Pick<
 	"title" | "message" | "confirmLabel" | "cancelLabel"
 >;
 
+/** A link out of the app, showing the host it opens beside its label. */
 export type FormLinkProps = {
 	label: string;
 	destination: string;

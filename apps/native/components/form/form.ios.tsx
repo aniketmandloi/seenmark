@@ -488,7 +488,15 @@ function ConfirmDialog({
 }
 
 export function FormLink({ label, destination }: FormLinkProps) {
-	return <Link label={label} destination={destination} />;
+	return (
+		<Link destination={destination}>
+			<HStack spacing={12}>
+				<Text>{label}</Text>
+				<Spacer />
+				<Text modifiers={[secondary]}>{new URL(destination).hostname}</Text>
+			</HStack>
+		</Link>
+	);
 }
 
 export function FormPhotos({ photos }: FormPhotosProps) {

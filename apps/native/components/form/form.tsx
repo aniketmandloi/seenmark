@@ -299,6 +299,7 @@ export function FormLink({ label, destination }: FormLinkProps) {
 	return (
 		<FormRow
 			title={label}
+			value={new URL(destination).hostname}
 			tone="accent"
 			onPress={() => void ExpoLinking.openURL(destination)}
 		/>

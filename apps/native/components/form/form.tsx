@@ -117,7 +117,12 @@ export function FormHero({
 				</HeroPart>
 			) : null}
 			<HeroPart reveal={reveal} index={2}>
-				<Text style={[styles.heroTitle, { color: theme.text }]}>{title}</Text>
+				<Text
+					accessibilityRole="header"
+					style={[styles.heroTitle, { color: theme.text }]}
+				>
+					{title}
+				</Text>
 			</HeroPart>
 			<HeroPart reveal={reveal} index={3}>
 				<Text style={[styles.body, { color: theme.muted }]}>{description}</Text>
@@ -132,7 +137,10 @@ export function FormSection({ title, footer, children }: FormSectionProps) {
 	return (
 		<View style={styles.section}>
 			{title ? (
-				<Text style={[styles.sectionTitle, { color: theme.muted }]}>
+				<Text
+					accessibilityRole="header"
+					style={[styles.sectionTitle, { color: theme.muted }]}
+				>
 					{title}
 				</Text>
 			) : null}

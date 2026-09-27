@@ -24,6 +24,7 @@ import {
 	VStack,
 } from "@expo/ui/swift-ui";
 import {
+	accessibilityAddTraits,
 	accessibilityElement,
 	accessibilityHidden,
 	accessibilityLabel,
@@ -207,7 +208,12 @@ export function FormHero({
 					</HeroPart>
 				) : null}
 				<HeroPart reveal={reveal} index={2}>
-					<Text modifiers={[font({ textStyle: "largeTitle", weight: "bold" })]}>
+					<Text
+						modifiers={[
+							font({ textStyle: "largeTitle", weight: "bold" }),
+							accessibilityAddTraits(["isHeader"]),
+						]}
+					>
 						{title}
 					</Text>
 				</HeroPart>

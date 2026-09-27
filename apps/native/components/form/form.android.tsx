@@ -38,6 +38,7 @@ import {
 	clickable,
 	clip,
 	combinedClickable,
+	defaultMinSize,
 	fillMaxSize,
 	fillMaxWidth,
 	graphicsLayer,
@@ -562,7 +563,7 @@ export function FormButton({
 			<Button
 				onClick={onPress}
 				enabled={!disabled && !pending}
-				modifiers={[fillMaxWidth(), height(52)]}
+				modifiers={[fillMaxWidth(), defaultMinSize({ minHeight: 52 })]}
 			>
 				<Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
 					{pending ? <Spinner color={colors.onSurfaceVariant} /> : null}

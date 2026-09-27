@@ -14,6 +14,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { authClient } from "@/lib/auth-client";
 import { NAV_THEME } from "@/lib/constants";
 import { claimMemberCache } from "@/lib/member-session";
+import { useMotion } from "@/lib/motion";
 import { connectQueryLifecycle } from "@/lib/query-lifecycle";
 import { useColorScheme } from "@/lib/use-color-scheme";
 import { queryClient } from "@/utils/trpc";
@@ -27,15 +28,19 @@ const DARK_THEME = {
 	colors: NAV_THEME.dark,
 };
 
-// Signing in or out swaps these stacks, which cross-fade instead of pushing.
-const SWAPPED_STACK = { animation: "fade" } as const;
-
 // Held until the stored session is read, so a signed-in member never sees the welcome screen flash.
 void SplashScreen.preventAutoHideAsync();
 connectQueryLifecycle();
 
 export default function RootLayout() {
 	const { isDarkColorScheme } = useColorScheme();
+	const motion = useMotion();
+	// Signing in or out swaps these stacks, which cross-fade instead of pushing. iOS would
+	// fade for 500 ms and ignore Reduce Motion unless told otherwise.
+	const swappedStack = {
+		animation: motion.reduced ? "none" : "fade",
+		animationDuration: motion.slow,
+	} as const;
 	const { data: session, isPending } = authClient.useSession();
 	const isSignedIn = Boolean(session?.user);
 	// isPending turns true again whenever a signed-out session refetches, so only the first read
@@ -60,10 +65,10 @@ export default function RootLayout() {
 				<GestureHandlerRootView style={styles.container}>
 					<Stack screenOptions={{ headerShown: false }}>
 						<Stack.Protected guard={isSignedIn}>
-							<Stack.Screen name="(tabs)" options={SWAPPED_STACK} />
+							<Stack.Screen name="(tabs)" options={swappedStack} />
 						</Stack.Protected>
 						<Stack.Protected guard={!isSignedIn}>
-							<Stack.Screen name="(auth)" options={SWAPPED_STACK} />
+							<Stack.Screen name="(auth)" options={swappedStack} />
 						</Stack.Protected>
 						<Stack.Screen
 							name="about"

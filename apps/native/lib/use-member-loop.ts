@@ -156,7 +156,24 @@ export function useMemberActions() {
 			},
 		}),
 	);
-	const remove = useMutation(trpc.checkIn.delete.mutationOptions());
+	const remove = useMutation(
+		trpc.checkIn.delete.mutationOptions({
+			// Stays pending until the reads it changes are refreshed, so a delete button cannot
+			// be pressed again while the check-in is still listed.
+			onSuccess: async (_, { id }) => {
+				// The photo never goes stale, so it stays readable until evicted; a read still
+				// in flight is cancelled so it cannot put the photo back.
+				const photoKey = trpc.checkIn.photo.queryKey({ id });
+				await queryClient.cancelQueries({ queryKey: photoKey });
+				queryClient.removeQueries({ queryKey: photoKey });
+				// Deleting the last check-in also clears the band.
+				await Promise.all([
+					refresh(checkInsKey, reminderKey, bandKey),
+					forgetMenu(),
+				]);
+			},
+		}),
+	);
 	const choose = useMutation(trpc.score.choose.mutationOptions());
 	const fileIntroduction = useMutation(
 		trpc.introduction.file.mutationOptions(),
@@ -255,16 +272,6 @@ export function useMemberActions() {
 		setError(null);
 		try {
 			await remove.mutateAsync({ id });
-			// The photo never goes stale, so it stays readable until evicted; a read still
-			// in flight is cancelled so it cannot put the photo back.
-			const photoKey = trpc.checkIn.photo.queryKey({ id });
-			await queryClient.cancelQueries({ queryKey: photoKey });
-			queryClient.removeQueries({ queryKey: photoKey });
-			// Deleting the last check-in also clears the band.
-			await Promise.all([
-				refresh(checkInsKey, reminderKey, bandKey),
-				forgetMenu(),
-			]);
 			confirmDeleted();
 			notifyResult("Check-in deleted");
 			return true;

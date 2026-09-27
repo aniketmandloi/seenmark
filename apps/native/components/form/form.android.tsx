@@ -5,6 +5,9 @@ import {
 	Checkbox,
 	CircularProgressIndicator,
 	Column,
+	DropdownMenuItem,
+	ExposedDropdownMenu,
+	ExposedDropdownMenuBox,
 	ExtendedFloatingActionButton,
 	Host,
 	Icon,
@@ -15,6 +18,7 @@ import {
 	Row,
 	SegmentedButton,
 	SingleChoiceSegmentedButtonRow,
+	Slider,
 	SnackbarHost,
 	type SnackbarHostRef,
 	Text,
@@ -34,11 +38,13 @@ import {
 	graphicsLayer,
 	height,
 	type ModifierConfig,
+	menuAnchor,
 	onGloballyPositioned,
 	padding,
 	Shapes,
 	size,
 	verticalScroll,
+	weight,
 } from "@expo/ui/jetpack-compose/modifiers";
 import * as ExpoLinking from "expo-linking";
 import { useFocusEffect } from "expo-router";
@@ -60,10 +66,12 @@ import {
 	View,
 } from "react-native";
 
+import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
 import type {
 	FormButtonProps,
 	FormChoiceProps,
+	FormCompareSliderProps,
 	FormConfirmButtonProps,
 	FormEmptyStateProps,
 	FormErrorStateProps,
@@ -71,6 +79,7 @@ import type {
 	FormHeroProps,
 	FormLinkProps,
 	FormPhotosProps,
+	FormPickerProps,
 	FormProgressProps,
 	FormRevealProps,
 	FormRowProps,
@@ -569,6 +578,71 @@ export function FormPhotos({ photos }: FormPhotosProps) {
 	);
 }
 
+export function FormCompareSlider({ earlier, latest }: FormCompareSliderProps) {
+	const colors = useMaterialColors();
+	const photoWidth = usePhotoWidth(1);
+	const [position, setPosition] = useState(50);
+	const captionStyle = [styles.caption, { color: colors.onSurfaceVariant }];
+
+	// Compose's slider takes no content description here, and TalkBack reads text drawn at
+	// zero alpha, so the label rides on an invisible Text just ahead of the slider.
+	return (
+		<Column
+			modifiers={[padding(ROW_PADDING, ROW_PADDING, ROW_PADDING, ROW_PADDING)]}
+		>
+			<RNHostView matchContents>
+				<View style={{ width: photoWidth }}>
+					<ComparedPhotos
+						earlier={earlier}
+						latest={latest}
+						position={position}
+						style={{
+							width: photoWidth,
+							height: (photoWidth * 5) / 4,
+							borderRadius: 16,
+							backgroundColor: colors.surfaceContainerHighest,
+						}}
+					/>
+					<View style={styles.captions}>
+						<RNText style={captionStyle}>{earlier.caption}</RNText>
+						<RNText style={captionStyle}>{latest.caption}</RNText>
+					</View>
+				</View>
+			</RNHostView>
+			<Box modifiers={[fillMaxWidth(), padding(0, 6, 0, 0)]}>
+				<Text modifiers={[align("center"), alpha(0)]}>
+					Divider between the earlier and latest photos
+				</Text>
+				<Row
+					verticalAlignment="center"
+					horizontalArrangement={{ spacedBy: 12 }}
+					modifiers={[fillMaxWidth()]}
+				>
+					<Text
+						color={colors.onSurfaceVariant}
+						style={{ typography: "bodySmall" }}
+					>
+						Earlier
+					</Text>
+					<Slider
+						value={position}
+						min={0}
+						max={100}
+						onValueChange={setPosition}
+						modifiers={[weight(1)]}
+					/>
+					<Text
+						color={colors.onSurfaceVariant}
+						style={{ typography: "bodySmall" }}
+					>
+						Latest
+					</Text>
+				</Row>
+			</Box>
+		</Column>
+	);
+}
+
 export function FormProgress({ label }: FormProgressProps) {
 	const colors = useMaterialColors();
 
@@ -675,6 +749,58 @@ export function FormChoice<T extends string>({
 				</SegmentedButton>
 			))}
 		</SingleChoiceSegmentedButtonRow>
+	);
+}
+
+export function FormPicker({
+	label,
+	options,
+	selection,
+	onSelectionChange,
+}: FormPickerProps) {
+	const colors = useMaterialColors();
+	const [expanded, setExpanded] = useState(false);
+	const selected = options.find((option) => option.value === selection);
+
+	return (
+		<ExposedDropdownMenuBox
+			expanded={expanded}
+			onExpandedChange={setExpanded}
+			modifiers={[fillMaxWidth()]}
+		>
+			<ListItem
+				colors={{ containerColor: "transparent" }}
+				modifiers={[menuAnchor("primaryNotEditable")]}
+			>
+				<ListItem.HeadlineContent>
+					<Text color={colors.onSurface}>{label}</Text>
+				</ListItem.HeadlineContent>
+				{selected ? (
+					<ListItem.TrailingContent>
+						<Text color={colors.onSurfaceVariant}>{selected.label}</Text>
+					</ListItem.TrailingContent>
+				) : null}
+			</ListItem>
+			<ExposedDropdownMenu
+				expanded={expanded}
+				onDismissRequest={() => setExpanded(false)}
+			>
+				{options.map((option) => (
+					<DropdownMenuItem
+						key={option.value}
+						enabled={!option.disabled}
+						onClick={() => {
+							setExpanded(false);
+							onSelectionChange(option.value);
+						}}
+					>
+						<DropdownMenuItem.Text>
+							<Text>{option.label}</Text>
+						</DropdownMenuItem.Text>
+					</DropdownMenuItem>
+				))}
+			</ExposedDropdownMenu>
+		</ExposedDropdownMenuBox>
 	);
 }
 
@@ -876,5 +1002,10 @@ const styles = StyleSheet.create({
 	caption: {
 		fontSize: 12,
 		marginTop: 6,
+	},
+	captions: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		gap: PHOTO_GAP,
 	},
 });

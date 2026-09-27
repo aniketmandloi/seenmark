@@ -154,22 +154,22 @@ export function useMemberActions() {
 
 	/** Records the photo from a finished camera session, once per captured file. */
 	async function recordCapture(result: ImagePicker.ImagePickerResult) {
-		if (result.canceled) return;
+		if (result.canceled) return false;
 
 		const asset = result.assets[0];
 		if (!asset?.base64) {
 			setError("The camera did not return a photo. Please try again.");
-			return;
+			return false;
 		}
-		if (recordedCaptures.has(asset.uri)) return;
+		if (recordedCaptures.has(asset.uri)) return false;
 		const mediaType = asset.mimeType ?? "image/jpeg";
 		if (!isPhotoMediaType(mediaType)) {
 			setError("The camera returned a photo format Seenmark cannot keep.");
-			return;
+			return false;
 		}
 		if (asset.base64.length > MAX_PHOTO_BASE64_LENGTH) {
 			setError("That photo is too large to keep. Please try again.");
-			return;
+			return false;
 		}
 
 		recordedCaptures.add(asset.uri);
@@ -184,6 +184,7 @@ export function useMemberActions() {
 			throw cause;
 		}
 		await refresh(checkInsKey, reminderKey);
+		return true;
 	}
 
 	// Android can destroy the app while the camera is open; the finished capture is then
@@ -210,6 +211,7 @@ export function useMemberActions() {
 		void recoverPendingCapture();
 	}, []);
 
+	/** Resolves true once a new check-in is saved. */
 	async function takeCheckIn() {
 		setError(null);
 		setCameraDenied(false);
@@ -217,10 +219,10 @@ export function useMemberActions() {
 			const permission = await ImagePicker.requestCameraPermissionsAsync();
 			if (!permission.granted) {
 				setCameraDenied(true);
-				return;
+				return false;
 			}
 
-			await recordCapture(
+			return await recordCapture(
 				await ImagePicker.launchCameraAsync({
 					mediaTypes: ["images"],
 					allowsEditing: false,
@@ -231,6 +233,7 @@ export function useMemberActions() {
 			);
 		} catch (cause) {
 			setError(messageFrom(cause, "Failed to record check-in"));
+			return false;
 		}
 	}
 

@@ -91,6 +91,8 @@ export type FormPhotosProps = {
 	photos: FormPhoto[];
 };
 
+export type FormCompareSliderProps = { earlier: FormPhoto; latest: FormPhoto };
+
 export type FormProgressProps = {
 	label: string;
 };
@@ -114,6 +116,13 @@ export type FormChoiceProps<T extends string> = {
 	selection: T | null;
 	onSelectionChange: (value: T) => void;
 	disabled?: boolean;
+};
+
+export type FormPickerProps = {
+	label: string;
+	options: { value: string; label: string; disabled?: boolean }[];
+	selection: string;
+	onSelectionChange: (value: string) => void;
 };
 
 export type FormRevealProps = {

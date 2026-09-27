@@ -742,8 +742,12 @@ export function FormCompareSlider({ earlier, latest }: FormCompareSliderProps) {
 						}}
 					/>
 					<View style={styles.captions}>
-						<RNText style={captionStyle}>{earlier.caption}</RNText>
-						<RNText style={captionStyle}>{latest.caption}</RNText>
+						<RNText style={[captionStyle, styles.shrink]}>
+							{earlier.caption}
+						</RNText>
+						<RNText style={[captionStyle, styles.shrink, styles.trailing]}>
+							{latest.caption}
+						</RNText>
 					</View>
 				</View>
 			</RNHostView>
@@ -1249,5 +1253,11 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		justifyContent: "space-between",
 		gap: PHOTO_GAP,
+	},
+	shrink: {
+		flexShrink: 1,
+	},
+	trailing: {
+		textAlign: "right",
 	},
 });

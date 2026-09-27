@@ -373,8 +373,10 @@ export function FormCompareSlider({ earlier, latest }: FormCompareSliderProps) {
 				style={[styles.photo, { backgroundColor: theme.border }]}
 			/>
 			<View style={styles.captions}>
-				<Text style={caption}>{earlier.caption}</Text>
-				<Text style={caption}>{latest.caption}</Text>
+				<Text style={[caption, styles.shrink]}>{earlier.caption}</Text>
+				<Text style={[caption, styles.shrink, styles.trailing]}>
+					{latest.caption}
+				</Text>
 			</View>
 			<View
 				accessible
@@ -732,6 +734,13 @@ const styles = StyleSheet.create({
 	captions: {
 		flexDirection: "row",
 		justifyContent: "space-between",
+		gap: 10,
+	},
+	shrink: {
+		flexShrink: 1,
+	},
+	trailing: {
+		textAlign: "right",
 	},
 	input: {
 		fontSize: 17,

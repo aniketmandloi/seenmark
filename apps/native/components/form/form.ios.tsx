@@ -32,6 +32,7 @@ import {
 	background,
 	buttonStyle,
 	clipShape,
+	contentTransition,
 	controlSize,
 	disabled as disableControl,
 	font,
@@ -54,6 +55,7 @@ import {
 	refreshable,
 	scrollDismissesKeyboard,
 	submitLabel,
+	symbolEffect,
 	tag,
 	textContentType,
 	textInputAutocapitalization,
@@ -62,6 +64,10 @@ import { Stack } from "expo-router";
 import { type ReactNode, useState } from "react";
 import { Platform, Image as RNImage, StyleSheet, View } from "react-native";
 
+import {
+	type ChoiceStatus,
+	useChoiceStatus,
+} from "@/components/form/choice-status";
 import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
 import type {
@@ -633,25 +639,83 @@ export function FormChoice<T extends string>({
 	selection,
 	onSelectionChange,
 	disabled = false,
+	pendingValue,
 }: FormChoiceProps<T>) {
+	const status = useChoiceStatus(pendingValue, selection);
+
 	return (
-		<Picker
-			selection={selection}
-			onSelectionChange={(value) => {
-				if (value !== null) onSelectionChange(value as T);
-			}}
+		<>
+			<Picker
+				selection={selection}
+				onSelectionChange={(value) => {
+					if (value !== null) onSelectionChange(value as T);
+				}}
+				modifiers={[
+					pickerStyle("segmented"),
+					labelsHidden(),
+					...(disabled || pendingValue !== undefined
+						? [disableControl(true)]
+						: []),
+				]}
+			>
+				{options.map((option) => (
+					<Text key={option.value} modifiers={[tag(option.value)]}>
+						{option.label}
+					</Text>
+				))}
+			</Picker>
+			{status ? <ChoiceStatusRow status={status} /> : null}
+		</>
+	);
+}
+
+/** A segmented control can't hold a spinner per segment, so a save shows in a row under it. */
+function ChoiceStatusRow({ status }: { status: ChoiceStatus }) {
+	const motion = useMotion();
+	const { theme } = useColorScheme();
+	const checkShown = useNativeState(false);
+	const saved = status !== "saving";
+	const footnote = font({ textStyle: "footnote" });
+
+	if (status === "fading" && motion.reduced) return null;
+
+	// A symbol effect runs whatever easeOut decides, so under reduced motion it is left off.
+	return (
+		<HStack
+			spacing={6}
 			modifiers={[
-				pickerStyle("segmented"),
-				labelsHidden(),
-				...(disabled ? [disableControl(true)] : []),
+				opacity(status === "fading" ? 0 : 1),
+				...easeOut(motion, motion.slow, status === "fading"),
 			]}
 		>
-			{options.map((option) => (
-				<Text key={option.value} modifiers={[tag(option.value)]}>
-					{option.label}
-				</Text>
-			))}
-		</Picker>
+			{saved ? (
+				<Image
+					systemName={ICONS.done.ios}
+					modifiers={[
+						footnote,
+						foregroundStyle(theme.success),
+						...(motion.reduced
+							? []
+							: [
+									symbolEffect({ effect: "appear" }, { isActive: checkShown }),
+									onAppear(() => checkShown.set(true)),
+								]),
+					]}
+				/>
+			) : (
+				<ProgressView modifiers={[controlSize("small")]} />
+			)}
+			<Text
+				modifiers={[
+					footnote,
+					secondary,
+					...(motion.reduced ? [] : [contentTransition("opacity")]),
+					...easeOut(motion, motion.base, saved),
+				]}
+			>
+				{saved ? "Saved" : "Saving…"}
+			</Text>
+		</HStack>
 	);
 }
 

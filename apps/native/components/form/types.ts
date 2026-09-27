@@ -135,6 +135,12 @@ export type FormChoiceProps<T extends string> = {
 	selection: T | null;
 	onSelectionChange: (value: T) => void;
 	disabled?: boolean;
+	/**
+	 * The value being saved: the control is disabled with "Saving…" under it. Clear it only once
+	 * the save has settled; if `selection` then holds that value, "Saved" shows for a moment, and
+	 * a failed save that rolled `selection` back ends quietly.
+	 */
+	pendingValue?: T;
 };
 
 export type FormPickerProps = {

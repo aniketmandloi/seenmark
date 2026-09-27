@@ -97,6 +97,7 @@ import type {
 	FormScreenProps,
 	FormSectionProps,
 	FormSkeletonProps,
+	FormStepProps,
 	FormTextFieldProps,
 	FormTextProps,
 	FormToggleProps,
@@ -963,6 +964,32 @@ export function FormPicker({
 	);
 }
 
+export function FormStep({ number, total, text }: FormStepProps) {
+	const colors = useMaterialColors();
+
+	// Compose here can't hide text from TalkBack, so React Native draws the number and hides it
+	// there, and "Step 1 of 3:" rides on an invisible Text ahead of the step.
+	return (
+		<ListItem colors={{ containerColor: "transparent" }}>
+			<ListItem.LeadingContent>
+				<RNHostView matchContents>
+					<View importantForAccessibility="no-hide-descendants">
+						<RNText style={[styles.stepNumber, { color: colors.primary }]}>
+							{String(number).padStart(2, "0")}
+						</RNText>
+					</View>
+				</RNHostView>
+			</ListItem.LeadingContent>
+			<ListItem.HeadlineContent>
+				<Box>
+					<Text modifiers={[alpha(0)]}>{`Step ${number} of ${total}:`}</Text>
+					<Text color={colors.onSurface}>{text}</Text>
+				</Box>
+			</ListItem.HeadlineContent>
+		</ListItem>
+	);
+}
+
 export function FormEmptyState({
 	icon,
 	title,
@@ -1096,14 +1123,23 @@ export function FormSkeleton({
 							<Placeholder modifiers={line(0.6, 16)} />
 						</Row>
 					) : (
-						<Column
+						<Row
 							key={index}
-							verticalArrangement={{ spacedBy: 8 }}
-							modifiers={[fillMaxWidth(), padding(16, 14, 16, 14)]}
+							verticalAlignment="top"
+							horizontalArrangement={{ spacedBy: 16 }}
+							modifiers={[fillMaxWidth(), padding(16, 14, 24, 14)]}
 						>
-							<Placeholder modifiers={line(1)} />
-							<Placeholder modifiers={line(0.7)} />
-						</Column>
+							<Placeholder
+								modifiers={[size(20, 16), clip(Shapes.RoundedCorner(4))]}
+							/>
+							<Column
+								verticalArrangement={{ spacedBy: 8 }}
+								modifiers={[weight(1)]}
+							>
+								<Placeholder modifiers={line(1)} />
+								<Placeholder modifiers={line(0.7)} />
+							</Column>
+						</Row>
 					),
 				)}
 			</Column>
@@ -1161,6 +1197,14 @@ const styles = StyleSheet.create({
 	caption: {
 		fontSize: 12,
 		marginTop: 6,
+	},
+	// Material 3 titleMedium, with tabular digits.
+	stepNumber: {
+		fontSize: 16,
+		lineHeight: 24,
+		fontWeight: "500",
+		letterSpacing: 0.15,
+		fontVariant: ["tabular-nums"],
 	},
 	captions: {
 		flexDirection: "row",

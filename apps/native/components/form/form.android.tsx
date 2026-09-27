@@ -704,6 +704,7 @@ export function FormPhotos({ photos }: FormPhotosProps) {
 								}}
 							/>
 							<RNText
+								importantForAccessibility="no"
 								style={[styles.caption, { color: colors.onSurfaceVariant }]}
 							>
 								{photo.caption}
@@ -741,7 +742,10 @@ export function FormCompareSlider({ earlier, latest }: FormCompareSliderProps) {
 							backgroundColor: colors.surfaceContainerHighest,
 						}}
 					/>
-					<View style={styles.captions}>
+					<View
+						importantForAccessibility="no-hide-descendants"
+						style={styles.captions}
+					>
 						<RNText style={[captionStyle, styles.shrink]}>
 							{earlier.caption}
 						</RNText>

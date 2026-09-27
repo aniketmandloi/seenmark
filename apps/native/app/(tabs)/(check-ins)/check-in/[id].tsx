@@ -74,7 +74,7 @@ export default function CheckInScreen() {
 							{
 								id: checkIn.id,
 								uri: checkInPhotoUri(checkIn),
-								accessibilityLabel: `Check-in photo from ${takenOn}`,
+								accessibilityLabel: `Check-in photo from ${takenOn}, ${relativeTime(checkIn.takenAt, now)}`,
 								caption: `Taken ${takenOn} · ${relativeTime(checkIn.takenAt, now)}`,
 							},
 						]}

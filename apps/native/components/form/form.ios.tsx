@@ -573,7 +573,13 @@ export function FormPhotos({ photos }: FormPhotosProps) {
 							/>
 						</RNHostView>
 					</VStack>
-					<Text modifiers={[font({ textStyle: "footnote" }), secondary]}>
+					<Text
+						modifiers={[
+							font({ textStyle: "footnote" }),
+							secondary,
+							accessibilityHidden(true),
+						]}
+					>
 						{photo.caption}
 					</Text>
 				</VStack>
@@ -612,9 +618,13 @@ export function FormCompareSlider({ earlier, latest }: FormCompareSliderProps) {
 				</RNHostView>
 			</VStack>
 			<HStack>
-				<Text modifiers={caption}>{earlier.caption}</Text>
+				<Text modifiers={[...caption, accessibilityHidden(true)]}>
+					{earlier.caption}
+				</Text>
 				<Spacer />
-				<Text modifiers={caption}>{latest.caption}</Text>
+				<Text modifiers={[...caption, accessibilityHidden(true)]}>
+					{latest.caption}
+				</Text>
 			</HStack>
 			<Slider
 				value={position}

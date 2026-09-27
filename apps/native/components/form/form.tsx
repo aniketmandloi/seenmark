@@ -346,7 +346,11 @@ export function FormPhotos({ photos }: FormPhotosProps) {
 						accessibilityLabel={photo.accessibilityLabel}
 						style={[styles.photo, { backgroundColor: theme.border }]}
 					/>
-					<Text style={[styles.footnote, { color: theme.muted }]}>
+					<Text
+						accessibilityElementsHidden
+						importantForAccessibility="no"
+						style={[styles.footnote, { color: theme.muted }]}
+					>
 						{photo.caption}
 					</Text>
 				</View>
@@ -372,7 +376,11 @@ export function FormCompareSlider({ earlier, latest }: FormCompareSliderProps) {
 				position={position}
 				style={[styles.photo, { backgroundColor: theme.border }]}
 			/>
-			<View style={styles.captions}>
+			<View
+				accessibilityElementsHidden
+				importantForAccessibility="no-hide-descendants"
+				style={styles.captions}
+			>
 				<Text style={[caption, styles.shrink]}>{earlier.caption}</Text>
 				<Text style={[caption, styles.shrink, styles.trailing]}>
 					{latest.caption}

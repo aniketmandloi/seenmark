@@ -11,6 +11,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useEffect, useEffectEvent, useState } from "react";
 import { AppState } from "react-native";
 
+import { confirmDeleted, confirmSaved, notifyResult } from "@/lib/feedback";
 import { queryClient, trpc } from "@/utils/trpc";
 
 export type CheckInPhoto = {
@@ -184,6 +185,8 @@ export function useMemberActions() {
 			throw cause;
 		}
 		await refresh(checkInsKey, reminderKey);
+		confirmSaved();
+		notifyResult("Check-in saved");
 		return true;
 	}
 
@@ -251,6 +254,8 @@ export function useMemberActions() {
 				refresh(checkInsKey, reminderKey, bandKey),
 				forgetMenu(),
 			]);
+			confirmDeleted();
+			notifyResult("Check-in deleted");
 			return true;
 		} catch (cause) {
 			setError(messageFrom(cause, "Failed to delete check-in"));
@@ -304,6 +309,7 @@ export function useMemberActions() {
 
 	return {
 		isRecording: record.isPending,
+		isDeleting: remove.isPending,
 		isBusy:
 			record.isPending ||
 			remove.isPending ||

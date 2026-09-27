@@ -143,7 +143,19 @@ export function useMemberActions() {
 		return () => subscription.remove();
 	}, [cameraDenied]);
 
-	const record = useMutation(trpc.checkIn.record.mutationOptions());
+	const record = useMutation(
+		trpc.checkIn.record.mutationOptions({
+			// Stays pending until the record lists the new check-in, so the saving placeholder
+			// hands straight over to its photo, which is seeded rather than downloaded back.
+			onSuccess: (saved, { imageBase64, mediaType }) => {
+				queryClient.setQueryData(
+					trpc.checkIn.photo.queryKey({ id: saved.id }),
+					{ ...saved, imageBase64, mediaType },
+				);
+				return refresh(checkInsKey, reminderKey);
+			},
+		}),
+	);
 	const remove = useMutation(trpc.checkIn.delete.mutationOptions());
 	const choose = useMutation(trpc.score.choose.mutationOptions());
 	const fileIntroduction = useMutation(
@@ -184,7 +196,6 @@ export function useMemberActions() {
 			recordedCaptures.delete(asset.uri);
 			throw cause;
 		}
-		await refresh(checkInsKey, reminderKey);
 		confirmSaved();
 		notifyResult("Check-in saved");
 		return true;

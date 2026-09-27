@@ -50,6 +50,10 @@ export const ICONS = {
 		ios: "list.number",
 		android: require("@/assets/icons/format_list_numbered.xml"),
 	},
+	swap: {
+		ios: "arrow.left.arrow.right",
+		android: require("@/assets/icons/swap_horiz.xml"),
+	},
 } satisfies Record<string, PlatformIcon>;
 
 export type IconName = keyof typeof ICONS;

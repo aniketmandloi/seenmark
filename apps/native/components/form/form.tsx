@@ -37,6 +37,7 @@ import type {
 	FormScreenProps,
 	FormSectionProps,
 	FormSkeletonProps,
+	FormStepProps,
 	FormTextFieldProps,
 	FormTextProps,
 	FormToggleProps,
@@ -501,6 +502,25 @@ export function FormPicker({
 	);
 }
 
+export function FormStep({ number, total, text }: FormStepProps) {
+	const { theme } = useColorScheme();
+
+	return (
+		<View
+			accessible
+			accessibilityLabel={`Step ${number} of ${total}: ${text}`}
+			style={[styles.row, styles.step]}
+		>
+			<Text style={[styles.stepNumber, { color: theme.primary }]}>
+				{String(number).padStart(2, "0")}
+			</Text>
+			<Text style={[styles.body, styles.rowCopy, { color: theme.text }]}>
+				{text}
+			</Text>
+		</View>
+	);
+}
+
 export function FormEmptyState({ title, description }: FormEmptyStateProps) {
 	const { theme } = useColorScheme();
 
@@ -720,5 +740,14 @@ const styles = StyleSheet.create({
 	},
 	center: {
 		textAlign: "center",
+	},
+	step: {
+		alignItems: "flex-start",
+	},
+	stepNumber: {
+		fontSize: 17,
+		fontWeight: "600",
+		lineHeight: 23,
+		fontVariant: ["tabular-nums"],
 	},
 });

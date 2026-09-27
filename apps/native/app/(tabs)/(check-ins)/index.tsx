@@ -334,9 +334,12 @@ function Compare({
 				<FormButton
 					label="Swap earlier and latest"
 					icon="swap"
-					onPress={() =>
-						onChoose({ earlierId: latest.id, latestId: earlier.id })
-					}
+					onPress={() => {
+						onChoose({ earlierId: latest.id, latestId: earlier.id });
+						announce(
+							`Comparing ${formatDate(latest.takenAt)} as earlier and ${formatDate(earlier.takenAt)} as latest`,
+						);
+					}}
 				/>
 			</FormSection>
 			<FormReveal key={mode}>

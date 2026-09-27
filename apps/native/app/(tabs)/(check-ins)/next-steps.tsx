@@ -1,5 +1,6 @@
 import { bands } from "@seenmark/api/bands";
 import { formatDate } from "@seenmark/api/check-in-dates";
+import { router } from "expo-router";
 
 import {
 	FormButton,
@@ -7,13 +8,21 @@ import {
 	FormEmptyState,
 	FormErrorState,
 	FormLink,
+	FormReveal,
 	FormRow,
 	FormScreen,
 	FormSection,
 	FormSkeleton,
+	FormStep,
 	FormText,
 } from "@/components/form/form";
 import { useMemberActions, useNextSteps } from "@/lib/use-member-loop";
+
+// Check-ins pushes this screen, but a link can open it with nothing underneath.
+function backToCheckIns() {
+	if (router.canGoBack()) router.back();
+	else router.replace("/");
+}
 
 export default function NextStepsScreen() {
 	const steps = useNextSteps();
@@ -51,16 +60,33 @@ export default function NextStepsScreen() {
 				/>
 			) : menu ? (
 				<FormSection title={bandLabel ? `${bandLabel} band` : undefined}>
+					<FormText muted>
+						A short menu to read at your pace. These are not a treatment plan.
+					</FormText>
 					{menu.steps.map((step, index) => (
-						<FormText key={step}>{`${index + 1}. ${step}`}</FormText>
+						<FormReveal key={step} index={index}>
+							<FormStep
+								number={index + 1}
+								total={menu.steps.length}
+								text={step}
+							/>
+						</FormReveal>
 					))}
+					<FormButton label="Change band" onPress={backToCheckIns} />
 				</FormSection>
 			) : (
-				<FormEmptyState
-					icon="steps"
-					title="Your menu waits for a band."
-					description="Choose the band that feels right on your check-ins, and the next steps for it appear here."
-				/>
+				<>
+					<FormEmptyState
+						icon="steps"
+						title="No band chosen yet"
+						description="Choose the band that feels right on your check-ins, and the next steps for it appear here."
+					/>
+					<FormButton
+						label="Go to your check-ins"
+						onPress={backToCheckIns}
+						prominent
+					/>
+				</>
 			)}
 
 			{showsIntroduction ? (
@@ -76,13 +102,19 @@ export default function NextStepsScreen() {
 				>
 					{steps.introduction ? (
 						<>
-							<FormRow
-								icon="done"
-								title="Request saved"
-								value={formatDate(steps.introduction.filedAt)}
-							/>
+							<FormReveal>
+								<FormRow
+									icon="done"
+									title="Request saved"
+									value={formatDate(steps.introduction.filedAt)}
+								/>
+							</FormReveal>
 							<FormConfirmButton
-								label="Delete request"
+								label={
+									actions.isDeletingIntroduction
+										? "Deleting…"
+										: "Delete request"
+								}
 								icon="delete"
 								title="Delete your introduction request?"
 								message="This request will be removed from your record. Nothing has been sent."
@@ -90,20 +122,23 @@ export default function NextStepsScreen() {
 								cancelLabel="Keep request"
 								onConfirm={() => void actions.takeBackIntroduction()}
 								disabled={actions.isBusy}
+								pending={actions.isDeletingIntroduction}
 							/>
 						</>
 					) : (
 						<FormButton
-							label="File an introduction"
+							label={actions.isFiling ? "Filing…" : "File an introduction"}
 							onPress={() => void actions.fileAnIntroduction()}
 							disabled={actions.isBusy}
+							pending={actions.isFiling}
 						/>
 					)}
 				</FormSection>
 			) : null}
 
+			{/* ADR 0006: the paid link never moves to draw the eye, so it gets no FormReveal. */}
 			{steps.paidLink ? (
-				<FormSection footer="Opens an external link.">
+				<FormSection footer="Seenmark may be paid if you use this link. Who pays never changes your band or these steps.">
 					<FormLink
 						label={steps.paidLink.label}
 						destination={steps.paidLink.destination}

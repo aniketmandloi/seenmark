@@ -1,5 +1,6 @@
 import {
 	AlertDialog,
+	AnimatedVisibility,
 	Box,
 	Button,
 	Checkbox,
@@ -7,6 +8,8 @@ import {
 	Column,
 	DropdownMenu,
 	DropdownMenuItem,
+	EnterTransition,
+	ExitTransition,
 	ExposedDropdownMenu,
 	ExposedDropdownMenuBox,
 	ExtendedFloatingActionButton,
@@ -68,6 +71,10 @@ import {
 	View,
 } from "react-native";
 
+import {
+	type ChoiceStatus,
+	useChoiceStatus,
+} from "@/components/form/choice-status";
 import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
 import type {
@@ -90,6 +97,7 @@ import type {
 	FormScreenProps,
 	FormSectionProps,
 	FormSkeletonProps,
+	FormStepProps,
 	FormTextFieldProps,
 	FormTextProps,
 	FormToggleProps,
@@ -625,6 +633,7 @@ export function FormLink({ label, destination }: FormLinkProps) {
 	return (
 		<FormRow
 			title={label}
+			value={new URL(destination).hostname}
 			icon="external"
 			tone="accent"
 			onPress={() => void ExpoLinking.openURL(destination)}
@@ -825,27 +834,82 @@ export function FormChoice<T extends string>({
 	selection,
 	onSelectionChange,
 	disabled = false,
+	pendingValue,
 }: FormChoiceProps<T>) {
+	const status = useChoiceStatus(pendingValue, selection);
+
 	return (
-		<SingleChoiceSegmentedButtonRow
+		<Column
 			modifiers={[
 				fillMaxWidth(),
 				padding(ROW_PADDING, ROW_PADDING, ROW_PADDING, ROW_PADDING),
 			]}
 		>
-			{options.map((option) => (
-				<SegmentedButton
-					key={option.value}
-					selected={selection === option.value}
-					enabled={!disabled}
-					onClick={() => onSelectionChange(option.value)}
+			<SingleChoiceSegmentedButtonRow modifiers={[fillMaxWidth()]}>
+				{options.map((option) => (
+					<SegmentedButton
+						key={option.value}
+						selected={selection === option.value}
+						enabled={!disabled && pendingValue === undefined}
+						onClick={() => onSelectionChange(option.value)}
+					>
+						<SegmentedButton.Label>
+							<Text>{option.label}</Text>
+						</SegmentedButton.Label>
+					</SegmentedButton>
+				))}
+			</SingleChoiceSegmentedButtonRow>
+			<ChoiceStatusRow status={status} />
+		</Column>
+	);
+}
+
+/** A segmented button can't hold a spinner, so a save shows in a line under the row. */
+function ChoiceStatusRow({ status }: { status: ChoiceStatus | null }) {
+	const colors = useMaterialColors();
+	const motion = useMotion();
+	const { theme } = useColorScheme();
+	const statusLine = (icon: ReactNode, label: string) => (
+		<Row
+			verticalAlignment="center"
+			horizontalArrangement={{ spacedBy: 8 }}
+			modifiers={[padding(4, 10, 4, 0)]}
+		>
+			{icon}
+			<Text color={colors.onSurfaceVariant} style={{ typography: "bodySmall" }}>
+				{label}
+			</Text>
+		</Row>
+	);
+	const saved = statusLine(
+		<Icon source={ICONS.done.android} tint={theme.success} size={18} />,
+		"Saved",
+	);
+
+	// AnimatedVisibility takes no animation spec to snap, so under reduced motion it is skipped.
+	return (
+		<>
+			{status === "saving"
+				? statusLine(<Spinner color={colors.onSurfaceVariant} />, "Saving…")
+				: null}
+			{motion.reduced ? (
+				status === "saved" ? (
+					saved
+				) : null
+			) : (
+				<AnimatedVisibility
+					visible={status === "saved"}
+					enterTransition={EnterTransition.fadeIn().plus(
+						EnterTransition.scaleIn({ initialScale: 0.9 }),
+					)}
+					exitTransition={ExitTransition.fadeOut().plus(
+						ExitTransition.shrinkVertically(),
+					)}
 				>
-					<SegmentedButton.Label>
-						<Text>{option.label}</Text>
-					</SegmentedButton.Label>
-				</SegmentedButton>
-			))}
-		</SingleChoiceSegmentedButtonRow>
+					{saved}
+				</AnimatedVisibility>
+			)}
+		</>
 	);
 }
 
@@ -898,6 +962,32 @@ export function FormPicker({
 				))}
 			</ExposedDropdownMenu>
 		</ExposedDropdownMenuBox>
+	);
+}
+
+export function FormStep({ number, total, text }: FormStepProps) {
+	const colors = useMaterialColors();
+
+	// Compose here can't hide text from TalkBack, so React Native draws the number and hides it
+	// there, and "Step 1 of 3:" rides on an invisible Text ahead of the step.
+	return (
+		<ListItem colors={{ containerColor: "transparent" }}>
+			<ListItem.LeadingContent>
+				<RNHostView matchContents>
+					<View importantForAccessibility="no-hide-descendants">
+						<RNText style={[styles.stepNumber, { color: colors.primary }]}>
+							{String(number).padStart(2, "0")}
+						</RNText>
+					</View>
+				</RNHostView>
+			</ListItem.LeadingContent>
+			<ListItem.HeadlineContent>
+				<Box>
+					<Text modifiers={[alpha(0)]}>{`Step ${number} of ${total}:`}</Text>
+					<Text color={colors.onSurface}>{text}</Text>
+				</Box>
+			</ListItem.HeadlineContent>
+		</ListItem>
 	);
 }
 
@@ -1034,14 +1124,23 @@ export function FormSkeleton({
 							<Placeholder modifiers={line(0.6, 16)} />
 						</Row>
 					) : (
-						<Column
+						<Row
 							key={index}
-							verticalArrangement={{ spacedBy: 8 }}
-							modifiers={[fillMaxWidth(), padding(16, 14, 16, 14)]}
+							verticalAlignment="top"
+							horizontalArrangement={{ spacedBy: 16 }}
+							modifiers={[fillMaxWidth(), padding(16, 14, 24, 14)]}
 						>
-							<Placeholder modifiers={line(1)} />
-							<Placeholder modifiers={line(0.7)} />
-						</Column>
+							<Placeholder
+								modifiers={[size(20, 16), clip(Shapes.RoundedCorner(4))]}
+							/>
+							<Column
+								verticalArrangement={{ spacedBy: 8 }}
+								modifiers={[weight(1)]}
+							>
+								<Placeholder modifiers={line(1)} />
+								<Placeholder modifiers={line(0.7)} />
+							</Column>
+						</Row>
 					),
 				)}
 			</Column>
@@ -1099,6 +1198,14 @@ const styles = StyleSheet.create({
 	caption: {
 		fontSize: 12,
 		marginTop: 6,
+	},
+	// Material 3 titleMedium, with tabular digits.
+	stepNumber: {
+		fontSize: 16,
+		lineHeight: 24,
+		fontWeight: "500",
+		letterSpacing: 0.15,
+		fontVariant: ["tabular-nums"],
 	},
 	captions: {
 		flexDirection: "row",

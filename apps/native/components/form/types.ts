@@ -93,6 +93,7 @@ export type FormConfirmation = Pick<
 	"title" | "message" | "confirmLabel" | "cancelLabel"
 >;
 
+/** A link out of the app, showing the host it opens beside its label. */
 export type FormLinkProps = {
 	label: string;
 	destination: string;
@@ -135,6 +136,12 @@ export type FormChoiceProps<T extends string> = {
 	selection: T | null;
 	onSelectionChange: (value: T) => void;
 	disabled?: boolean;
+	/**
+	 * The value being saved: the control is disabled with "Saving…" under it. Clear it only once
+	 * the save has settled; if `selection` then holds that value, "Saved" shows for a moment, and
+	 * a failed save that rolled `selection` back ends quietly.
+	 */
+	pendingValue?: T;
 };
 
 export type FormPickerProps = {
@@ -142,6 +149,13 @@ export type FormPickerProps = {
 	options: { value: string; label: string; disabled?: boolean }[];
 	selection: string;
 	onSelectionChange: (value: string) => void;
+};
+
+/** One step of a numbered list, shown as "01"; screen readers hear "Step 1 of 3: …" instead. */
+export type FormStepProps = {
+	number: number;
+	total: number;
+	text: string;
 };
 
 export type FormRevealProps = {

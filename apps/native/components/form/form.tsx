@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import Animated, { Easing, FadeInDown } from "react-native-reanimated";
 
+import { useChoiceStatus } from "@/components/form/choice-status";
 import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
 import type {
@@ -36,6 +37,7 @@ import type {
 	FormScreenProps,
 	FormSectionProps,
 	FormSkeletonProps,
+	FormStepProps,
 	FormTextFieldProps,
 	FormTextProps,
 	FormToggleProps,
@@ -297,6 +299,7 @@ export function FormLink({ label, destination }: FormLinkProps) {
 	return (
 		<FormRow
 			title={label}
+			value={new URL(destination).hostname}
 			tone="accent"
 			onPress={() => void ExpoLinking.openURL(destination)}
 		/>
@@ -421,33 +424,48 @@ export function FormChoice<T extends string>({
 	selection,
 	onSelectionChange,
 	disabled = false,
+	pendingValue,
 }: FormChoiceProps<T>) {
 	const { theme } = useColorScheme();
+	const status = useChoiceStatus(pendingValue, selection);
 
 	return (
-		<View style={[styles.row, styles.choice]}>
-			{options.map((option) => {
-				const selected = option.value === selection;
-				return (
-					<Pressable
-						key={option.value}
-						accessibilityRole="button"
-						accessibilityState={{ selected }}
-						disabled={disabled}
-						onPress={() => onSelectionChange(option.value)}
-						style={[
-							styles.choiceOption,
-							{ borderColor: theme.border },
-							selected && { backgroundColor: theme.primary },
-						]}
-					>
-						<Text style={{ color: selected ? theme.background : theme.text }}>
-							{option.label}
-						</Text>
-					</Pressable>
-				);
-			})}
-		</View>
+		<>
+			<View style={[styles.row, styles.choice]}>
+				{options.map((option) => {
+					const selected = option.value === selection;
+					return (
+						<Pressable
+							key={option.value}
+							accessibilityRole="button"
+							accessibilityState={{ selected }}
+							disabled={disabled || pendingValue !== undefined}
+							onPress={() => onSelectionChange(option.value)}
+							style={[
+								styles.choiceOption,
+								{ borderColor: theme.border },
+								selected && { backgroundColor: theme.primary },
+							]}
+						>
+							<Text style={{ color: selected ? theme.background : theme.text }}>
+								{option.label}
+							</Text>
+						</Pressable>
+					);
+				})}
+			</View>
+			{status === "saving" ? (
+				<View style={styles.row}>
+					<ActivityIndicator color={theme.muted} />
+					<Text style={{ color: theme.muted }}>Saving…</Text>
+				</View>
+			) : status === "saved" ? (
+				<View style={styles.row}>
+					<Text style={{ color: theme.success }}>✓</Text>
+					<Text style={{ color: theme.muted }}>Saved</Text>
+				</View>
+			) : null}
+		</>
 	);
 }
 
@@ -482,6 +500,25 @@ export function FormPicker({
 					))
 				: null}
 		</>
+	);
+}
+
+export function FormStep({ number, total, text }: FormStepProps) {
+	const { theme } = useColorScheme();
+
+	return (
+		<View
+			accessible
+			accessibilityLabel={`Step ${number} of ${total}: ${text}`}
+			style={[styles.row, styles.step]}
+		>
+			<Text style={[styles.stepNumber, { color: theme.primary }]}>
+				{String(number).padStart(2, "0")}
+			</Text>
+			<Text style={[styles.body, styles.rowCopy, { color: theme.text }]}>
+				{text}
+			</Text>
+		</View>
 	);
 }
 
@@ -704,5 +741,14 @@ const styles = StyleSheet.create({
 	},
 	center: {
 		textAlign: "center",
+	},
+	step: {
+		alignItems: "flex-start",
+	},
+	stepNumber: {
+		fontSize: 17,
+		fontWeight: "600",
+		lineHeight: 23,
+		fontVariant: ["tabular-nums"],
 	},
 });

@@ -3,12 +3,15 @@ import {
 	type CheckIn,
 	formatDate,
 	formatDateTime,
+	groupByMonth,
+	relativeTime,
 } from "@seenmark/api/check-in-dates";
 import {
 	type ComparisonChoice,
 	chooseSlot,
 	defaultChoice,
 	resolveComparison,
+	type Slot,
 } from "@seenmark/api/comparison";
 import { useQueries } from "@tanstack/react-query";
 import { router } from "expo-router";
@@ -30,6 +33,8 @@ import {
 	FormSkeleton,
 	FormText,
 } from "@/components/form/form";
+import type { FormRowAction } from "@/components/form/types";
+import { announce } from "@/lib/feedback";
 import {
 	type CheckInPhoto,
 	checkInPhotoQuery,
@@ -42,6 +47,7 @@ export default function CheckInsScreen() {
 	const loop = useCheckIns();
 	const actions = useMemberActions();
 	const [choice, setChoice] = useState<ComparisonChoice>(defaultChoice);
+	const [now] = useState(() => Date.now());
 	const { earlier, latest } = resolveComparison(loop.items, choice);
 	// Only the compared check-ins' photos load; a history page can hold 30 of them.
 	const photos = useQueries({
@@ -153,6 +159,14 @@ export default function CheckInsScreen() {
 				</>
 			) : null}
 
+			{loop.items[0] ? (
+				<FormSection>
+					<FormText>
+						{`${loop.items.length}${loop.hasEarlier ? "+" : ""} ${loop.items.length === 1 ? "check-in" : "check-ins"} · last one ${relativeTime(loop.items[0].takenAt, now)}`}
+					</FormText>
+				</FormSection>
+			) : null}
+
 			{actions.isRecording ? (
 				<FormSection>
 					<FormSkeleton shape="photos" count={1} label="Saving check-in…" />
@@ -227,37 +241,22 @@ export default function CheckInsScreen() {
 				</FormSection>
 			) : null}
 
-			{loop.items.length > 0 ? (
-				<FormSection
-					title="Photo record"
-					footer="Only you can see these photos. Open one to view or delete it."
-				>
-					{loop.items.map((item, index) => (
-						<FormRow
-							key={item.id}
-							icon="camera"
-							title={formatDate(item.takenAt)}
-							subtitle={index === 0 ? "Newest" : undefined}
-							showsChevron
-							onPress={() =>
-								router.push({
-									pathname: "/check-in/[id]",
-									params: { id: item.id },
-								})
+			<Timeline
+				items={loop.items}
+				now={now}
+				comparing={{ earlier, latest }}
+				onChoose={setChoice}
+				onDelete={(id) => void actions.deleteCheckIn(id)}
+				busy={actions.isBusy}
+				showEarlier={
+					loop.hasEarlier
+						? {
+								isLoading: loop.isLoadingEarlier,
+								onPress: loop.loadEarlier,
 							}
-						/>
-					))}
-					{loop.hasEarlier ? (
-						<FormButton
-							label={
-								loop.isLoadingEarlier ? "Loading…" : "Show earlier check-ins"
-							}
-							onPress={loop.loadEarlier}
-							pending={loop.isLoadingEarlier}
-						/>
-					) : null}
-				</FormSection>
-			) : null}
+						: null
+				}
+			/>
 		</FormScreen>
 	);
 }
@@ -362,4 +361,99 @@ function Compare({
 			</FormReveal>
 		</>
 	);
+}
+
+const SLOTS: Slot[] = ["earlier", "latest"];
+
+function openCheckIn(id: string) {
+	router.push({ pathname: "/check-in/[id]", params: { id } });
+}
+
+/** Dates only, one section per month: a history page can hold 30 check-ins, too many photos to list. */
+function Timeline({
+	items,
+	now,
+	comparing,
+	onChoose,
+	onDelete,
+	busy,
+	showEarlier,
+}: {
+	items: readonly CheckIn[];
+	now: number;
+	comparing: { earlier?: CheckIn; latest?: CheckIn };
+	onChoose: (choice: ComparisonChoice) => void;
+	onDelete: (id: string) => void;
+	busy: boolean;
+	showEarlier: { isLoading: boolean; onPress: () => void } | null;
+}) {
+	const groups = groupByMonth(items);
+	const compareAs = (slot: Slot, item: CheckIn) => {
+		onChoose(chooseSlot(comparing, slot, item.id));
+		announce(`Comparing ${formatDate(item.takenAt)} as ${slot}`);
+	};
+
+	return groups.map((group, groupIndex) => (
+		<FormSection
+			key={group.key}
+			title={group.label}
+			footer={
+				groupIndex === 0
+					? "Only you can see these photos. Open one to view or delete it."
+					: undefined
+			}
+		>
+			{group.items.map((item) => {
+				// Counted across months, so the stagger runs down the whole screen.
+				const index = items.indexOf(item);
+				return (
+					<FormReveal key={item.id} index={index}>
+						<FormRow
+							icon="camera"
+							title={formatDate(item.takenAt)}
+							subtitle={index === 0 ? "Newest" : undefined}
+							value={relativeTime(item.takenAt, now)}
+							showsChevron
+							onPress={() => openCheckIn(item.id)}
+							actions={[
+								{
+									label: "Open",
+									icon: "open",
+									onPress: () => openCheckIn(item.id),
+								},
+								...(items.length > 1 ? SLOTS : []).map(
+									(slot): FormRowAction => ({
+										label: `Compare as ${slot}`,
+										icon: "compare",
+										disabled: comparing[slot]?.id === item.id,
+										onPress: () => compareAs(slot, item),
+									}),
+								),
+								{
+									label: "Delete…",
+									icon: "delete",
+									destructive: true,
+									disabled: busy,
+									confirm: {
+										title: "Delete this photo?",
+										message: "This check-in will be removed from your record.",
+										confirmLabel: "Delete photo",
+										cancelLabel: "Keep photo",
+									},
+									onPress: () => onDelete(item.id),
+								},
+							]}
+						/>
+					</FormReveal>
+				);
+			})}
+			{showEarlier && groupIndex === groups.length - 1 ? (
+				<FormButton
+					label={showEarlier.isLoading ? "Loading…" : "Show earlier check-ins"}
+					onPress={showEarlier.onPress}
+					pending={showEarlier.isLoading}
+				/>
+			) : null}
+		</FormSection>
+	));
 }

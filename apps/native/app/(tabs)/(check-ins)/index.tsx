@@ -214,31 +214,34 @@ export default function CheckInsScreen() {
 			{loop.items.length > 0 ? (
 				<FormSection
 					title="Your band"
-					footer="Choose the band that feels right. This is your description. It is not generated from the photo."
+					footer="Choose the band that feels right. This is your description. It is not generated from the photo. You can change your choice whenever you want."
 				>
 					<FormChoice
 						options={bands}
 						selection={loop.band}
 						onSelectionChange={(band) => void actions.chooseBand(band)}
 						disabled={actions.isBusy}
+						pendingValue={actions.savingBand}
 					/>
 				</FormSection>
 			) : null}
 
 			{loop.band || loop.hasIntroduction ? (
-				<FormSection>
-					<FormRow
-						icon="steps"
-						title="Next steps"
-						subtitle={
-							bandLabel
-								? `For the ${bandLabel.toLowerCase()} band`
-								: "Your introduction request"
-						}
-						showsChevron
-						onPress={() => router.push("/next-steps")}
-					/>
-				</FormSection>
+				<FormReveal>
+					<FormSection>
+						<FormRow
+							icon="steps"
+							title="Next steps"
+							subtitle={
+								bandLabel
+									? `For the ${bandLabel.toLowerCase()} band`
+									: "Your introduction request"
+							}
+							showsChevron
+							onPress={() => router.push("/next-steps")}
+						/>
+					</FormSection>
+				</FormReveal>
 			) : null}
 
 			<Timeline

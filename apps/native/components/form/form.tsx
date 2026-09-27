@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import Animated, { Easing, FadeInDown } from "react-native-reanimated";
 
+import { useChoiceStatus } from "@/components/form/choice-status";
 import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
 import type {
@@ -421,33 +422,48 @@ export function FormChoice<T extends string>({
 	selection,
 	onSelectionChange,
 	disabled = false,
+	pendingValue,
 }: FormChoiceProps<T>) {
 	const { theme } = useColorScheme();
+	const status = useChoiceStatus(pendingValue, selection);
 
 	return (
-		<View style={[styles.row, styles.choice]}>
-			{options.map((option) => {
-				const selected = option.value === selection;
-				return (
-					<Pressable
-						key={option.value}
-						accessibilityRole="button"
-						accessibilityState={{ selected }}
-						disabled={disabled}
-						onPress={() => onSelectionChange(option.value)}
-						style={[
-							styles.choiceOption,
-							{ borderColor: theme.border },
-							selected && { backgroundColor: theme.primary },
-						]}
-					>
-						<Text style={{ color: selected ? theme.background : theme.text }}>
-							{option.label}
-						</Text>
-					</Pressable>
-				);
-			})}
-		</View>
+		<>
+			<View style={[styles.row, styles.choice]}>
+				{options.map((option) => {
+					const selected = option.value === selection;
+					return (
+						<Pressable
+							key={option.value}
+							accessibilityRole="button"
+							accessibilityState={{ selected }}
+							disabled={disabled || pendingValue !== undefined}
+							onPress={() => onSelectionChange(option.value)}
+							style={[
+								styles.choiceOption,
+								{ borderColor: theme.border },
+								selected && { backgroundColor: theme.primary },
+							]}
+						>
+							<Text style={{ color: selected ? theme.background : theme.text }}>
+								{option.label}
+							</Text>
+						</Pressable>
+					);
+				})}
+			</View>
+			{status === "saving" ? (
+				<View style={styles.row}>
+					<ActivityIndicator color={theme.muted} />
+					<Text style={{ color: theme.muted }}>Saving…</Text>
+				</View>
+			) : status === "saved" ? (
+				<View style={styles.row}>
+					<Text style={{ color: theme.success }}>✓</Text>
+					<Text style={{ color: theme.muted }}>Saved</Text>
+				</View>
+			) : null}
+		</>
 	);
 }
 

@@ -138,7 +138,7 @@ export function useMemberActions() {
 
 	// The error row appears away from where the member is, so a screen reader hears it too.
 	function fail(message: string) {
-		fail(message);
+		setError(message);
 		announce(message);
 	}
 

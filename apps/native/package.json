@@ -10,6 +10,7 @@
     "prebuild": "expo prebuild",
     "web": "expo start --web",
     "check-types": "tsc --noEmit",
+    "test": "vitest run",
     "env:generate": "varlock codegen"
   },
   "dependencies": {
@@ -54,6 +55,7 @@
     "@seenmark/config": "workspace:*",
     "@types/react": "~19.2.18",
     "babel-preset-expo": "~57.0.10",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.1"
   }
 }

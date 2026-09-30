@@ -6,7 +6,6 @@ import { drizzle } from "drizzle-orm/pglite";
 import { migrate } from "drizzle-orm/pglite/migrator";
 
 import { appRouter } from "./routers/index";
-import { createSignUpLimit, type SignUpLimit } from "./sign-up-limit";
 
 const authEnv = {
 	BETTER_AUTH_URL: "http://localhost:3000",
@@ -40,7 +39,6 @@ export async function openTestDatabase(): Promise<{
 type CallerOptions = {
 	paidLinkDestination?: string | null;
 	now?: () => Date;
-	signUpLimit?: SignUpLimit;
 };
 
 export function createPublicCaller(
@@ -55,7 +53,6 @@ export function createPublicCaller(
 		paidLinkDestination: options.paidLinkDestination ?? null,
 		now: options.now ?? (() => new Date()),
 		clientAddress: null,
-		signUpLimit: options.signUpLimit ?? createSignUpLimit(),
 	});
 }
 
@@ -93,6 +90,5 @@ export function createMemberCaller(
 		paidLinkDestination: options.paidLinkDestination ?? null,
 		now: options.now ?? (() => new Date()),
 		clientAddress: null,
-		signUpLimit: options.signUpLimit ?? createSignUpLimit(),
 	});
 }

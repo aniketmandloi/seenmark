@@ -11,6 +11,7 @@ import {
 	publicProcedure,
 	router,
 } from "../index";
+import { admitSignUp } from "../sign-up-limit";
 
 /**
  * The auth account is written before the member row, so onboarding can stop
@@ -63,7 +64,9 @@ export const memberRouter = router({
 				});
 			}
 
-			if (!ctx.signUpLimit.admit(ctx.clientAddress ?? "unknown")) {
+			if (
+				!(await admitSignUp(ctx.db, ctx.clientAddress ?? "unknown", ctx.now()))
+			) {
 				throw new TRPCError({
 					code: "TOO_MANY_REQUESTS",
 					message: "Too many attempts. Try again in a few seconds.",

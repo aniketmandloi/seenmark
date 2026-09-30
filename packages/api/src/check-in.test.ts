@@ -405,6 +405,61 @@ test("a check-in must be a readable JPEG, PNG, or WebP photo within the size lim
 	expect(await memberCaller.checkIn.list()).toEqual([]);
 });
 
+test("a check-in taken more than five minutes in the future is refused", async () => {
+	const now = new Date("2024-09-01T10:00:00.000Z");
+	const publicCaller = createPublicCaller(db, auth);
+	const opened = await publicCaller.member.openAccount({
+		name: "Lou Member",
+		email: "lou@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	const memberCaller = createMemberCaller(
+		db,
+		auth,
+		{
+			userId: opened.id,
+			name: "Lou Member",
+			email: "lou@example.com",
+		},
+		{ now: () => now },
+	);
+
+	for (const takenAt of [
+		"2024-09-01T10:05:00.001Z",
+		"2099-01-01T00:00:00.000Z",
+	]) {
+		await expect(
+			memberCaller.checkIn.record({
+				imageBase64: testPhoto("future"),
+				mediaType: "image/png",
+				takenAt,
+			}),
+		).rejects.toMatchObject({
+			code: "BAD_REQUEST",
+			message:
+				"This photo's time is ahead of ours. Check your device's date and time, then try again.",
+		});
+	}
+	expect(await memberCaller.checkIn.list()).toEqual([]);
+
+	const atTolerance = await memberCaller.checkIn.record({
+		imageBase64: testPhoto("skewed"),
+		mediaType: "image/png",
+		takenAt: "2024-09-01T10:05:00.000Z",
+	});
+	const atNow = await memberCaller.checkIn.record({
+		imageBase64: testPhoto("now"),
+		mediaType: "image/png",
+		takenAt: "2024-09-01T10:00:00.000Z",
+	});
+	expect(await memberCaller.checkIn.list()).toEqual([
+		{ id: atTolerance.id, takenAt: "2024-09-01T10:05:00.000Z" },
+		{ id: atNow.id, takenAt: "2024-09-01T10:00:00.000Z" },
+	]);
+});
+
 test("history and the reminder read through the member and time index", async () => {
 	const publicCaller = createPublicCaller(db, auth);
 	const opened = await publicCaller.member.openAccount({

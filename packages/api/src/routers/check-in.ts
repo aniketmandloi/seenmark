@@ -12,6 +12,10 @@ import {
 	sniffPhotoType,
 } from "../photo";
 
+// Members send their device clock, so allow a little skew; a takenAt far ahead would
+// stay the newest check-in and hold off the reminder.
+const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000;
+
 function decodeBase64(value: string): Uint8Array {
 	const binary = atob(value);
 	const bytes = new Uint8Array(binary.length);
@@ -51,8 +55,16 @@ export const checkInRouter = router({
 				});
 			}
 
-			const id = crypto.randomUUID();
 			const takenAt = new Date(input.takenAt);
+			if (takenAt.getTime() > ctx.now().getTime() + MAX_CLOCK_SKEW_MS) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message:
+						"This photo's time is ahead of ours. Check your device's date and time, then try again.",
+				});
+			}
+
+			const id = crypto.randomUUID();
 
 			await ctx.db.insert(checkIn).values({
 				id,

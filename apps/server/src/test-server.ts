@@ -3,6 +3,7 @@ import { openTestDatabase } from "@seenmark/api/test-harness";
 import { createApp } from "./app";
 
 const ORIGIN = "http://localhost:3000";
+const SOCKET_ADDRESS = "192.0.2.10";
 
 export type TestServer = {
   client: Awaited<ReturnType<typeof openTestDatabase>>["client"];
@@ -13,17 +14,21 @@ export type TestServer = {
   signIn: (email: string, password: string) => Promise<string>;
 };
 
-/** The real Hono app over a fresh migrated database, driven through HTTP requests. */
-export async function openTestServer(): Promise<TestServer> {
+/**
+ * The real Hono app over a fresh migrated database, driven through HTTP requests.
+ * Every request arrives from one socket address, as if served by Node directly.
+ */
+export async function openTestServer({ behindVercel = false } = {}): Promise<TestServer> {
   const { client, db, auth } = await openTestDatabase();
-  const app = createApp({ auth, db, corsOrigin: ORIGIN, logRequests: false });
+  const app = createApp({ auth, db, corsOrigin: ORIGIN, behindVercel, logRequests: false });
+  const bindings = { incoming: { socket: { remoteAddress: SOCKET_ADDRESS } } };
 
   function request(path: string, init: RequestInit = {}, origin: string | null = ORIGIN) {
     const headers = new Headers(init.headers);
     if (origin !== null) {
       headers.set("Origin", origin);
     }
-    return Promise.resolve(app.request(`${ORIGIN}${path}`, { ...init, headers }));
+    return Promise.resolve(app.request(`${ORIGIN}${path}`, { ...init, headers }, bindings));
   }
 
   function withCookie(cookie: string | undefined, headers: Record<string, string> = {}) {

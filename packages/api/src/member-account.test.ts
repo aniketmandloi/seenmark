@@ -5,7 +5,6 @@ import * as memberSchema from "@seenmark/db/schema/member";
 import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, expect, test } from "vitest";
 
-import { createSignUpLimit } from "./sign-up-limit";
 import {
 	createMemberCaller,
 	createPublicCaller,
@@ -284,10 +283,8 @@ test("opening an account that is already finished is refused", async () => {
 });
 
 test("opening accounts is limited to three attempts per address in ten seconds", async () => {
-	let clock = 0;
-	const caller = createPublicCaller(db, auth, {
-		signUpLimit: createSignUpLimit(() => clock),
-	});
+	let clock = Date.parse("2026-09-30T12:00:00Z");
+	const caller = createPublicCaller(db, auth, { now: () => new Date(clock) });
 	const open = (name: string) =>
 		caller.member.openAccount({
 			name,
@@ -306,4 +303,43 @@ test("opening accounts is limited to three attempts per address in ten seconds",
 
 	clock += 10_000;
 	await open("noa");
+});
+
+test("every caller on one database shares the sign-up limit", async () => {
+	const open = (name: string) =>
+		createPublicCaller(db, auth).member.openAccount({
+			name,
+			email: `${name}@example.com`,
+			password: "password123",
+			affirmedAtLeast18: true,
+			affirmedInUnitedStates: true,
+		});
+
+	await open("kai");
+	await open("lee");
+	await open("max");
+	await expect(open("noa")).rejects.toMatchObject({
+		code: "TOO_MANY_REQUESTS",
+	});
+});
+
+test("an account is not opened when the sign-up limit can't be checked", async () => {
+	await client.exec('DROP TABLE "sign_up_window"');
+	const caller = createPublicCaller(db, auth);
+
+	await expect(
+		caller.member.openAccount({
+			name: "Oona Member",
+			email: "oona@example.com",
+			password: "password123",
+			affirmedAtLeast18: true,
+			affirmedInUnitedStates: true,
+		}),
+	).rejects.toMatchObject({ code: "INTERNAL_SERVER_ERROR" });
+
+	const users = await db
+		.select()
+		.from(authSchema.user)
+		.where(eq(authSchema.user.email, "oona@example.com"));
+	expect(users).toEqual([]);
 });

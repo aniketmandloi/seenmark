@@ -2,7 +2,6 @@ import { trpcServer } from "@hono/trpc-server";
 import type { Auth } from "@seenmark/api/context";
 import { MAX_PHOTO_BASE64_LENGTH } from "@seenmark/api/photo";
 import { appRouter } from "@seenmark/api/routers/index";
-import { createSignUpLimit } from "@seenmark/api/sign-up-limit";
 import type { Database } from "@seenmark/db";
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
@@ -18,12 +17,12 @@ export type AppServices = {
   auth: Auth;
   db: Database;
   corsOrigin: string;
+  behindVercel: boolean;
   logRequests?: boolean;
 };
 
-export function createApp({ auth, db, corsOrigin, logRequests = true }: AppServices) {
+export function createApp({ auth, db, corsOrigin, behindVercel, logRequests = true }: AppServices) {
   const app = new Hono();
-  const signUpLimit = createSignUpLimit();
 
   if (logRequests) {
     app.use(logger());
@@ -67,7 +66,7 @@ export function createApp({ auth, db, corsOrigin, logRequests = true }: AppServi
     trpcServer({
       router: appRouter,
       createContext: (_opts, context) => {
-        return createContext({ context, auth, db, signUpLimit });
+        return createContext({ context, auth, db, behindVercel });
       },
     }),
   );

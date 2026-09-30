@@ -8,8 +8,9 @@ import { memberProcedure, router } from "../index";
 import {
 	isBase64,
 	MAX_PHOTO_BASE64_LENGTH,
+	MAX_PHOTO_PIXELS,
 	PHOTO_MEDIA_TYPES,
-	sniffPhotoType,
+	readPhotoFrame,
 } from "../photo";
 
 // Members send their device clock, so allow a little skew; a takenAt far ahead would
@@ -48,10 +49,17 @@ export const checkInRouter = router({
 		)
 		.mutation(async ({ input, ctx }) => {
 			const imageBytes = decodeBase64(input.imageBase64);
-			if (sniffPhotoType(imageBytes) !== input.mediaType) {
+			const frame = readPhotoFrame(imageBytes);
+			if (frame?.mediaType !== input.mediaType) {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
 					message: "This photo is not a JPEG, PNG, or WebP image",
+				});
+			}
+			if (frame.width * frame.height > MAX_PHOTO_PIXELS) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "This photo is too large",
 				});
 			}
 

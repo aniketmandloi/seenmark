@@ -3,6 +3,7 @@ import * as ImagePicker from "expo-image-picker";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as feedback from "@/lib/feedback";
+import { claimMemberCache } from "@/lib/member-session";
 
 import { useMemberActions } from "./use-member-loop";
 
@@ -99,6 +100,7 @@ beforeEach(() => {
 	vi.clearAllMocks();
 	hooks.states = [];
 	queryClient.current = new QueryClient();
+	claimMemberCache("member-a");
 	transport.mockRejectedValue(new Error("Network request failed"));
 });
 
@@ -176,5 +178,16 @@ describe("a rejected member action", () => {
 		expect(transport).toHaveBeenCalledTimes(2);
 		expect(render().error).toBeNull();
 		expect(feedback.confirmSaved).toHaveBeenCalledTimes(1);
+	});
+});
+
+describe("a reply that arrives after its member has left", () => {
+	it("is cleared by the next member's sign-in even if it landed while signed out", () => {
+		claimMemberCache(null);
+		queryClient.current.setQueryData(bandKey, "a's band");
+
+		claimMemberCache("member-b");
+
+		expect(queryClient.current.getQueryData(bandKey)).toBeUndefined();
 	});
 });

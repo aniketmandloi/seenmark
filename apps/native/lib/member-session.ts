@@ -19,9 +19,9 @@ let cacheOwner: string | null = null;
  */
 export function claimMemberCache(memberId: string | null) {
 	if (cacheOwner === memberId) return;
-	if (cacheOwner !== null) {
-		void queryClient.cancelQueries();
-		queryClient.clear();
-	}
 	cacheOwner = memberId;
+	// Also on null to a member: a late reply may have written to the cache while signed out.
+	void queryClient.cancelQueries();
+	queryClient.clear();
 }
+

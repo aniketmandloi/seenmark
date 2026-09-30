@@ -24,10 +24,9 @@ import PageHeader from "@/components/page-header";
 import { authClient } from "@/lib/auth-client";
 import { forgetMemberData } from "@/lib/member-session";
 import { signOut } from "@/lib/sign-out";
-import { claimMemberCache, queryClient, trpc } from "@/utils/trpc";
+import { queryClient, trpc } from "@/utils/trpc";
 
 export default function Account({ session }: { session: typeof authClient.$Infer.Session }) {
-  claimMemberCache(session.user.id);
   const router = useRouter();
   const deleteAccount = useMutation(trpc.member.deleteAccount.mutationOptions());
 

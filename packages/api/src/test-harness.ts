@@ -1,3 +1,5 @@
+import { crc32, deflateSync } from "node:zlib";
+
 import { PGlite } from "@electric-sql/pglite";
 import { createAuth } from "@seenmark/auth";
 import type { Database } from "@seenmark/db";
@@ -18,11 +20,31 @@ export type TestAuth = ReturnType<typeof createAuth>;
 
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 
-/** A PNG-signed photo whose body is the label, so each test photo is distinct. */
+function pngChunk(type: string, data: Buffer) {
+	const length = Buffer.alloc(4);
+	length.writeUInt32BE(data.length);
+	const typeAndData = Buffer.concat([Buffer.from(type, "latin1"), data]);
+	const crc = Buffer.alloc(4);
+	crc.writeUInt32BE(crc32(typeAndData));
+	return Buffer.concat([length, typeAndData, crc]);
+}
+
+/** A readable 1×1 PNG that carries the label in a text chunk, so each test photo is distinct. */
 export function testPhoto(label: string) {
-	return Buffer.from([...PNG_SIGNATURE, ...Buffer.from(label)]).toString(
-		"base64",
-	);
+	const header = Buffer.alloc(13);
+	header.writeUInt32BE(1, 0);
+	header.writeUInt32BE(1, 4);
+	header[8] = 8;
+	header[9] = 2;
+	// One scanline: filter type 0, then one RGB pixel.
+	const pixels = Buffer.from([0, 0x80, 0x60, 0x40]);
+	return Buffer.concat([
+		Buffer.from(PNG_SIGNATURE),
+		pngChunk("IHDR", header),
+		pngChunk("tEXt", Buffer.from(`Comment\0${label}`, "latin1")),
+		pngChunk("IDAT", deflateSync(pixels)),
+		pngChunk("IEND", Buffer.alloc(0)),
+	]).toString("base64");
 }
 
 export async function openTestDatabase(): Promise<{

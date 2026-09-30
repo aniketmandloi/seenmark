@@ -405,6 +405,105 @@ test("a check-in must be a readable JPEG, PNG, or WebP photo within the size lim
 	expect(await memberCaller.checkIn.list()).toEqual([]);
 });
 
+// 2×2 photos: a JPEG carrying Exif and Photoshop segments, a lossy WebP, and a lossless one.
+const JPEG_PHOTO =
+	"/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAAqADAAQAAAABAAAAAgAAAAD/7QA4UGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAAA4QklNBCUAAAAAABDUHYzZjwCyBOmACZjs+EJ+/8AAEQgAAgACAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMABgYGBgYGCgYGCg4KCgoOEg4ODg4SFxISEhISFxwXFxcXFxccHBwcHBwcHCIiIiIiIicnJycnLCwsLCwsLCwsLP/bAEMBBwcHCwoLEwoKEy4fGh8uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLv/dAAQAAf/aAAwDAQACEQMRAD8A918H6Xpk3hLR5prWF3ewtmZmjUkkxKSSSOSa6P8AsfSP+fOD/v0v+FZfgv8A5E7RP+wfa/8Aopa6WgD/2Q==";
+const LOSSY_WEBP_PHOTO =
+	"UklGRjYAAABXRUJQVlA4ICoAAACQAQCdASoCAAIAAsBMJaQAAudFrAAA/uKe9LSl1f1UwEYDwYwrUAAAAAA=";
+const LOSSLESS_WEBP_PHOTO =
+	"UklGRiwAAABXRUJQVlA4TB8AAAAvAUAAAB8gEEjeHzqN+RcQFPwf3fxHZA/gBgwR/Q8BAA==";
+
+function truncated(photo: string) {
+	const bytes = Buffer.from(photo, "base64");
+	return bytes.subarray(0, bytes.length - 8).toString("base64");
+}
+
+test("a real JPEG, PNG, or WebP photo comes back exactly as it was sent", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const opened = await publicCaller.member.openAccount({
+		name: "Rae Member",
+		email: "rae@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	const memberCaller = createMemberCaller(db, auth, {
+		userId: opened.id,
+		name: "Rae Member",
+		email: "rae@example.com",
+	});
+
+	const photos = [
+		{ imageBase64: JPEG_PHOTO, mediaType: "image/jpeg" },
+		{ imageBase64: testPhoto("rae"), mediaType: "image/png" },
+		{ imageBase64: LOSSY_WEBP_PHOTO, mediaType: "image/webp" },
+		{ imageBase64: LOSSLESS_WEBP_PHOTO, mediaType: "image/webp" },
+	] as const;
+
+	for (const photo of photos) {
+		const recorded = await memberCaller.checkIn.record({
+			...photo,
+			takenAt: "2024-03-15T10:00:00.000Z",
+		});
+		expect(await memberCaller.checkIn.photo({ id: recorded.id })).toEqual({
+			id: recorded.id,
+			takenAt: "2024-03-15T10:00:00.000Z",
+			...photo,
+		});
+	}
+});
+
+test("a photo that is incomplete, mislabeled, or too many pixels is refused before it is kept", async () => {
+	const publicCaller = createPublicCaller(db, auth);
+	const opened = await publicCaller.member.openAccount({
+		name: "Sol Member",
+		email: "sol@example.com",
+		password: "password123",
+		affirmedAtLeast18: true,
+		affirmedInUnitedStates: true,
+	});
+	const memberCaller = createMemberCaller(db, auth, {
+		userId: opened.id,
+		name: "Sol Member",
+		email: "sol@example.com",
+	});
+
+	const pngSignatureOnly = Buffer.from([
+		0x89,
+		0x50,
+		0x4e,
+		0x47,
+		0x0d,
+		0x0a,
+		0x1a,
+		0x0a,
+		...Buffer.from("text"),
+	]).toString("base64");
+	const tooManyPixels = Buffer.from(testPhoto("huge"), "base64");
+	tooManyPixels.writeUInt32BE(10_000, 16);
+	tooManyPixels.writeUInt32BE(10_000, 20);
+
+	const refused = [
+		{ imageBase64: pngSignatureOnly, mediaType: "image/png" },
+		{ imageBase64: truncated(testPhoto("sol")), mediaType: "image/png" },
+		{ imageBase64: truncated(JPEG_PHOTO), mediaType: "image/jpeg" },
+		{ imageBase64: truncated(LOSSY_WEBP_PHOTO), mediaType: "image/webp" },
+		{ imageBase64: JPEG_PHOTO, mediaType: "image/webp" },
+		{ imageBase64: tooManyPixels.toString("base64"), mediaType: "image/png" },
+	] as const;
+
+	for (const photo of refused) {
+		await expect(
+			memberCaller.checkIn.record({
+				...photo,
+				takenAt: "2024-03-15T10:00:00.000Z",
+			}),
+		).rejects.toMatchObject({ code: "BAD_REQUEST" });
+	}
+
+	expect(await memberCaller.checkIn.list()).toEqual([]);
+});
+
 test("a check-in taken more than five minutes in the future is refused", async () => {
 	const now = new Date("2024-09-01T10:00:00.000Z");
 	const publicCaller = createPublicCaller(db, auth);

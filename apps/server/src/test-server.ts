@@ -6,7 +6,8 @@ const ORIGIN = "http://localhost:3000";
 
 export type TestServer = {
   client: Awaited<ReturnType<typeof openTestDatabase>>["client"];
-  request: (path: string, init?: RequestInit) => Promise<Response>;
+  /** Sends as the web client unless `origin` says otherwise; `null` omits it, as native does. */
+  request: (path: string, init?: RequestInit, origin?: string | null) => Promise<Response>;
   trpcQuery: (path: string, cookie?: string) => Promise<Response>;
   trpcMutation: (path: string, input?: unknown, cookie?: string) => Promise<Response>;
   signIn: (email: string, password: string) => Promise<string>;
@@ -17,9 +18,11 @@ export async function openTestServer(): Promise<TestServer> {
   const { client, db, auth } = await openTestDatabase();
   const app = createApp({ auth, db, corsOrigin: ORIGIN, logRequests: false });
 
-  function request(path: string, init: RequestInit = {}) {
+  function request(path: string, init: RequestInit = {}, origin: string | null = ORIGIN) {
     const headers = new Headers(init.headers);
-    headers.set("Origin", ORIGIN);
+    if (origin !== null) {
+      headers.set("Origin", origin);
+    }
     return Promise.resolve(app.request(`${ORIGIN}${path}`, { ...init, headers }));
   }
 

@@ -34,12 +34,14 @@ vi.mock("@tanstack/react-query", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@tanstack/react-query")>()),
 	useMutation: (options: {
 		mutationFn: (input: unknown) => Promise<unknown>;
-		onSuccess?: (data: unknown, input: unknown) => unknown;
+		onMutate?: (input: unknown) => unknown;
+		onSuccess?: (data: unknown, input: unknown, started: unknown) => unknown;
 	}) => ({
 		isPending: false,
 		mutateAsync: async (input: unknown) => {
+			const started = await options.onMutate?.(input);
 			const data = await options.mutationFn(input);
-			await options.onSuccess?.(data, input);
+			await options.onSuccess?.(data, input, started);
 			return data;
 		},
 	}),
@@ -89,6 +91,40 @@ vi.mock("expo-image-picker", () => ({
 vi.mock("react-native", () => ({ AppState: { addEventListener: vi.fn() } }));
 
 const bandKey = [["score", "current"], { input: undefined, type: "query" }];
+const checkInsKey = [["checkIn", "list"]];
+const introductionKey = [
+	["introduction", "current"],
+	{ input: undefined, type: "query" },
+];
+
+function capture(uri: string) {
+	vi.mocked(ImagePicker.requestCameraPermissionsAsync).mockResolvedValue({
+		granted: true,
+	} as ImagePicker.CameraPermissionResponse);
+	vi.mocked(ImagePicker.launchCameraAsync).mockResolvedValue({
+		canceled: false,
+		assets: [{ uri, base64: "AAAA", mimeType: "image/jpeg" }],
+	} as ImagePicker.ImagePickerResult);
+}
+
+// The reply is held back until the test settles it, as a slow network would.
+function holdReply() {
+	let settle = {
+		resolve: (_: unknown) => {},
+		reject: (_: unknown) => {},
+	};
+	transport.mockReturnValueOnce(
+		new Promise((resolve, reject) => {
+			settle = { resolve, reject };
+		}),
+	);
+	return settle;
+}
+
+function switchToMemberB() {
+	claimMemberCache(null);
+	claimMemberCache("member-b");
+}
 
 function render() {
 	hooks.cursor = 0;
@@ -182,6 +218,92 @@ describe("a rejected member action", () => {
 });
 
 describe("a reply that arrives after its member has left", () => {
+	it("does not seed a recorded photo or confirm it to the next member", async () => {
+		capture("file://late-capture.jpg");
+		const reply = holdReply();
+		const saving = render().takeCheckIn();
+		await vi.waitFor(() => expect(transport).toHaveBeenCalled());
+
+		switchToMemberB();
+		queryClient.current.setQueryData(checkInsKey, "b's check-ins");
+		reply.resolve({ id: "a-check-in", takenAt: new Date().toISOString() });
+
+		await expect(saving).resolves.toBe(false);
+		expect(queryClient.current.getQueryCache().getAll()).toHaveLength(1);
+		expect(queryClient.current.getQueryState(checkInsKey)?.isInvalidated).toBe(
+			false,
+		);
+		expect(feedback.confirmSaved).not.toHaveBeenCalled();
+		expect(feedback.notifyResult).not.toHaveBeenCalled();
+	});
+
+	it("does not refresh or confirm a delete to the next member", async () => {
+		const reply = holdReply();
+		const deleting = render().deleteCheckIn("a-check-in");
+
+		switchToMemberB();
+		queryClient.current.setQueryData(checkInsKey, "b's check-ins");
+		reply.resolve(undefined);
+
+		await expect(deleting).resolves.toBe(false);
+		expect(queryClient.current.getQueryState(checkInsKey)?.isInvalidated).toBe(
+			false,
+		);
+		expect(feedback.confirmDeleted).not.toHaveBeenCalled();
+	});
+
+	it("does not roll the next member's band back or show them the error", async () => {
+		queryClient.current.setQueryData(bandKey, "early");
+		const reply = holdReply();
+		const choosing = render().chooseBand("late");
+		await vi.waitFor(() => expect(transport).toHaveBeenCalled());
+
+		switchToMemberB();
+		queryClient.current.setQueryData(bandKey, "mid");
+		reply.reject(new Error("Network request failed"));
+		await choosing;
+
+		expect(queryClient.current.getQueryData(bandKey)).toBe("mid");
+		expect(queryClient.current.getQueryState(bandKey)?.isInvalidated).toBe(
+			false,
+		);
+		expect(render().error).toBeNull();
+		expect(feedback.announce).not.toHaveBeenCalled();
+	});
+
+	it("does not refresh or announce an introduction to the next member", async () => {
+		const reply = holdReply();
+		const filing = render().fileAnIntroduction();
+
+		switchToMemberB();
+		queryClient.current.setQueryData(introductionKey, null);
+		reply.resolve({ id: "a-introduction" });
+		await filing;
+
+		expect(
+			queryClient.current.getQueryState(introductionKey)?.isInvalidated,
+		).toBe(false);
+		expect(feedback.confirmSaved).not.toHaveBeenCalled();
+		expect(feedback.announce).not.toHaveBeenCalled();
+	});
+
+	it("does not put a read into the next member's cache", async () => {
+		let resolveRead: (value: string) => void = () => {};
+		const read = queryClient.current
+			.fetchQuery({
+				queryKey: checkInsKey,
+				queryFn: () =>
+					new Promise<string>((resolve) => (resolveRead = resolve)),
+			})
+			.catch(() => undefined);
+
+		switchToMemberB();
+		resolveRead("a's check-ins");
+		await read;
+
+		expect(queryClient.current.getQueryData(checkInsKey)).toBeUndefined();
+	});
+
 	it("is cleared by the next member's sign-in even if it landed while signed out", () => {
 		claimMemberCache(null);
 		queryClient.current.setQueryData(bandKey, "a's band");

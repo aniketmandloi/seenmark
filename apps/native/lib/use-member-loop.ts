@@ -18,6 +18,7 @@ import {
 	confirmSaved,
 	notifyResult,
 } from "@/lib/feedback";
+import { captureMemberSession } from "@/lib/member-session";
 import { queryClient, trpc } from "@/utils/trpc";
 
 export type CheckInPhoto = {
@@ -157,9 +158,11 @@ export function useMemberActions() {
 
 	const record = useMutation(
 		trpc.checkIn.record.mutationOptions({
+			onMutate: captureMemberSession,
 			// Stays pending until the record lists the new check-in, so the saving placeholder
 			// hands straight over to its photo, which is seeded rather than downloaded back.
-			onSuccess: (saved, { imageBase64, mediaType }) => {
+			onSuccess: (saved, { imageBase64, mediaType }, stillCurrent) => {
+				if (!stillCurrent()) return;
 				queryClient.setQueryData(
 					trpc.checkIn.photo.queryKey({ id: saved.id }),
 					{ ...saved, imageBase64, mediaType },
@@ -170,9 +173,11 @@ export function useMemberActions() {
 	);
 	const remove = useMutation(
 		trpc.checkIn.delete.mutationOptions({
+			onMutate: captureMemberSession,
 			// Stays pending until the reads it changes are refreshed, so a delete button cannot
 			// be pressed again while the check-in is still listed.
-			onSuccess: async (_, { id }) => {
+			onSuccess: async (_, { id }, stillCurrent) => {
+				if (!stillCurrent()) return;
 				// The photo never goes stale, so it stays readable until evicted; a read still
 				// in flight is cancelled so it cannot put the photo back.
 				const photoKey = trpc.checkIn.photo.queryKey({ id });
@@ -191,17 +196,26 @@ export function useMemberActions() {
 	// pending until the changed request shows.
 	const fileIntroduction = useMutation(
 		trpc.introduction.file.mutationOptions({
-			onSuccess: () => refresh(introductionKey),
+			onMutate: captureMemberSession,
+			onSuccess: async (_, __, stillCurrent) => {
+				if (stillCurrent()) await refresh(introductionKey);
+			},
 		}),
 	);
 	const deleteIntroduction = useMutation(
 		trpc.introduction.delete.mutationOptions({
-			onSuccess: () => refresh(introductionKey),
+			onMutate: captureMemberSession,
+			onSuccess: async (_, __, stillCurrent) => {
+				if (stillCurrent()) await refresh(introductionKey);
+			},
 		}),
 	);
 
 	/** Records the photo from a finished camera session, once per captured file. */
-	async function recordCapture(result: ImagePicker.ImagePickerResult) {
+	async function recordCapture(
+		result: ImagePicker.ImagePickerResult,
+		stillCurrent: () => boolean,
+	) {
 		if (result.canceled) return false;
 
 		const asset = result.assets[0];
@@ -231,6 +245,7 @@ export function useMemberActions() {
 			recordedCaptures.delete(asset.uri);
 			throw cause;
 		}
+		if (!stillCurrent()) return false;
 		confirmSaved();
 		notifyResult("Check-in saved");
 		return true;
@@ -239,6 +254,7 @@ export function useMemberActions() {
 	// Android can destroy the app while the camera is open; the finished capture is then
 	// handed over on the next start instead of to launchCameraAsync.
 	const recoverPendingCapture = useEffectEvent(async () => {
+		const stillCurrent = captureMemberSession();
 		try {
 			const pending = await ImagePicker.getPendingResultAsync();
 			if (!pending) return;
@@ -248,9 +264,9 @@ export function useMemberActions() {
 				);
 				return;
 			}
-			await recordCapture(pending);
+			await recordCapture(pending, stillCurrent);
 		} catch (cause) {
-			fail(messageFrom(cause, "Failed to record check-in"));
+			if (stillCurrent()) fail(messageFrom(cause, "Failed to record check-in"));
 		}
 	});
 
@@ -262,6 +278,7 @@ export function useMemberActions() {
 
 	/** Resolves true once a new check-in is saved. */
 	async function takeCheckIn() {
+		const stillCurrent = captureMemberSession();
 		setError(null);
 		setCameraDenied(false);
 		try {
@@ -280,22 +297,25 @@ export function useMemberActions() {
 					// Full-quality camera JPEGs can exceed the upload limit; this keeps detail for comparing.
 					quality: 0.6,
 				}),
+				stillCurrent,
 			);
 		} catch (cause) {
-			fail(messageFrom(cause, "Failed to record check-in"));
+			if (stillCurrent()) fail(messageFrom(cause, "Failed to record check-in"));
 			return false;
 		}
 	}
 
 	async function deleteCheckIn(id: string) {
+		const stillCurrent = captureMemberSession();
 		setError(null);
 		try {
 			await remove.mutateAsync({ id });
+			if (!stillCurrent()) return false;
 			confirmDeleted();
 			notifyResult("Check-in deleted");
 			return true;
 		} catch (cause) {
-			fail(messageFrom(cause, "Failed to delete check-in"));
+			if (stillCurrent()) fail(messageFrom(cause, "Failed to delete check-in"));
 			return false;
 		}
 	}
@@ -303,6 +323,7 @@ export function useMemberActions() {
 	const [savingBand, setSavingBand] = useState<Band>();
 
 	async function chooseBand(band: Band) {
+		const stillCurrent = captureMemberSession();
 		setError(null);
 		setSavingBand(band);
 		await queryClient.cancelQueries({ queryKey: bandKey });
@@ -310,9 +331,11 @@ export function useMemberActions() {
 		queryClient.setQueryData(bandKey, band);
 		try {
 			await choose.mutateAsync(band);
+			if (!stillCurrent()) return;
 			confirmChoice();
 			await forgetMenu();
 		} catch (cause) {
+			if (!stillCurrent()) return;
 			// Back to the last confirmed band first, so neither a failed recovery read nor
 			// presenting the error can leave the rejected band selected. setQueryData ignores
 			// undefined, so a band that was never read is reset instead.
@@ -324,7 +347,7 @@ export function useMemberActions() {
 			// The change may still have been saved before the reply was lost, so both the
 			// band and its menu are read again.
 			await Promise.all([refresh(bandKey), forgetMenu()]);
-			fail(messageFrom(cause, "Failed to save your band"));
+			if (stillCurrent()) fail(messageFrom(cause, "Failed to save your band"));
 		} finally {
 			// Cleared only once the band has settled, so FormChoice can tell a save from a rollback.
 			setSavingBand(undefined);
@@ -332,24 +355,30 @@ export function useMemberActions() {
 	}
 
 	async function fileAnIntroduction() {
+		const stillCurrent = captureMemberSession();
 		setError(null);
 		try {
 			await fileIntroduction.mutateAsync();
+			if (!stillCurrent()) return;
 			confirmSaved();
 			announce("Introduction request saved");
 		} catch (cause) {
-			fail(messageFrom(cause, "Failed to file an introduction"));
+			if (stillCurrent())
+				fail(messageFrom(cause, "Failed to file an introduction"));
 		}
 	}
 
 	async function takeBackIntroduction() {
+		const stillCurrent = captureMemberSession();
 		setError(null);
 		try {
 			await deleteIntroduction.mutateAsync();
+			if (!stillCurrent()) return;
 			confirmDeleted();
 			announce("Introduction request deleted");
 		} catch (cause) {
-			fail(messageFrom(cause, "Failed to delete the introduction"));
+			if (stillCurrent())
+				fail(messageFrom(cause, "Failed to delete the introduction"));
 		}
 	}
 

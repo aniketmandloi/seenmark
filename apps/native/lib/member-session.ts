@@ -11,6 +11,7 @@ export async function forgetMemberData() {
 }
 
 let cacheOwner: string | null = null;
+let session = 0;
 
 /**
  * Called with the signed-in member (or null) before the member screens render. A session
@@ -20,8 +21,18 @@ let cacheOwner: string | null = null;
 export function claimMemberCache(memberId: string | null) {
 	if (cacheOwner === memberId) return;
 	cacheOwner = memberId;
+	session += 1;
 	// Also on null to a member: a late reply may have written to the cache while signed out.
 	void queryClient.cancelQueries();
 	queryClient.clear();
 }
 
+/**
+ * Taken when a member's action starts. Clearing the cache does not stop a request already
+ * sent, so its reply checks this before touching the cache or the screen, which may now
+ * belong to another member.
+ */
+export function captureMemberSession() {
+	const started = session;
+	return () => started === session;
+}

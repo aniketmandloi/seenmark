@@ -48,6 +48,20 @@ export function createApp({ auth, db, corsOrigin, logRequests = true }: AppServi
 
   app.on(["POST", "GET"], "/api/auth/*", async (c) => auth.handler(c.req.raw));
 
+  // A cross-site HTML form can POST multipart, urlencoded or text/plain with the session
+  // cookie and no CORS preflight, and tRPC runs mutations from multipart bodies. Native
+  // clients send no Origin, so only a present one is checked.
+  app.post("/trpc/*", async (c, next) => {
+    if (!/^application\/json\b/i.test(c.req.header("Content-Type") ?? "")) {
+      return c.text("tRPC requests must be JSON", 415);
+    }
+    const origin = c.req.header("Origin");
+    if (origin !== undefined && origin !== corsOrigin) {
+      return c.text("Origin is not allowed", 403);
+    }
+    await next();
+  });
+
   app.use(
     "/trpc/*",
     trpcServer({

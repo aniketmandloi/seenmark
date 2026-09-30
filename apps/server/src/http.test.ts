@@ -88,3 +88,77 @@ test("a body larger than any photo is refused before it reaches a procedure", as
   });
   expect(response.status).toBe(413);
 });
+
+async function openAccountAndSignIn() {
+  await server.trpcMutation("member.openAccount", {
+    name: "Cy Member",
+    email: "cy@example.com",
+    password: "password123",
+    affirmedAtLeast18: true,
+    affirmedInUnitedStates: true,
+  });
+  return server.signIn("cy@example.com", "password123");
+}
+
+const formShapedBodies: [string, () => { body: RequestInit["body"]; contentType?: string }][] = [
+  ["multipart", () => ({ body: new FormData() })],
+  ["form-urlencoded", () => ({ body: new URLSearchParams({ a: "b" }) })],
+  ["text/plain", () => ({ body: "{}", contentType: "text/plain" })],
+];
+
+test.each(formShapedBodies)(
+  "a %s POST to a no-input mutation is refused and the account survives",
+  async (_kind, shape) => {
+    const cookie = await openAccountAndSignIn();
+
+    for (const path of ["member.deleteAccount", "introduction.file", "introduction.delete"]) {
+      const { body, contentType } = shape();
+      const headers: Record<string, string> = { Cookie: cookie };
+      if (contentType) {
+        headers["Content-Type"] = contentType;
+      }
+      const response = await server.request(`/trpc/${path}`, { method: "POST", headers, body });
+      expect(response.status, path).toBe(415);
+    }
+
+    expect((await server.trpcQuery("member.current", cookie)).status).toBe(200);
+  },
+);
+
+test.each(["https://attacker.example", "null"])(
+  "a JSON POST from origin %s is refused, batched or not",
+  async (origin) => {
+    const cookie = await openAccountAndSignIn();
+    const post = (path: string, body: unknown) =>
+      server.request(
+        path,
+        {
+          method: "POST",
+          headers: { Cookie: cookie, "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        },
+        origin,
+      );
+
+    expect((await post("/trpc/member.deleteAccount", {})).status).toBe(403);
+    expect(
+      (await post("/trpc/introduction.delete,member.deleteAccount?batch=1", { 0: {}, 1: {} }))
+        .status,
+    ).toBe(403);
+
+    expect((await server.trpcQuery("member.current", cookie)).status).toBe(200);
+  },
+);
+
+test("a native JSON POST without an Origin still reaches the procedure", async () => {
+  const cookie = await openAccountAndSignIn();
+
+  const deleted = await server.request(
+    "/trpc/member.deleteAccount",
+    { method: "POST", headers: { Cookie: cookie, "Content-Type": "application/json" } },
+    null,
+  );
+  expect(deleted.status).toBe(200);
+
+  expect((await server.trpcQuery("member.current", cookie)).status).toBe(401);
+});

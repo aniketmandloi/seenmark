@@ -313,10 +313,9 @@ export function useMemberActions() {
 			confirmChoice();
 			await forgetMenu();
 		} catch (cause) {
-			fail(messageFrom(cause, "Failed to save your band"));
-			// Back to the last confirmed band first, so a failed recovery read cannot leave
-			// the rejected band selected. setQueryData ignores undefined, so a band that was
-			// never read is reset instead.
+			// Back to the last confirmed band first, so neither a failed recovery read nor
+			// presenting the error can leave the rejected band selected. setQueryData ignores
+			// undefined, so a band that was never read is reset instead.
 			if (confirmed === undefined) {
 				queryClient.removeQueries({ queryKey: bandKey, exact: true });
 			} else {
@@ -325,6 +324,7 @@ export function useMemberActions() {
 			// The change may still have been saved before the reply was lost, so both the
 			// band and its menu are read again.
 			await Promise.all([refresh(bandKey), forgetMenu()]);
+			fail(messageFrom(cause, "Failed to save your band"));
 		} finally {
 			// Cleared only once the band has settled, so FormChoice can tell a save from a rollback.
 			setSavingBand(undefined);

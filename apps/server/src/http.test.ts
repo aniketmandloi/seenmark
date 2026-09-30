@@ -59,11 +59,13 @@ test("the raw auth sign-up route is closed, so every account has its affirmation
   expect(opened.status).toBe(200);
 });
 
-test("opening accounts over HTTP is limited per client address", async () => {
+test("behind Vercel, opening accounts over HTTP is limited per X-Real-IP", async () => {
+  await server.client.close();
+  server = await openTestServer({ behindVercel: true });
   const open = (name: string, address: string) =>
     server.request("/trpc/member.openAccount", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "X-Forwarded-For": address },
+      headers: { "Content-Type": "application/json", "X-Real-IP": address },
       body: JSON.stringify({
         name,
         email: `${name}@example.com`,
@@ -76,8 +78,28 @@ test("opening accounts over HTTP is limited per client address", async () => {
   expect((await open("kai", "203.0.113.7")).status).toBe(200);
   expect((await open("lee", "203.0.113.7")).status).toBe(200);
   expect((await open("max", "203.0.113.7")).status).toBe(200);
-  expect((await open("noa", "203.0.113.7, 10.0.0.1")).status).toBe(429);
+  expect((await open("noa", "203.0.113.7")).status).toBe(429);
   expect((await open("noa", "198.51.100.4")).status).toBe(200);
+});
+
+test("served directly, a rotated X-Forwarded-For doesn't escape the sign-up limit", async () => {
+  const open = (name: string, forwardedFor: string) =>
+    server.request("/trpc/member.openAccount", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Forwarded-For": forwardedFor },
+      body: JSON.stringify({
+        name,
+        email: `${name}@example.com`,
+        password: "password123",
+        affirmedAtLeast18: true,
+        affirmedInUnitedStates: true,
+      }),
+    });
+
+  expect((await open("kai", "203.0.113.1")).status).toBe(200);
+  expect((await open("lee", "203.0.113.2")).status).toBe(200);
+  expect((await open("max", "203.0.113.3")).status).toBe(200);
+  expect((await open("noa", "203.0.113.4")).status).toBe(429);
 });
 
 test("a body larger than any photo is refused before it reaches a procedure", async () => {

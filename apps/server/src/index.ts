@@ -4,7 +4,12 @@ import { createApp } from "./app";
 import { ENV } from "./env.server";
 import { auth, db } from "./services";
 
-const app = createApp({ auth, db, corsOrigin: ENV.CORS_ORIGIN });
+const app = createApp({
+  auth,
+  db,
+  corsOrigin: ENV.CORS_ORIGIN,
+  behindVercel: Boolean(process.env.VERCEL),
+});
 
 export default app;
 

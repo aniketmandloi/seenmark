@@ -17,10 +17,11 @@ export type AppServices = {
   auth: Auth;
   db: Database;
   corsOrigin: string;
+  behindVercel: boolean;
   logRequests?: boolean;
 };
 
-export function createApp({ auth, db, corsOrigin, logRequests = true }: AppServices) {
+export function createApp({ auth, db, corsOrigin, behindVercel, logRequests = true }: AppServices) {
   const app = new Hono();
 
   if (logRequests) {
@@ -65,7 +66,7 @@ export function createApp({ auth, db, corsOrigin, logRequests = true }: AppServi
     trpcServer({
       router: appRouter,
       createContext: (_opts, context) => {
-        return createContext({ context, auth, db });
+        return createContext({ context, auth, db, behindVercel });
       },
     }),
   );

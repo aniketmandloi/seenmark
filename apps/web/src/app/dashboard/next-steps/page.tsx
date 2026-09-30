@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import MemberScreen from "@/components/member-screen";
 import { authClient } from "@/lib/auth-client";
 
 import NextSteps from "./next-steps";
@@ -22,5 +23,9 @@ export default async function NextStepsPage() {
     redirect("/login");
   }
 
-  return <NextSteps key={session.user.id} session={session} />;
+  return (
+    <MemberScreen key={session.user.id} memberId={session.user.id}>
+      <NextSteps />
+    </MemberScreen>
+  );
 }

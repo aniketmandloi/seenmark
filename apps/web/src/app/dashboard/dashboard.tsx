@@ -16,9 +16,8 @@ import { toast } from "sonner";
 
 import ErrorState from "@/components/error-state";
 import PageHeader from "@/components/page-header";
-import type { authClient } from "@/lib/auth-client";
 import { invalidateMemberLoop } from "@/lib/member-loop";
-import { claimMemberCache, queryClient, trpc } from "@/utils/trpc";
+import { queryClient, trpc } from "@/utils/trpc";
 
 import BandPicker from "./band-picker";
 import CheckInDialog from "./check-in-dialog";
@@ -29,9 +28,7 @@ import PhotoPicker from "./photo-picker";
 import { preparePhoto } from "./prepare-photo";
 import Timeline from "./timeline";
 
-export default function Dashboard({ session }: { session: typeof authClient.$Infer.Session }) {
-  // Before any read below, so a previous member's cached reads are never shown.
-  claimMemberCache(session.user.id);
+export default function Dashboard() {
   const [choice, setChoice] = useState<ComparisonChoice>(defaultChoice);
   // Kept after the dialog closes, so its content stays put while it animates out.
   const [opened, setOpened] = useState<CheckIn | null>(null);

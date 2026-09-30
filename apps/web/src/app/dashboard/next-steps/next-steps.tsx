@@ -13,8 +13,7 @@ import { type CSSProperties, useRef } from "react";
 
 import ErrorState from "@/components/error-state";
 import PageHeader from "@/components/page-header";
-import type { authClient } from "@/lib/auth-client";
-import { claimMemberCache, trpc } from "@/utils/trpc";
+import { trpc } from "@/utils/trpc";
 
 import IntroductionRequest from "./introduction-request";
 
@@ -22,8 +21,7 @@ import IntroductionRequest from "./introduction-request";
  * The menu for the member's chosen band, on its own page. ADR 0006 keeps a paid link off the
  * screen where the band is chosen, so the early menu's paid link appears only here.
  */
-export default function NextSteps({ session }: { session: typeof authClient.$Infer.Session }) {
-  claimMemberCache(session.user.id);
+export default function NextSteps() {
   const menu = useQuery(trpc.menu.current.queryOptions());
   const currentMenu = menu.data?.menu ?? null;
   const paidLink = currentMenu && "paidLink" in currentMenu ? currentMenu.paidLink : undefined;

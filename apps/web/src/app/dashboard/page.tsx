@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import MemberScreen from "@/components/member-screen";
 import { authClient } from "@/lib/auth-client";
 
 import Dashboard from "./dashboard";
@@ -17,5 +18,9 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  return <Dashboard key={session.user.id} session={session} />;
+  return (
+    <MemberScreen key={session.user.id} memberId={session.user.id}>
+      <Dashboard />
+    </MemberScreen>
+  );
 }

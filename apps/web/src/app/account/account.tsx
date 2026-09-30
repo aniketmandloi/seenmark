@@ -22,18 +22,27 @@ import { toast } from "sonner";
 
 import PageHeader from "@/components/page-header";
 import { authClient } from "@/lib/auth-client";
-import { forgetMemberData } from "@/lib/member-session";
+import { forgetMemberData, runAsMember } from "@/lib/member-session";
 import { signOut } from "@/lib/sign-out";
-import { claimMemberCache, queryClient, trpc } from "@/utils/trpc";
+import { queryClient, trpc } from "@/utils/trpc";
 
 export default function Account({ session }: { session: typeof authClient.$Infer.Session }) {
-  claimMemberCache(session.user.id);
   const router = useRouter();
   const deleteAccount = useMutation(trpc.member.deleteAccount.mutationOptions());
 
   async function handleDeleteAccount() {
     try {
-      await deleteAccount.mutateAsync();
+      const deleted = await runAsMember(
+        session.user.id,
+        () => authClient.getSession(),
+        () => deleteAccount.mutateAsync(),
+      );
+      if (!deleted) {
+        // The live session catches up, so the screen changes to whoever is signed in now.
+        authClient.$store.notify("$sessionSignal");
+        toast.error("We could not confirm it is still you signed in, so nothing was deleted.");
+        return;
+      }
       await authClient.signOut().catch(() => undefined);
       await forgetMemberData(queryClient);
       toast.success("Your account is deleted");

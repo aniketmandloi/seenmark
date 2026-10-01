@@ -255,6 +255,7 @@ export default function CheckInsScreen() {
 					loop.hasEarlier
 						? {
 								isLoading: loop.isLoadingEarlier,
+								failed: loop.loadEarlierFailed,
 								onPress: loop.loadEarlier,
 							}
 						: null
@@ -391,7 +392,11 @@ function Timeline({
 	onChoose: (choice: ComparisonChoice) => void;
 	onDelete: (id: string) => void;
 	busy: boolean;
-	showEarlier: { isLoading: boolean; onPress: () => void } | null;
+	showEarlier: {
+		isLoading: boolean;
+		failed: boolean;
+		onPress: () => void;
+	} | null;
 }) {
 	const groups = groupByMonth(items);
 	const compareAs = (slot: Slot, item: CheckIn) => {
@@ -454,11 +459,27 @@ function Timeline({
 				);
 			})}
 			{showEarlier && groupIndex === groups.length - 1 ? (
-				<FormButton
-					label={showEarlier.isLoading ? "Loading…" : "Show earlier check-ins"}
-					onPress={showEarlier.onPress}
-					pending={showEarlier.isLoading}
-				/>
+				<>
+					{showEarlier.failed ? (
+						<FormRow
+							icon="error"
+							title="Couldn’t load earlier check-ins."
+							tone="destructive"
+						/>
+					) : null}
+					{/* The same button retries, so screen reader focus stays where it was. */}
+					<FormButton
+						label={
+							showEarlier.isLoading
+								? "Loading…"
+								: showEarlier.failed
+									? "Try again"
+									: "Show earlier check-ins"
+						}
+						onPress={showEarlier.onPress}
+						pending={showEarlier.isLoading}
+					/>
+				</>
 			) : null}
 		</FormSection>
 	));

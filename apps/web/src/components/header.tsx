@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@seenmark/ui/components/dialog";
+import { cn } from "@seenmark/ui/lib/utils";
 import { MenuIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -17,11 +18,14 @@ import { type CSSProperties, useState } from "react";
 import { activeHref } from "@/lib/active-link";
 import { authClient } from "@/lib/auth-client";
 
+import Logo from "./logo";
 import { ModeToggle } from "./mode-toggle";
 import UserMenu from "./user-menu";
 
 const visitorLinks: { href: Route; label: string }[] = [
   { href: "/#how-it-works", label: "How it works" },
+  { href: "/#privacy", label: "Privacy" },
+  { href: "/#questions", label: "Questions" },
 ];
 
 const memberLinks: { href: Route; label: string }[] = [
@@ -44,39 +48,40 @@ export default function Header() {
   );
 
   return (
-    <header className="header-shadow sticky top-0 z-50 border-border/80 border-b bg-background/90 backdrop-blur-xl">
-      <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-5 px-5 sm:px-8 lg:px-10">
-        <Link
-          href="/"
-          aria-label="Seenmark home"
-          className="shrink-0 font-display font-semibold text-2xl text-foreground tracking-tight"
-        >
-          seenmark<span className="text-primary">.</span>
-        </Link>
+    <header className="header-shadow sticky top-0 z-50 bg-background/85 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-5 px-5 sm:px-8 lg:px-10">
+        <Logo />
 
-        <nav aria-label="Main navigation" className="hidden items-center gap-8 md:flex">
-          {links.map((link) => {
-            const isCurrent = link.href === current;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                aria-current={isCurrent ? "page" : undefined}
-                className={`relative rounded-md text-sm transition-colors after:absolute after:inset-x-0 after:-bottom-1 after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-200 hover:text-foreground hover:after:scale-x-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:after:scale-x-100 aria-[current=page]:after:scale-x-100 ${
-                  isCurrent ? "font-semibold text-foreground" : "text-muted-foreground"
-                }`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-        </nav>
+        {links.length > 0 ? (
+          <nav
+            aria-label="Main navigation"
+            className="hidden items-center rounded-full border border-border bg-card p-1 lg:flex"
+          >
+            {links.map((link) => {
+              const isCurrent = link.href === current;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  aria-current={isCurrent ? "page" : undefined}
+                  className={`rounded-full px-4 py-2 font-medium text-[15px] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                    isCurrent
+                      ? "bg-foreground text-background"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+        ) : null}
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <ModeToggle />
           <UserMenu />
           {!isPending && !session ? (
-            <Link href="/signup" className={buttonVariants({ className: "hidden sm:inline-flex" })}>
+            <Link href="/signup" className={cn(buttonVariants(), "hidden h-10 sm:inline-flex")}>
               Get started
             </Link>
           ) : null}
@@ -87,13 +92,13 @@ export default function Header() {
             >
               <DialogTrigger
                 aria-label="Open menu"
-                render={<Button variant="ghost" size="icon" className="md:hidden" />}
+                render={<Button variant="ghost" size="icon" className="lg:hidden" />}
               >
                 <MenuIcon />
               </DialogTrigger>
               {/* zoom-*-100 cancels the dialog's zoom-*-95: cn keeps both, and Tailwind emits the
                   larger value later, so it wins. */}
-              <DialogContent className="data-closed:slide-out-to-right data-closed:zoom-out-100 data-open:slide-in-from-right data-open:zoom-in-100 top-0 right-0 left-auto h-dvh max-h-dvh max-w-xs translate-x-0 translate-y-0 content-start rounded-none rounded-l-3xl duration-300 data-closed:duration-200 sm:max-w-xs">
+              <DialogContent className="data-closed:slide-out-to-right data-closed:zoom-out-100 data-open:slide-in-from-right data-open:zoom-in-100 top-0 right-0 left-auto h-dvh max-h-dvh max-w-xs translate-x-0 translate-y-0 content-start rounded-none rounded-l-2xl duration-300 data-closed:duration-200 sm:max-w-xs">
                 <DialogHeader>
                   <DialogTitle>Menu</DialogTitle>
                 </DialogHeader>
@@ -107,7 +112,7 @@ export default function Header() {
                         onClick={closeSheet}
                         aria-current={isCurrent ? "page" : undefined}
                         style={{ "--i": index } as CSSProperties}
-                        className={`stagger animate-rise rounded-xl px-4 py-3 font-display text-heading transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                        className={`stagger animate-rise rounded-full px-5 py-3 font-display text-heading transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                           isCurrent ? "bg-accent text-accent-foreground" : "text-foreground"
                         }`}
                       >

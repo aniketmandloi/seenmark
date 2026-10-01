@@ -1,4 +1,5 @@
 import {
+	Background,
 	Button,
 	ConfirmationDialog,
 	ContentUnavailableView,
@@ -57,6 +58,7 @@ import {
 	pickerStyle,
 	redacted,
 	refreshable,
+	rotationEffect,
 	scrollDismissesKeyboard,
 	shapes,
 	submitLabel,
@@ -68,7 +70,7 @@ import {
 } from "@expo/ui/swift-ui/modifiers";
 import { Stack } from "expo-router";
 import { type ReactNode, useState } from "react";
-import { Platform, Image as RNImage, StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 
 import {
 	type ChoiceStatus,
@@ -76,6 +78,8 @@ import {
 } from "@/components/form/choice-status";
 import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
+import { splitHighlight } from "@/components/form/highlight";
+import { Logo } from "@/components/form/logo";
 import { useStackedRows } from "@/components/form/text-scale";
 import type {
 	FormButtonProps,
@@ -173,11 +177,77 @@ function HeroPart({
 	return reveal ? <FormReveal index={index}>{children}</FormReveal> : children;
 }
 
+const heroTitleFont = [
+	font({ family: DISPLAY_FONT, size: 34, textStyle: "largeTitle" }),
+	kerning(-1),
+];
+
+/** SwiftUI can't draw a mark behind part of one Text, so the marked words get their own line. */
+function HeroTitle({
+	title,
+	highlight,
+}: Pick<FormHeroProps, "title" | "highlight">) {
+	const { theme } = useColorScheme();
+	const parts = splitHighlight(title, highlight);
+
+	if (!parts) {
+		return (
+			<Text
+				modifiers={[...heroTitleFont, accessibilityAddTraits(["isHeader"])]}
+			>
+				{title}
+			</Text>
+		);
+	}
+
+	return (
+		<VStack
+			alignment="leading"
+			spacing={0}
+			modifiers={[
+				accessibilityElement("ignore"),
+				accessibilityLabel(title),
+				accessibilityAddTraits(["isHeader"]),
+			]}
+		>
+			{parts.before.trim() ? (
+				<Text modifiers={heroTitleFont}>{parts.before.trim()}</Text>
+			) : null}
+			<HStack spacing={0}>
+				<Background>
+					<Text
+						modifiers={[
+							...heroTitleFont,
+							foregroundStyle(theme.primaryForeground),
+						]}
+					>
+						{parts.marked}
+					</Text>
+					<Background.Content>
+						<RoundedRectangle
+							cornerRadius={8}
+							modifiers={[
+								foregroundStyle(theme.primary),
+								padding({ horizontal: -5 }),
+								rotationEffect(-1.2),
+							]}
+						/>
+					</Background.Content>
+				</Background>
+				{parts.after ? (
+					<Text modifiers={heroTitleFont}>{parts.after}</Text>
+				) : null}
+			</HStack>
+		</VStack>
+	);
+}
+
 export function FormHero({
 	eyebrow,
 	title,
+	highlight,
 	description,
-	image,
+	logo = false,
 	reveal = false,
 }: FormHeroProps) {
 	return (
@@ -190,11 +260,11 @@ export function FormHero({
 					listRowInsets({ top: 8, leading: 4, bottom: 8, trailing: 4 }),
 				]}
 			>
-				{image ? (
+				{logo ? (
 					<HeroPart reveal={reveal} index={0}>
 						<RNHostView matchContents>
-							<View pointerEvents="none" style={styles.heroImageFrame}>
-								<RNImage source={image} style={styles.heroImage} />
+							<View pointerEvents="none" style={styles.heroLogo}>
+								<Logo />
 							</View>
 						</RNHostView>
 					</HeroPart>
@@ -212,15 +282,7 @@ export function FormHero({
 					</HeroPart>
 				) : null}
 				<HeroPart reveal={reveal} index={2}>
-					<Text
-						modifiers={[
-							font({ family: DISPLAY_FONT, size: 34, textStyle: "largeTitle" }),
-							kerning(-1),
-							accessibilityAddTraits(["isHeader"]),
-						]}
-					>
-						{title}
-					</Text>
+					<HeroTitle title={title} highlight={highlight} />
 				</HeroPart>
 				<HeroPart reveal={reveal} index={3}>
 					<Text modifiers={[font({ textStyle: "body" }), secondary]}>
@@ -1056,14 +1118,7 @@ const styles = StyleSheet.create({
 	fill: {
 		flex: 1,
 	},
-	heroImageFrame: {
-		width: 64,
-		height: 64,
+	heroLogo: {
 		marginBottom: 8,
-	},
-	heroImage: {
-		width: 64,
-		height: 64,
-		borderRadius: 15,
 	},
 });

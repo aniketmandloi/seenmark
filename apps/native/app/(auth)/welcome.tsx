@@ -13,9 +13,10 @@ export default function WelcomeScreen() {
 	return (
 		<FormScreen>
 			<FormHero
-				image={require("@/assets/images/icon.png")}
+				logo
 				eyebrow="Private by design"
 				title="Your hairline, over time."
+				highlight="over time"
 				description="A quiet place to keep your own check-in photos and look back when you choose."
 				reveal
 			/>

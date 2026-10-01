@@ -67,7 +67,6 @@ import {
 	useState,
 } from "react";
 import {
-	Image as RNImage,
 	Text as RNText,
 	StyleSheet,
 	useWindowDimensions,
@@ -80,6 +79,8 @@ import {
 } from "@/components/form/choice-status";
 import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
+import { splitHighlight } from "@/components/form/highlight";
+import { Logo } from "@/components/form/logo";
 import { useStackedRows } from "@/components/form/text-scale";
 import type {
 	FormButtonProps,
@@ -269,22 +270,25 @@ function HeroPart({
 export function FormHero({
 	eyebrow,
 	title,
+	highlight,
 	description,
-	image,
+	logo = false,
 	reveal = false,
 }: FormHeroProps) {
 	const colors = useMaterialColors();
+	const { theme } = useColorScheme();
+	const parts = splitHighlight(title, highlight);
 
 	return (
 		<Column
 			verticalArrangement={{ spacedBy: 8 }}
 			modifiers={[fillMaxWidth(), padding(8, 16, 8, 0)]}
 		>
-			{image ? (
+			{logo ? (
 				<HeroPart reveal={reveal} index={0}>
 					<RNHostView matchContents>
-						<View pointerEvents="none" style={styles.heroImageFrame}>
-							<RNImage source={image} style={styles.heroImage} />
+						<View pointerEvents="none" style={styles.heroLogo}>
+							<Logo />
 						</View>
 					</RNHostView>
 				</HeroPart>
@@ -308,7 +312,20 @@ export function FormHero({
 						letterSpacing: -1,
 					}}
 				>
-					{title}
+					{/* Spans must be direct children, and no-break spaces keep the mark on one line. */}
+					{parts
+						? [
+								parts.before,
+								<Text
+									key="marked"
+									color={theme.primaryForeground}
+									style={{ background: theme.primary }}
+								>
+									{parts.marked.replaceAll(" ", "\u00A0")}
+								</Text>,
+								parts.after,
+							]
+						: title}
 				</Text>
 			</HeroPart>
 			<HeroPart reveal={reveal} index={3}>
@@ -1271,15 +1288,8 @@ const styles = StyleSheet.create({
 	fill: {
 		flex: 1,
 	},
-	heroImageFrame: {
-		width: 64,
-		height: 64,
+	heroLogo: {
 		marginBottom: 8,
-	},
-	heroImage: {
-		width: 64,
-		height: 64,
-		borderRadius: 16,
 	},
 	photoRow: {
 		flexDirection: "row",

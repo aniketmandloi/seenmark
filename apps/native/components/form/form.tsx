@@ -4,7 +4,6 @@ import {
 	ActivityIndicator,
 	Alert,
 	type AlertButton,
-	Image,
 	Pressable,
 	RefreshControl,
 	ScrollView,
@@ -19,6 +18,8 @@ import Animated, { Easing, FadeInDown } from "react-native-reanimated";
 import { useChoiceStatus } from "@/components/form/choice-status";
 import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
+import { splitHighlight } from "@/components/form/highlight";
+import { Logo } from "@/components/form/logo";
 import type {
 	FormButtonProps,
 	FormChoiceProps,
@@ -96,17 +97,21 @@ function HeroPart({
 export function FormHero({
 	eyebrow,
 	title,
+	highlight,
 	description,
-	image,
+	logo = false,
 	reveal = false,
 }: FormHeroProps) {
 	const { theme } = useColorScheme();
+	const parts = splitHighlight(title, highlight);
 
 	return (
 		<View style={styles.hero}>
-			{image ? (
+			{logo ? (
 				<HeroPart reveal={reveal} index={0}>
-					<Image source={image} style={styles.heroImage} />
+					<View style={styles.heroLogo}>
+						<Logo />
+					</View>
 				</HeroPart>
 			) : null}
 			{eyebrow ? (
@@ -121,7 +126,25 @@ export function FormHero({
 					accessibilityRole="header"
 					style={[styles.heroTitle, { color: theme.text }]}
 				>
-					{title}
+					{parts ? (
+						<>
+							{parts.before}
+							<Text
+								style={[
+									styles.mark,
+									{
+										color: theme.primaryForeground,
+										backgroundColor: theme.primary,
+									},
+								]}
+							>
+								{parts.marked}
+							</Text>
+							{parts.after}
+						</>
+					) : (
+						title
+					)}
 				</Text>
 			</HeroPart>
 			<HeroPart reveal={reveal} index={3}>
@@ -690,10 +713,7 @@ const styles = StyleSheet.create({
 		gap: 8,
 		paddingTop: 16,
 	},
-	heroImage: {
-		width: 64,
-		height: 64,
-		borderRadius: 15,
+	heroLogo: {
 		marginBottom: 8,
 	},
 	eyebrow: {
@@ -703,6 +723,9 @@ const styles = StyleSheet.create({
 	heroTitle: {
 		fontSize: 32,
 		fontWeight: "700",
+	},
+	mark: {
+		borderRadius: 6,
 	},
 	body: {
 		fontSize: 16,

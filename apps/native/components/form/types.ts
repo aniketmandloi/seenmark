@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import type { ImageSourcePropType } from "react-native";
 
 import type { IconName } from "@/lib/icons";
 
@@ -22,9 +21,15 @@ export type FormScreenProps = {
 export type FormHeroProps = {
 	eyebrow?: string;
 	title: string;
+	/**
+	 * Words of the title to mark with the highlighter, as the web's headings do. iOS starts the
+	 * mark on its own line, so they should end the title.
+	 */
+	highlight?: string;
 	description: string;
-	image?: ImageSourcePropType;
-	/** Staggers the image, eyebrow, title, and description in as reveals 0–3, on first mount only. */
+	/** Shows the Seenmark logo above the eyebrow. */
+	logo?: boolean;
+	/** Staggers the logo, eyebrow, title, and description in as reveals 0–3, on first mount only. */
 	reveal?: boolean;
 };
 

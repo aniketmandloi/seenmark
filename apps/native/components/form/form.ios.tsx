@@ -38,7 +38,6 @@ import {
 	controlSize,
 	disabled as disableControl,
 	font,
-	foregroundStyle,
 	frame,
 	kerning,
 	keyboardType,
@@ -67,7 +66,7 @@ import {
 } from "@expo/ui/swift-ui/modifiers";
 import { Stack } from "expo-router";
 import { type ReactNode, use, useState } from "react";
-import { Platform, StyleSheet, View } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 
 import {
 	type ChoiceStatus,
@@ -76,7 +75,6 @@ import {
 import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
 import { OnHighlight, splitHighlight } from "@/components/form/highlight";
-import { Logo } from "@/components/form/logo";
 import { useStackedRows } from "@/components/form/text-scale";
 import type {
 	FormButtonProps,
@@ -108,22 +106,22 @@ import { DISPLAY_FONT } from "@/lib/constants";
 import { ICONS } from "@/lib/icons";
 import { staggerDelay, useMotion } from "@/lib/motion";
 import { easeOut } from "@/lib/swift-ui-motion";
-import { fill, tintColor } from "@/lib/swift-ui-paint";
+import { fill, foreground, tintColor } from "@/lib/swift-ui-paint";
 import { useColorScheme } from "@/lib/use-color-scheme";
 
 // SwiftUI's ContentUnavailableView renders nothing before iOS 17.
 const hasContentUnavailableView =
 	Number.parseInt(String(Platform.Version), 10) >= 17;
 
-const secondary = foregroundStyle({ type: "hierarchical", style: "secondary" });
-const tertiary = foregroundStyle({ type: "hierarchical", style: "tertiary" });
-const quaternary = foregroundStyle({
+const secondary = foreground({ type: "hierarchical", style: "secondary" });
+const tertiary = foreground({ type: "hierarchical", style: "tertiary" });
+const quaternary = foreground({
 	type: "hierarchical",
 	style: "quaternary",
 });
 
 function toneStyle(tone: Tone): ModifierConfig[] {
-	if (tone === "destructive") return [foregroundStyle("red")];
+	if (tone === "destructive") return [foreground("red")];
 	if (tone === "accent")
 		return [font({ textStyle: "body", weight: "semibold" })];
 	return [];
@@ -212,14 +210,12 @@ function HeroTitle({
 				<Text modifiers={heroTitleFont}>{parts.before.trim()}</Text>
 			) : null}
 			<HStack spacing={0}>
-				{/* The outer negative padding lets the mark overhang the words without moving them. */}
 				<Text
 					modifiers={[
 						...heroTitleFont,
-						foregroundStyle(theme.primaryForeground),
-						padding({ horizontal: 5 }),
+						foreground(theme.primaryForeground),
+						padding({ horizontal: 4 }),
 						fill(theme.primary, shapes.roundedRectangle({ cornerRadius: 8 })),
-						padding({ horizontal: -5 }),
 					]}
 				>
 					{parts.marked}
@@ -229,6 +225,38 @@ function HeroTitle({
 				) : null}
 			</HStack>
 		</VStack>
+	);
+}
+
+/** The web's ring-and-dot mark beside the wordmark, drawn natively so no hosted view sizes the hero. */
+function HeroLogo() {
+	const { theme } = useColorScheme();
+
+	return (
+		<HStack
+			spacing={8}
+			modifiers={[
+				padding({ bottom: 8 }),
+				accessibilityElement("ignore"),
+				accessibilityLabel("Seenmark"),
+			]}
+		>
+			<Image
+				systemName="smallcircle.filled.circle"
+				modifiers={[
+					font({ textStyle: "title3", weight: "semibold" }),
+					foreground(theme.text),
+				]}
+			/>
+			<Text
+				modifiers={[
+					font({ family: DISPLAY_FONT, size: 20, textStyle: "title3" }),
+					kerning(-0.5),
+				]}
+			>
+				seenmark
+			</Text>
+		</HStack>
 	);
 }
 
@@ -252,11 +280,7 @@ export function FormHero({
 			>
 				{logo ? (
 					<HeroPart reveal={reveal} index={0}>
-						<RNHostView matchContents>
-							<View pointerEvents="none" style={styles.heroLogo}>
-								<Logo />
-							</View>
-						</RNHostView>
+						<HeroLogo />
 					</HeroPart>
 				) : null}
 				{eyebrow ? (
@@ -329,13 +353,13 @@ export function FormRow({
 						...(tone === "accent"
 							? [
 									font({ textStyle: "subheadline", weight: "semibold" }),
-									foregroundStyle(theme.primaryForeground),
+									foreground(theme.primaryForeground),
 									frame({ width: 28, height: 28 }),
 									fill(theme.primary, shapes.circle()),
 								]
 							: [
 									font({ textStyle: "body" }),
-									foregroundStyle(
+									foreground(
 										tone === "destructive"
 											? "red"
 											: onHighlight
@@ -351,7 +375,7 @@ export function FormRow({
 			<VStack alignment="leading" spacing={2}>
 				<Text
 					modifiers={[
-						foregroundStyle(
+						foreground(
 							onHighlight
 								? theme.primaryForeground
 								: { type: "hierarchical", style: "primary" },
@@ -365,9 +389,9 @@ export function FormRow({
 					<Text
 						modifiers={[
 							font({ textStyle: "footnote" }),
-							onHighlight
-								? foregroundStyle(`${theme.primaryForeground}BF`)
-								: secondary,
+							...(onHighlight
+								? [foreground(theme.primaryForeground), opacity(0.75)]
+								: [secondary]),
 						]}
 					>
 						{subtitle}
@@ -492,7 +516,7 @@ export function FormButton({
 		const labelStyle = [
 			font({ textStyle: "headline" }),
 			frame({ maxWidth: Number.POSITIVE_INFINITY }),
-			foregroundStyle(theme.primaryForeground),
+			foreground(theme.primaryForeground),
 		];
 		return (
 			<Button
@@ -865,7 +889,7 @@ function ChoiceStatusRow({ status }: { status: ChoiceStatus }) {
 					systemName={ICONS.check.ios}
 					modifiers={[
 						font({ textStyle: "caption2", weight: "bold" }),
-						foregroundStyle(theme.primaryForeground),
+						foreground(theme.primaryForeground),
 						frame({ minWidth: 18, minHeight: 18 }),
 						fill(theme.primary, shapes.circle()),
 						accessibilityHidden(true),
@@ -942,7 +966,7 @@ export function FormStep({ number, total, text }: FormStepProps) {
 				modifiers={[
 					font({ family: DISPLAY_FONT, size: 17, textStyle: "headline" }),
 					monospacedDigit(),
-					foregroundStyle(theme.primaryForeground),
+					foreground(theme.primaryForeground),
 					frame({ minWidth: 32, minHeight: 32 }),
 					fill(theme.primary, shapes.circle()),
 				]}
@@ -1134,8 +1158,5 @@ export function FormErrorState({
 const styles = StyleSheet.create({
 	fill: {
 		flex: 1,
-	},
-	heroLogo: {
-		marginBottom: 8,
 	},
 });

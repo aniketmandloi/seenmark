@@ -11,6 +11,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useEffect, useEffectEvent, useState } from "react";
 import { AppState } from "react-native";
 
+import { discardCapture } from "@/lib/captures";
 import {
 	announce,
 	confirmChoice,
@@ -219,31 +220,37 @@ export function useMemberActions() {
 		if (result.canceled) return false;
 
 		const asset = result.assets[0];
-		if (!asset?.base64) {
-			fail("The camera did not return a photo. Please try again.");
-			return false;
-		}
-		if (recordedCaptures.has(asset.uri)) return false;
-		const mediaType = asset.mimeType ?? "image/jpeg";
-		if (!isPhotoMediaType(mediaType)) {
-			fail("The camera returned a photo format Seenmark cannot keep.");
-			return false;
-		}
-		if (asset.base64.length > MAX_PHOTO_BASE64_LENGTH) {
-			fail("That photo is too large to keep. Please try again.");
-			return false;
-		}
-
-		recordedCaptures.add(asset.uri);
+		// The photo arrives already read into base64, and a retry takes a new one, so its
+		// file is deleted whether it is saved, rejected or fails to upload.
 		try {
-			await record.mutateAsync({
-				imageBase64: asset.base64,
-				mediaType,
-				takenAt: new Date().toISOString(),
-			});
-		} catch (cause) {
-			recordedCaptures.delete(asset.uri);
-			throw cause;
+			if (!asset?.base64) {
+				fail("The camera did not return a photo. Please try again.");
+				return false;
+			}
+			if (recordedCaptures.has(asset.uri)) return false;
+			const mediaType = asset.mimeType ?? "image/jpeg";
+			if (!isPhotoMediaType(mediaType)) {
+				fail("The camera returned a photo format Seenmark cannot keep.");
+				return false;
+			}
+			if (asset.base64.length > MAX_PHOTO_BASE64_LENGTH) {
+				fail("That photo is too large to keep. Please try again.");
+				return false;
+			}
+
+			recordedCaptures.add(asset.uri);
+			try {
+				await record.mutateAsync({
+					imageBase64: asset.base64,
+					mediaType,
+					takenAt: new Date().toISOString(),
+				});
+			} catch (cause) {
+				recordedCaptures.delete(asset.uri);
+				throw cause;
+			}
+		} finally {
+			if (asset) discardCapture(asset.uri);
 		}
 		if (!stillCurrent()) return false;
 		confirmSaved();

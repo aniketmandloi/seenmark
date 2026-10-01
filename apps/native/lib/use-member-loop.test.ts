@@ -3,14 +3,15 @@ import * as ImagePicker from "expo-image-picker";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as feedback from "@/lib/feedback";
-import { claimMemberCache } from "@/lib/member-session";
+import { claimMemberCache, forgetMemberData } from "@/lib/member-session";
 
 import { useMemberActions } from "./use-member-loop";
 
-const { transport, hooks, queryClient } = vi.hoisted(() => ({
+const { transport, hooks, queryClient, files } = vi.hoisted(() => ({
 	transport: vi.fn<(path: string, input: unknown) => Promise<unknown>>(),
 	hooks: { states: [] as unknown[], cursor: 0 },
 	queryClient: { current: undefined as unknown as QueryClient },
+	files: new Set<string>(),
 }));
 
 // No renderer runs here, so state lives in slots taken in call order, as React keeps it.
@@ -90,6 +91,37 @@ vi.mock("expo-image-picker", () => ({
 
 vi.mock("react-native", () => ({ AppState: { addEventListener: vi.fn() } }));
 
+// The device's files, as a set of URIs.
+vi.mock("expo-file-system", () => {
+	class File {
+		constructor(readonly uri: string) {}
+		get exists() {
+			return files.has(this.uri);
+		}
+		delete() {
+			files.delete(this.uri);
+		}
+	}
+	class Directory {
+		readonly uri: string;
+		constructor(...parts: (string | Directory)[]) {
+			this.uri = parts.map(String).join("/");
+		}
+		toString() {
+			return this.uri;
+		}
+		get exists() {
+			return true;
+		}
+		list() {
+			return [...files]
+				.filter((uri) => uri.startsWith(`${this.uri}/`))
+				.map((uri) => new File(uri));
+		}
+	}
+	return { File, Directory, Paths: { cache: new Directory("file://cache") } };
+});
+
 const bandKey = [["score", "current"], { input: undefined, type: "query" }];
 const checkInsKey = [["checkIn", "list"]];
 const introductionKey = [
@@ -134,6 +166,7 @@ function render() {
 
 beforeEach(() => {
 	vi.clearAllMocks();
+	files.clear();
 	hooks.states = [];
 	queryClient.current = new QueryClient();
 	claimMemberCache("member-a");
@@ -311,5 +344,56 @@ describe("a reply that arrives after its member has left", () => {
 		claimMemberCache("member-b");
 
 		expect(queryClient.current.getQueryData(bandKey)).toBeUndefined();
+	});
+});
+
+describe("a camera file", () => {
+	// Saved captures are remembered for the whole run, so each test takes its own file.
+	let captureUri = "";
+	let captures = 0;
+
+	beforeEach(() => {
+		captureUri = `file://cache/ImagePicker/capture-${++captures}.jpg`;
+		files.add(captureUri);
+		capture(captureUri);
+	});
+
+	it("is deleted once its check-in is saved", async () => {
+		transport.mockResolvedValue({
+			id: "check-in",
+			takenAt: new Date().toISOString(),
+		});
+
+		await expect(render().takeCheckIn()).resolves.toBe(true);
+		expect(files.has(captureUri)).toBe(false);
+	});
+
+	it("is deleted when the check-in fails to save", async () => {
+		await expect(render().takeCheckIn()).resolves.toBe(false);
+
+		expect(render().error).toBe("Network request failed");
+		expect(files.has(captureUri)).toBe(false);
+	});
+
+	it("is deleted when the photo is rejected before upload", async () => {
+		vi.mocked(ImagePicker.launchCameraAsync).mockResolvedValue({
+			canceled: false,
+			assets: [{ uri: captureUri, base64: "AAAA", mimeType: "image/gif" }],
+		} as ImagePicker.ImagePickerResult);
+
+		await expect(render().takeCheckIn()).resolves.toBe(false);
+		expect(transport).not.toHaveBeenCalled();
+		expect(files.has(captureUri)).toBe(false);
+	});
+
+	it("and any other camera file are deleted when the member signs out", async () => {
+		const unclaimed = "file://cache/ImagePicker/never-returned.jpg";
+		const elsewhere = "file://cache/other/kept.jpg";
+		files.add(unclaimed);
+		files.add(elsewhere);
+
+		await forgetMemberData();
+
+		expect([...files]).toEqual([elsewhere]);
 	});
 });

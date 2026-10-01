@@ -199,8 +199,8 @@ function FirstCheckIn({ busy, onAdd }: { busy: boolean; onAdd: (file: File) => v
 
   return (
     <Empty
-      className={`rounded-3xl border transition-colors ${
-        dragging ? "border-primary bg-accent/50" : "border-border bg-card/70"
+      className={`rounded-2xl border-2 border-dashed transition-colors ${
+        dragging ? "border-foreground bg-accent" : "border-border bg-card"
       }`}
       onDragOver={(event) => {
         event.preventDefault();
@@ -219,7 +219,7 @@ function FirstCheckIn({ busy, onAdd }: { busy: boolean; onAdd: (file: File) => v
       <EmptyHeader>
         <EmptyMedia
           variant="icon"
-          className={`size-14 rounded-2xl bg-accent text-primary transition-transform ${
+          className={`size-14 rounded-2xl bg-primary text-primary-foreground transition-transform ${
             dragging ? "-translate-y-0.5 scale-105" : ""
           }`}
         >

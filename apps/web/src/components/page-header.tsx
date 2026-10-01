@@ -17,11 +17,11 @@ export default function PageHeader({
   return (
     <header className="flex animate-rise flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
       <div className="flex max-w-2xl flex-col gap-3">
-        {eyebrow ? <p className="font-medium text-primary text-sm">{eyebrow}</p> : null}
+        {eyebrow ? <p className="font-medium text-muted-foreground text-sm">{eyebrow}</p> : null}
         <h1
           ref={titleRef}
           tabIndex={titleRef ? -1 : undefined}
-          className="font-display text-title outline-none"
+          className="text-balance font-display text-title outline-none"
         >
           {title}
         </h1>

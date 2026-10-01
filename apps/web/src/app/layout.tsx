@@ -1,14 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Geist_Mono } from "next/font/google";
+import { Bricolage_Grotesque, Geist_Mono } from "next/font/google";
 
 import "../index.css";
 import Header from "@/components/header";
 import Providers from "@/components/providers";
 import SiteFooter from "@/components/site-footer";
 
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+// The opsz axis lets display headings draw the tighter, high-contrast cut at large sizes.
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
   subsets: ["latin"],
+  axes: ["opsz"],
 });
 
 const geistMono = Geist_Mono({
@@ -34,8 +36,8 @@ export const metadata: Metadata = {
 // Matches the light and dark --background tokens so mobile browser chrome blends into the page.
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#FAFBF4" },
-    { media: "(prefers-color-scheme: dark)", color: "#0A140F" },
+    { media: "(prefers-color-scheme: light)", color: "#F1F2F5" },
+    { media: "(prefers-color-scheme: dark)", color: "#121215" },
   ],
 };
 
@@ -46,7 +48,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${dmSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${bricolage.variable} ${geistMono.variable} antialiased`}>
         <Providers>
           <a href="#main-content" className="skip-link">
             Skip to content

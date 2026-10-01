@@ -64,7 +64,6 @@ import {
 	tag,
 	textContentType,
 	textInputAutocapitalization,
-	tint,
 } from "@expo/ui/swift-ui/modifiers";
 import { Stack } from "expo-router";
 import { type ReactNode, use, useState } from "react";
@@ -109,6 +108,7 @@ import { DISPLAY_FONT } from "@/lib/constants";
 import { ICONS } from "@/lib/icons";
 import { staggerDelay, useMotion } from "@/lib/motion";
 import { easeOut } from "@/lib/swift-ui-motion";
+import { fill, tintColor } from "@/lib/swift-ui-paint";
 import { useColorScheme } from "@/lib/use-color-scheme";
 
 // SwiftUI's ContentUnavailableView renders nothing before iOS 17.
@@ -218,10 +218,7 @@ function HeroTitle({
 						...heroTitleFont,
 						foregroundStyle(theme.primaryForeground),
 						padding({ horizontal: 5 }),
-						background(
-							theme.primary,
-							shapes.roundedRectangle({ cornerRadius: 8 }),
-						),
+						fill(theme.primary, shapes.roundedRectangle({ cornerRadius: 8 })),
 						padding({ horizontal: -5 }),
 					]}
 				>
@@ -334,7 +331,7 @@ export function FormRow({
 									font({ textStyle: "subheadline", weight: "semibold" }),
 									foregroundStyle(theme.primaryForeground),
 									frame({ width: 28, height: 28 }),
-									background(theme.primary, shapes.circle()),
+									fill(theme.primary, shapes.circle()),
 								]
 							: [
 									font({ textStyle: "body" }),
@@ -503,7 +500,7 @@ export function FormButton({
 				modifiers={[
 					buttonStyle("borderedProminent"),
 					buttonBorderShape("capsule"),
-					tint(theme.primary),
+					tintColor(theme.primary),
 					controlSize("large"),
 					listRowBackground("clear"),
 					listRowInsets({ top: 0, leading: 0, bottom: 0, trailing: 0 }),
@@ -513,7 +510,7 @@ export function FormButton({
 				{pending ? (
 					<PendingLabel
 						label={label}
-						modifiers={[...labelStyle, tint(theme.primaryForeground)]}
+						modifiers={[...labelStyle, tintColor(theme.primaryForeground)]}
 					/>
 				) : (
 					<Text modifiers={labelStyle}>{label}</Text>
@@ -804,7 +801,7 @@ export function FormToggle({ label, value, onValueChange }: FormToggleProps) {
 			label={label}
 			isOn={value}
 			onIsOnChange={onValueChange}
-			modifiers={[tint(theme.primary)]}
+			modifiers={[tintColor(theme.primary)]}
 		/>
 	);
 }
@@ -870,7 +867,7 @@ function ChoiceStatusRow({ status }: { status: ChoiceStatus }) {
 						font({ textStyle: "caption2", weight: "bold" }),
 						foregroundStyle(theme.primaryForeground),
 						frame({ minWidth: 18, minHeight: 18 }),
-						background(theme.primary, shapes.circle()),
+						fill(theme.primary, shapes.circle()),
 						accessibilityHidden(true),
 						...(motion.reduced
 							? []
@@ -947,7 +944,7 @@ export function FormStep({ number, total, text }: FormStepProps) {
 					monospacedDigit(),
 					foregroundStyle(theme.primaryForeground),
 					frame({ minWidth: 32, minHeight: 32 }),
-					background(theme.primary, shapes.circle()),
+					fill(theme.primary, shapes.circle()),
 				]}
 			>
 				{number}

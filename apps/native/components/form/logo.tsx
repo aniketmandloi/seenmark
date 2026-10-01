@@ -12,13 +12,22 @@ export function Logo() {
 			<View style={[styles.ring, { borderColor: theme.text }]}>
 				<View style={[styles.dot, { backgroundColor: theme.text }]} />
 			</View>
-			<Text style={[styles.wordmark, { color: theme.text }]}>seenmark</Text>
+			<Text
+				allowFontScaling={false}
+				style={[styles.wordmark, { color: theme.text }]}
+			>
+				seenmark
+			</Text>
 		</View>
 	);
 }
 
 const styles = StyleSheet.create({
+	// A fixed size, like the app icon it replaced, so the native host it sits in needn't measure
+	// React Native text to size itself. The wordmark doesn't scale with text size, so it fits.
 	logo: {
+		width: 140,
+		height: 28,
 		flexDirection: "row",
 		alignItems: "center",
 		gap: 10,

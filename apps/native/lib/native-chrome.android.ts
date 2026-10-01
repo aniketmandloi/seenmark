@@ -1,5 +1,5 @@
 import type { NativeTabsProps } from "expo-router/unstable-native-tabs";
-
+import { DISPLAY_FONT } from "@/lib/constants";
 import type { StackOptions } from "@/lib/native-chrome";
 import { useColorScheme } from "@/lib/use-color-scheme";
 
@@ -11,7 +11,7 @@ export function useStackScreenOptions(): StackOptions {
 	return {
 		headerStyle: { backgroundColor: theme.background },
 		headerTintColor: theme.text,
-		headerTitleStyle: { color: theme.text },
+		headerTitleStyle: { color: theme.text, fontFamily: DISPLAY_FONT },
 		headerShadowVisible: false,
 		contentStyle: { backgroundColor: theme.background },
 	};

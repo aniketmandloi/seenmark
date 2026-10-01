@@ -3,6 +3,7 @@ import type { NativeTabsProps } from "expo-router/unstable-native-tabs";
 import type { ComponentProps } from "react";
 import { Platform } from "react-native";
 
+import { DISPLAY_FONT } from "@/lib/constants";
 import { useColorScheme } from "@/lib/use-color-scheme";
 
 export type StackOptions = Exclude<
@@ -32,8 +33,8 @@ export function useStackScreenOptions(): StackOptions {
 		headerLargeStyle: { backgroundColor: "transparent" },
 		headerShadowVisible: false,
 		headerTintColor: theme.text,
-		headerTitleStyle: { color: theme.text },
-		headerLargeTitleStyle: { color: theme.text },
+		headerTitleStyle: { color: theme.text, fontFamily: DISPLAY_FONT },
+		headerLargeTitleStyle: { color: theme.text, fontFamily: DISPLAY_FONT },
 		headerBackButtonDisplayMode: "minimal",
 	};
 }

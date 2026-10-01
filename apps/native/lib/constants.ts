@@ -25,5 +25,9 @@ export const NAV_THEME = {
 	},
 };
 
+// The PostScript name, which iOS looks fonts up by, and the file name in assets/fonts, which
+// Android does; expo-font's config plugin embeds it at build time.
+export const DISPLAY_FONT = "BricolageGrotesque-SemiBold";
+
 /** Durations in ms, and the entrance rise in pt. */
 export const MOTION = { fast: 150, base: 200, slow: 300, stagger: 50, rise: 8 };

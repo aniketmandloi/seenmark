@@ -40,6 +40,7 @@ import {
 	font,
 	foregroundStyle,
 	frame,
+	kerning,
 	keyboardType,
 	labelsHidden,
 	listRowBackground,
@@ -102,6 +103,7 @@ import type {
 	Tone,
 } from "@/components/form/types";
 import { SKELETON_COUNT } from "@/components/form/types";
+import { DISPLAY_FONT } from "@/lib/constants";
 import { ICONS } from "@/lib/icons";
 import { staggerDelay, useMotion } from "@/lib/motion";
 import { easeOut } from "@/lib/swift-ui-motion";
@@ -212,7 +214,8 @@ export function FormHero({
 				<HeroPart reveal={reveal} index={2}>
 					<Text
 						modifiers={[
-							font({ textStyle: "largeTitle", weight: "bold" }),
+							font({ family: DISPLAY_FONT, size: 34, textStyle: "largeTitle" }),
+							kerning(-1),
 							accessibilityAddTraits(["isHeader"]),
 						]}
 					>
@@ -897,7 +900,11 @@ export function FormEmptyState({
 					systemName={ICONS[icon].ios}
 					modifiers={[font({ size: 44 }), secondary, accessibilityHidden(true)]}
 				/>
-				<Text modifiers={[font({ textStyle: "title2", weight: "bold" })]}>
+				<Text
+					modifiers={[
+						font({ family: DISPLAY_FONT, size: 22, textStyle: "title2" }),
+					]}
+				>
 					{title}
 				</Text>
 				<Text

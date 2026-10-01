@@ -108,6 +108,7 @@ import type {
 } from "@/components/form/types";
 import { SKELETON_COUNT } from "@/components/form/types";
 import { enter } from "@/lib/compose-motion";
+import { DISPLAY_FONT } from "@/lib/constants";
 import { showResultsIn } from "@/lib/feedback";
 import { ICONS } from "@/lib/icons";
 import { staggerDelay, useMotion } from "@/lib/motion";
@@ -299,7 +300,14 @@ export function FormHero({
 				</HeroPart>
 			) : null}
 			<HeroPart reveal={reveal} index={2}>
-				<Text color={colors.onSurface} style={{ typography: "headlineLarge" }}>
+				<Text
+					color={colors.onSurface}
+					style={{
+						typography: "headlineLarge",
+						fontFamily: DISPLAY_FONT,
+						letterSpacing: -1,
+					}}
+				>
 					{title}
 				</Text>
 			</HeroPart>
@@ -1069,7 +1077,11 @@ export function FormEmptyState({
 			<Icon source={ICONS[icon].android} tint={colors.primary} size={48} />
 			<Text
 				color={colors.onSurface}
-				style={{ typography: "titleLarge", textAlign: "center" }}
+				style={{
+					typography: "titleLarge",
+					fontFamily: DISPLAY_FONT,
+					textAlign: "center",
+				}}
 			>
 				{title}
 			</Text>

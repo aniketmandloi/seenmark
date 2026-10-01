@@ -7,9 +7,7 @@ import { type PointerEvent, useState } from "react";
 import { dividerPercent } from "./divider-percent";
 import Photo from "./photo";
 
-// Pointer events pass through to the frame, so a press never starts a native image drag, which
-// would cancel the pointer stream mid-drag.
-const layer = "pointer-events-none absolute inset-0 size-full rounded-none";
+const layer = "absolute inset-0 size-full rounded-none";
 
 /**
  * The two photos stacked, with the latest revealed to the right of a divider. Pointer drags move
@@ -28,8 +26,13 @@ export default function CompareSlider({ earlier, latest }: { earlier: CheckIn; l
     <figure>
       <div
         data-dragging={dragging || undefined}
-        className="group relative aspect-3/4 w-full cursor-ew-resize touch-pan-y select-none overflow-hidden rounded-2xl bg-muted has-focus-visible:ring-2 has-focus-visible:ring-ring has-focus-visible:ring-offset-2 has-focus-visible:ring-offset-background"
+        // Presses on a photo pass through to the frame, so they never start a native image drag,
+        // which would cancel the pointer stream mid-drag. A failed photo's retry button still
+        // takes its own presses.
+        className="group relative aspect-3/4 w-full cursor-ew-resize touch-pan-y select-none overflow-hidden rounded-2xl bg-muted has-focus-visible:ring-2 has-focus-visible:ring-ring has-focus-visible:ring-offset-2 has-focus-visible:ring-offset-background [&_img]:pointer-events-none"
         onPointerDown={(event) => {
+          // Capturing the pointer would retarget the button's click to the frame.
+          if ((event.target as Element).closest("button")) return;
           event.currentTarget.setPointerCapture(event.pointerId);
           setDragging(true);
           follow(event);

@@ -91,10 +91,13 @@ export function useCheckIns() {
 	return {
 		items,
 		// A failed read is not an empty record: it must not invite a first photo or hide the band.
-		loadFailed: checkIns.isError || band.isError,
+		// A failed earlier page keeps the pages already loaded, so it shows only where it was asked for.
+		loadFailed:
+			(checkIns.isError && !checkIns.isFetchNextPageError) || band.isError,
 		isRefreshing: checkIns.isFetching || band.isFetching,
 		hasEarlier: checkIns.hasNextPage,
 		isLoadingEarlier: checkIns.isFetchingNextPage,
+		loadEarlierFailed: checkIns.isFetchNextPageError,
 		loadEarlier: () => void checkIns.fetchNextPage(),
 		isLoading: checkIns.isLoading,
 		isEmpty: checkIns.isSuccess && items.length === 0,

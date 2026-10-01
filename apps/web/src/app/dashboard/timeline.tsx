@@ -2,6 +2,7 @@
 
 import { type CheckIn, formatDate, groupByMonth, relativeTime } from "@seenmark/api/check-in-dates";
 import type { Slot } from "@seenmark/api/comparison";
+import { Alert, AlertDescription } from "@seenmark/ui/components/alert";
 import { Badge } from "@seenmark/ui/components/badge";
 import { Button } from "@seenmark/ui/components/button";
 import {
@@ -29,6 +30,7 @@ export default function Timeline({
   fallbackFocus,
   hasNextPage,
   isFetchingNextPage,
+  loadEarlierFailed,
   onShowEarlier,
   onOpen,
   onCompare,
@@ -44,6 +46,7 @@ export default function Timeline({
   fallbackFocus: RefObject<HTMLElement | null>;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
+  loadEarlierFailed: boolean;
   onShowEarlier: () => void;
   onOpen: (id: string) => void;
   onCompare: (slot: Slot, id: string) => void;
@@ -93,17 +96,28 @@ export default function Timeline({
       </div>
 
       {hasNextPage ? (
-        <Button
-          variant="outline"
-          size="sm"
-          className="mt-6"
-          disabled={isFetchingNextPage}
-          aria-busy={isFetchingNextPage || undefined}
-          onClick={onShowEarlier}
-        >
-          {isFetchingNextPage ? <Spinner data-icon="inline-start" /> : null}
-          {isFetchingNextPage ? "Loading…" : "Show earlier check-ins"}
-        </Button>
+        <div className="mt-6 space-y-3">
+          {loadEarlierFailed ? (
+            <Alert variant="destructive">
+              <AlertDescription>Couldn't load earlier check-ins.</AlertDescription>
+            </Alert>
+          ) : null}
+          {/* The same button retries, so keyboard focus stays where it was. */}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isFetchingNextPage}
+            aria-busy={isFetchingNextPage || undefined}
+            onClick={onShowEarlier}
+          >
+            {isFetchingNextPage ? <Spinner data-icon="inline-start" /> : null}
+            {isFetchingNextPage
+              ? "Loading…"
+              : loadEarlierFailed
+                ? "Try again"
+                : "Show earlier check-ins"}
+          </Button>
+        </div>
       ) : null}
     </section>
   );

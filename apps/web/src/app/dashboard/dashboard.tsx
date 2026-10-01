@@ -134,7 +134,7 @@ export default function Dashboard() {
         <div className="min-w-0 lg:col-span-2">
           {checkIns.isLoading ? (
             <CheckInsSkeleton />
-          ) : checkIns.isError ? (
+          ) : checkIns.isError && checkIns.data === undefined ? (
             <ErrorState
               message={
                 checkIns.error.message || "Your check-ins are unavailable. Try again in a moment."
@@ -170,6 +170,7 @@ export default function Dashboard() {
                     fallbackFocus={title}
                     hasNextPage={checkIns.hasNextPage}
                     isFetchingNextPage={checkIns.isFetchingNextPage}
+                    loadEarlierFailed={checkIns.isFetchNextPageError}
                     onShowEarlier={() => checkIns.fetchNextPage()}
                     onOpen={(id) => {
                       setOpened(items.find((item) => item.id === id) ?? null);

@@ -16,6 +16,7 @@ export const ICONS = {
 		ios: "camera",
 		android: require("@/assets/icons/photo_camera.xml"),
 	},
+	check: { ios: "checkmark", android: require("@/assets/icons/check.xml") },
 	chevron: {
 		ios: "chevron.right",
 		android: require("@/assets/icons/chevron_right.xml"),

@@ -520,7 +520,17 @@ export function FormChoice<T extends string>({
 				</View>
 			) : status === "saved" ? (
 				<View style={styles.row}>
-					<Text style={{ color: theme.success }}>✓</Text>
+					<Text
+						style={[
+							styles.check,
+							{
+								color: theme.primaryForeground,
+								backgroundColor: theme.primary,
+							},
+						]}
+					>
+						✓
+					</Text>
 					<Text style={{ color: theme.muted }}>Saved</Text>
 				</View>
 			) : null}
@@ -571,9 +581,11 @@ export function FormStep({ number, total, text }: FormStepProps) {
 			accessibilityLabel={`Step ${number} of ${total}: ${text}`}
 			style={[styles.row, styles.step]}
 		>
-			<Text style={[styles.stepNumber, { color: theme.text }]}>
-				{String(number).padStart(2, "0")}
-			</Text>
+			<View style={[styles.stepCircle, { backgroundColor: theme.primary }]}>
+				<Text style={[styles.stepNumber, { color: theme.primaryForeground }]}>
+					{number}
+				</Text>
+			</View>
 			<Text style={[styles.body, styles.rowCopy, { color: theme.text }]}>
 				{text}
 			</Text>
@@ -813,10 +825,26 @@ const styles = StyleSheet.create({
 	step: {
 		alignItems: "flex-start",
 	},
+	stepCircle: {
+		minWidth: 32,
+		minHeight: 32,
+		borderRadius: 999,
+		alignItems: "center",
+		justifyContent: "center",
+	},
 	stepNumber: {
-		fontSize: 17,
+		fontSize: 16,
 		fontWeight: "600",
-		lineHeight: 23,
 		fontVariant: ["tabular-nums"],
+	},
+	check: {
+		width: 18,
+		height: 18,
+		borderRadius: 9,
+		overflow: "hidden",
+		fontSize: 11,
+		fontWeight: "700",
+		lineHeight: 18,
+		textAlign: "center",
 	},
 });

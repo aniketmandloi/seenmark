@@ -783,10 +783,12 @@ function ChoiceStatusRow({ status }: { status: ChoiceStatus }) {
 		>
 			{saved ? (
 				<Image
-					systemName={ICONS.done.ios}
+					systemName={ICONS.check.ios}
 					modifiers={[
-						footnote,
-						foregroundStyle(theme.success),
+						font({ textStyle: "caption2", weight: "bold" }),
+						foregroundStyle(theme.primaryForeground),
+						frame({ minWidth: 18, minHeight: 18 }),
+						background(theme.primary, shapes.circle()),
 						accessibilityHidden(true),
 						...(motion.reduced
 							? []
@@ -845,6 +847,8 @@ export function FormPicker({
 }
 
 export function FormStep({ number, total, text }: FormStepProps) {
+	const { theme } = useColorScheme();
+
 	return (
 		<HStack
 			alignment="firstTextBaseline"
@@ -857,11 +861,14 @@ export function FormStep({ number, total, text }: FormStepProps) {
 		>
 			<Text
 				modifiers={[
-					font({ textStyle: "title3", weight: "semibold" }),
+					font({ family: DISPLAY_FONT, size: 17, textStyle: "headline" }),
 					monospacedDigit(),
+					foregroundStyle(theme.primaryForeground),
+					frame({ minWidth: 32, minHeight: 32 }),
+					background(theme.primary, shapes.circle()),
 				]}
 			>
-				{String(number).padStart(2, "0")}
+				{number}
 			</Text>
 			<Text>{text}</Text>
 		</HStack>

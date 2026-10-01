@@ -950,7 +950,16 @@ function ChoiceStatusRow({ status }: { status: ChoiceStatus | null }) {
 		</Row>
 	);
 	const saved = statusLine(
-		<Icon source={ICONS.done.android} tint={theme.success} size={18} />,
+		<Box
+			contentAlignment="center"
+			modifiers={[size(18, 18), clip(Shapes.Circle), background(theme.primary)]}
+		>
+			<Icon
+				source={ICONS.check.android}
+				tint={theme.primaryForeground}
+				size={14}
+			/>
+		</Box>,
 		"Saved",
 	);
 
@@ -1035,6 +1044,7 @@ export function FormPicker({
 
 export function FormStep({ number, total, text }: FormStepProps) {
 	const colors = useMaterialColors();
+	const { theme } = useColorScheme();
 
 	// Compose here can't hide text from TalkBack, so React Native draws the number and hides it
 	// there, and "Step 1 of 3:" rides on transparent text ahead of the step.
@@ -1042,9 +1052,14 @@ export function FormStep({ number, total, text }: FormStepProps) {
 		<ListItem colors={{ containerColor: "transparent" }}>
 			<ListItem.LeadingContent>
 				<RNHostView matchContents>
-					<View importantForAccessibility="no-hide-descendants">
-						<RNText style={[styles.stepNumber, { color: colors.onSurface }]}>
-							{String(number).padStart(2, "0")}
+					<View
+						importantForAccessibility="no-hide-descendants"
+						style={[styles.stepCircle, { backgroundColor: theme.primary }]}
+					>
+						<RNText
+							style={[styles.stepNumber, { color: theme.primaryForeground }]}
+						>
+							{number}
 						</RNText>
 					</View>
 				</RNHostView>
@@ -1204,9 +1219,7 @@ export function FormSkeleton({
 							horizontalArrangement={{ spacedBy: 16 }}
 							modifiers={[fillMaxWidth(), padding(16, 14, 24, 14)]}
 						>
-							<Placeholder
-								modifiers={[size(20, 16), clip(Shapes.RoundedCorner(4))]}
-							/>
+							<Placeholder modifiers={[size(32, 32), clip(Shapes.Circle)]} />
 							<Column
 								verticalArrangement={{ spacedBy: 8 }}
 								modifiers={[weight(1)]}
@@ -1277,11 +1290,17 @@ const styles = StyleSheet.create({
 		marginTop: 6,
 	},
 	// Material 3 titleMedium, with tabular digits.
+	stepCircle: {
+		minWidth: 32,
+		minHeight: 32,
+		borderRadius: 999,
+		alignItems: "center",
+		justifyContent: "center",
+	},
 	stepNumber: {
+		fontFamily: DISPLAY_FONT,
 		fontSize: 16,
 		lineHeight: 24,
-		fontWeight: "500",
-		letterSpacing: 0.15,
 		fontVariant: ["tabular-nums"],
 	},
 	captions: {

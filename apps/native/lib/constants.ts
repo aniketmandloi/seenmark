@@ -9,7 +9,6 @@ export const NAV_THEME = {
 		notification: "#BE2F2C",
 		primary: "#FFD83D",
 		primaryForeground: "#16161B",
-		success: "#227240",
 		text: "#16161B",
 	},
 	dark: {
@@ -20,7 +19,6 @@ export const NAV_THEME = {
 		notification: "#F97770",
 		primary: "#FFD83D",
 		primaryForeground: "#16161B",
-		success: "#65C281",
 		text: "#F1F1F4",
 	},
 };

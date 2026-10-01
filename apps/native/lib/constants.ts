@@ -1,23 +1,27 @@
+// Mirrors the web app's highlighter palette: cool grey surfaces, ink text, and one yellow accent.
+// The yellow is too light to read as text on these surfaces, so it is only ever a fill under ink.
 export const NAV_THEME = {
 	light: {
-		background: "#F6F5EF",
-		border: "#E3E5DC",
-		card: "#FFFFFF",
-		muted: "#748077",
-		notification: "#B85E48",
-		primary: "#456653",
+		background: "#F1F2F5",
+		border: "#D5D7DE",
+		card: "#FBFBFC",
+		muted: "#4A4A55",
+		notification: "#BE2F2C",
+		primary: "#FFD83D",
+		primaryForeground: "#16161B",
 		success: "#227240",
-		text: "#202A23",
+		text: "#16161B",
 	},
 	dark: {
-		background: "#151A17",
-		border: "#343C36",
-		card: "#202722",
-		muted: "#A8B2AA",
-		notification: "#E39A83",
-		primary: "#A8C8AE",
+		background: "#121215",
+		border: "#2D2D35",
+		card: "#202026",
+		muted: "#B6B6C2",
+		notification: "#F97770",
+		primary: "#FFD83D",
+		primaryForeground: "#16161B",
 		success: "#65C281",
-		text: "#F2F1E9",
+		text: "#F1F1F4",
 	},
 };
 

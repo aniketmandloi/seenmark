@@ -1,41 +1,36 @@
-import { useMaterialColors } from "@expo/ui/jetpack-compose";
 import type { NativeTabsProps } from "expo-router/unstable-native-tabs";
 
 import type { StackOptions } from "@/lib/native-chrome";
 import { useColorScheme } from "@/lib/use-color-scheme";
 
-// Same seeded palette the Compose screens use, so the app bar and navigation bar meet the content seamlessly.
-function usePalette() {
-	const { colorScheme, theme } = useColorScheme();
-	return useMaterialColors({ colorScheme, seedColor: theme.primary });
-}
-
+// The same cool surfaces the Compose screens draw on, so the app bar and navigation bar meet the
+// content seamlessly. The yellow indicator is the web header's pill under the current page.
 export function useStackScreenOptions(): StackOptions {
-	const colors = usePalette();
+	const { theme } = useColorScheme();
 
 	return {
-		headerStyle: { backgroundColor: colors.surface },
-		headerTintColor: colors.onSurface,
-		headerTitleStyle: { color: colors.onSurface },
+		headerStyle: { backgroundColor: theme.background },
+		headerTintColor: theme.text,
+		headerTitleStyle: { color: theme.text },
 		headerShadowVisible: false,
-		contentStyle: { backgroundColor: colors.surface },
+		contentStyle: { backgroundColor: theme.background },
 	};
 }
 
 export function useTabsAppearance(): Partial<NativeTabsProps> {
-	const colors = usePalette();
+	const { theme } = useColorScheme();
 
 	return {
-		backgroundColor: colors.surfaceContainer,
-		indicatorColor: colors.secondaryContainer,
-		rippleColor: colors.onSurface,
+		backgroundColor: theme.background,
+		indicatorColor: theme.primary,
+		rippleColor: theme.text,
 		iconColor: {
-			default: colors.onSurfaceVariant,
-			selected: colors.onSecondaryContainer,
+			default: theme.muted,
+			selected: theme.primaryForeground,
 		},
 		labelStyle: {
-			default: { color: colors.onSurfaceVariant },
-			selected: { color: colors.onSurface, fontWeight: "600" },
+			default: { color: theme.muted },
+			selected: { color: theme.text, fontWeight: "600" },
 		},
 		labelVisibilityMode: "labeled",
 	};

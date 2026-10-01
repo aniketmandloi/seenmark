@@ -56,6 +56,7 @@ import {
 	redacted,
 	refreshable,
 	scrollDismissesKeyboard,
+	shapes,
 	submitLabel,
 	symbolEffect,
 	tag,
@@ -115,10 +116,10 @@ const quaternary = foregroundStyle({
 	style: "quaternary",
 });
 
-function useToneStyle(tone: Tone): ModifierConfig[] {
-	const { theme } = useColorScheme();
+function toneStyle(tone: Tone): ModifierConfig[] {
 	if (tone === "destructive") return [foregroundStyle("red")];
-	if (tone === "accent") return [foregroundStyle(theme.primary)];
+	if (tone === "accent")
+		return [font({ textStyle: "body", weight: "semibold" })];
 	return [];
 }
 
@@ -145,7 +146,7 @@ export function FormScreen({
 				style={styles.fill}
 				useViewportSizeMeasurement
 				colorScheme={colorScheme}
-				seedColor={theme.primary}
+				seedColor={theme.text}
 			>
 				<Form
 					modifiers={[
@@ -175,8 +176,6 @@ export function FormHero({
 	image,
 	reveal = false,
 }: FormHeroProps) {
-	const { theme } = useColorScheme();
-
 	return (
 		<Section>
 			<VStack
@@ -200,11 +199,11 @@ export function FormHero({
 					<HeroPart reveal={reveal} index={1}>
 						<Text
 							modifiers={[
-								font({ textStyle: "caption", weight: "semibold" }),
-								foregroundStyle(theme.primary),
+								font({ textStyle: "subheadline", weight: "medium" }),
+								secondary,
 							]}
 						>
-							{eyebrow.toUpperCase()}
+							{eyebrow}
 						</Text>
 					</HeroPart>
 				) : null}
@@ -249,7 +248,6 @@ export function FormRow({
 	disabled = false,
 	actions,
 }: FormRowProps) {
-	const toneStyle = useToneStyle(tone);
 	const { theme } = useColorScheme();
 	const [confirming, setConfirming] = useState<FormRowAction | null>(null);
 	const [isConfirming, setIsConfirming] = useState(false);
@@ -264,9 +262,18 @@ export function FormRow({
 				<Image
 					systemName={ICONS[icon].ios}
 					modifiers={[
-						font({ textStyle: "body" }),
-						foregroundStyle(tone === "destructive" ? "red" : theme.primary),
-						frame({ minWidth: 28 }),
+						...(tone === "accent"
+							? [
+									font({ textStyle: "subheadline", weight: "semibold" }),
+									foregroundStyle(theme.primaryForeground),
+									frame({ width: 28, height: 28 }),
+									background(theme.primary, shapes.circle()),
+								]
+							: [
+									font({ textStyle: "body" }),
+									foregroundStyle(tone === "destructive" ? "red" : theme.text),
+									frame({ minWidth: 28 }),
+								]),
 						accessibilityHidden(true),
 					]}
 				/>
@@ -275,7 +282,7 @@ export function FormRow({
 				<Text
 					modifiers={[
 						foregroundStyle({ type: "hierarchical", style: "primary" }),
-						...toneStyle,
+						...toneStyle(tone),
 					]}
 				>
 					{title}
@@ -818,8 +825,6 @@ export function FormPicker({
 }
 
 export function FormStep({ number, total, text }: FormStepProps) {
-	const { theme } = useColorScheme();
-
 	return (
 		<HStack
 			alignment="firstTextBaseline"
@@ -834,7 +839,6 @@ export function FormStep({ number, total, text }: FormStepProps) {
 				modifiers={[
 					font({ textStyle: "title3", weight: "semibold" }),
 					monospacedDigit(),
-					foregroundStyle(theme.primary),
 				]}
 			>
 				{String(number).padStart(2, "0")}

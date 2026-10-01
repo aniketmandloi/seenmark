@@ -166,8 +166,9 @@ export function FormScreen({
 
 function ScreenBody({ children, primaryAction, onRefresh }: FormScreenProps) {
 	const colors = useMaterialColors();
+	const { theme } = useColorScheme();
 	const [isRefreshing, setIsRefreshing] = useState(false);
-	const modifiers = [fillMaxSize(), background(colors.surface)];
+	const modifiers = [fillMaxSize(), background(theme.background)];
 
 	const content = (
 		<>
@@ -286,8 +287,11 @@ export function FormHero({
 			) : null}
 			{eyebrow ? (
 				<HeroPart reveal={reveal} index={1}>
-					<Text color={colors.primary} style={{ typography: "labelLarge" }}>
-						{eyebrow.toUpperCase()}
+					<Text
+						color={colors.onSurfaceVariant}
+						style={{ typography: "titleSmall" }}
+					>
+						{eyebrow}
 					</Text>
 				</HeroPart>
 			) : null}
@@ -309,10 +313,10 @@ export function FormHero({
 }
 
 function SectionTitle({ children }: { children: string }) {
-	const colors = useMaterialColors();
+	const { theme } = useColorScheme();
 	return (
 		<Text
-			color={colors.primary}
+			color={theme.text}
 			style={{ typography: "titleSmall" }}
 			modifiers={[padding(16, 0, 16, 6)]}
 		>
@@ -335,7 +339,7 @@ function SectionFooter({ children }: { children: string }) {
 }
 
 export function FormSection({ title, footer, children }: FormSectionProps) {
-	const colors = useMaterialColors();
+	const { theme } = useColorScheme();
 	const rows = flattenRows(children);
 
 	return (
@@ -348,7 +352,7 @@ export function FormSection({ title, footer, children }: FormSectionProps) {
 					modifiers={[
 						fillMaxWidth(),
 						clip(rowShape(index, rows.length)),
-						background(colors.surfaceContainer),
+						background(theme.card),
 					]}
 				>
 					{row}
@@ -1016,7 +1020,7 @@ export function FormStep({ number, total, text }: FormStepProps) {
 			<ListItem.LeadingContent>
 				<RNHostView matchContents>
 					<View importantForAccessibility="no-hide-descendants">
-						<RNText style={[styles.stepNumber, { color: colors.primary }]}>
+						<RNText style={[styles.stepNumber, { color: colors.onSurface }]}>
 							{String(number).padStart(2, "0")}
 						</RNText>
 					</View>

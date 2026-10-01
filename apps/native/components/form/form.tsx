@@ -111,8 +111,8 @@ export function FormHero({
 			) : null}
 			{eyebrow ? (
 				<HeroPart reveal={reveal} index={1}>
-					<Text style={[styles.eyebrow, { color: theme.primary }]}>
-						{eyebrow.toUpperCase()}
+					<Text style={[styles.eyebrow, { color: theme.muted }]}>
+						{eyebrow}
 					</Text>
 				</HeroPart>
 			) : null}
@@ -196,12 +196,7 @@ function ListRow({
 					{ text: "Cancel", style: "cancel" },
 				])
 		: undefined;
-	const color =
-		tone === "destructive"
-			? theme.notification
-			: tone === "accent"
-				? theme.primary
-				: theme.text;
+	const color = tone === "destructive" ? theme.notification : theme.text;
 
 	return (
 		<Pressable
@@ -213,7 +208,15 @@ function ListRow({
 			style={[styles.row, disabled && styles.disabled]}
 		>
 			<View style={styles.rowCopy}>
-				<Text style={[styles.rowTitle, { color }]}>{title}</Text>
+				<Text
+					style={[
+						styles.rowTitle,
+						tone === "accent" && styles.strong,
+						{ color },
+					]}
+				>
+					{title}
+				</Text>
 				{subtitle ? (
 					<Text style={[styles.footnote, { color: theme.muted }]}>
 						{subtitle}
@@ -278,8 +281,10 @@ export function FormButton({
 					disabled && styles.disabled,
 				]}
 			>
-				{pending ? <ActivityIndicator color={theme.background} /> : null}
-				<Text style={[styles.prominentLabel, { color: theme.background }]}>
+				{pending ? <ActivityIndicator color={theme.primaryForeground} /> : null}
+				<Text
+					style={[styles.prominentLabel, { color: theme.primaryForeground }]}
+				>
 					{label}
 				</Text>
 			</Pressable>
@@ -410,10 +415,10 @@ export function FormCompareSlider({ earlier, latest }: FormCompareSliderProps) {
 				style={styles.captions}
 			>
 				<Pressable onPress={() => move(-DIVIDER_STEP)}>
-					<Text style={{ color: theme.primary }}>− Earlier</Text>
+					<Text style={{ color: theme.text }}>− Earlier</Text>
 				</Pressable>
 				<Pressable onPress={() => move(DIVIDER_STEP)}>
-					<Text style={{ color: theme.primary }}>Latest +</Text>
+					<Text style={{ color: theme.text }}>Latest +</Text>
 				</Pressable>
 			</View>
 		</View>
@@ -425,7 +430,7 @@ export function FormProgress({ label }: FormProgressProps) {
 
 	return (
 		<View style={styles.row}>
-			<ActivityIndicator color={theme.primary} />
+			<ActivityIndicator color={theme.text} />
 			<Text style={{ color: theme.muted }}>{label}</Text>
 		</View>
 	);
@@ -497,7 +502,11 @@ export function FormChoice<T extends string>({
 								selected && { backgroundColor: theme.primary },
 							]}
 						>
-							<Text style={{ color: selected ? theme.background : theme.text }}>
+							<Text
+								style={{
+									color: selected ? theme.primaryForeground : theme.text,
+								}}
+							>
 								{option.label}
 							</Text>
 						</Pressable>
@@ -562,7 +571,7 @@ export function FormStep({ number, total, text }: FormStepProps) {
 			accessibilityLabel={`Step ${number} of ${total}: ${text}`}
 			style={[styles.row, styles.step]}
 		>
-			<Text style={[styles.stepNumber, { color: theme.primary }]}>
+			<Text style={[styles.stepNumber, { color: theme.text }]}>
 				{String(number).padStart(2, "0")}
 			</Text>
 			<Text style={[styles.body, styles.rowCopy, { color: theme.text }]}>
@@ -676,9 +685,8 @@ const styles = StyleSheet.create({
 		marginBottom: 8,
 	},
 	eyebrow: {
-		fontSize: 12,
-		fontWeight: "600",
-		letterSpacing: 1,
+		fontSize: 14,
+		fontWeight: "500",
 	},
 	heroTitle: {
 		fontSize: 32,
@@ -719,6 +727,9 @@ const styles = StyleSheet.create({
 	},
 	rowTitle: {
 		fontSize: 17,
+	},
+	strong: {
+		fontWeight: "600",
 	},
 	disabled: {
 		opacity: 0.4,

@@ -54,7 +54,7 @@ export default function BandPicker({
   return (
     <section
       aria-labelledby="band-heading"
-      className="rounded-3xl bg-card p-6 shadow-soft ring-1 ring-border/80 sm:p-8"
+      className="rounded-2xl bg-card p-6 shadow-paper ring-1 ring-border sm:p-8"
     >
       <div className="flex items-start justify-between gap-4">
         <div>
@@ -66,7 +66,12 @@ export default function BandPicker({
           </p>
         </div>
         {band ? (
-          <Check key={band} aria-hidden="true" className="mt-1 size-5 shrink-0 animate-pop" />
+          <span
+            key={band}
+            className="mt-1 grid size-7 shrink-0 animate-pop place-items-center rounded-full bg-primary text-primary-foreground"
+          >
+            <Check aria-hidden="true" className="size-4" strokeWidth={2.5} />
+          </span>
         ) : null}
       </div>
 

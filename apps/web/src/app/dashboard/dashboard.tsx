@@ -107,7 +107,11 @@ export default function Dashboard() {
       <PageHeader
         titleRef={title}
         eyebrow="Only you can see your photos"
-        title="Your check-ins"
+        title={
+          <>
+            Your <span className="hl hl-sweep">check-ins</span>
+          </>
+        }
         lede={
           latest ? (
             <span className="tabular-nums">

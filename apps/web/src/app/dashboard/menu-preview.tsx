@@ -23,7 +23,7 @@ export default function MenuPreview({ band }: { band: Band }) {
   return (
     <section
       aria-labelledby="menu-heading"
-      className="rounded-3xl border border-border/80 bg-card p-6 sm:p-8"
+      className="rounded-2xl border border-border bg-card p-6 sm:p-8"
     >
       <div className="flex items-center justify-between gap-3">
         <h2 id="menu-heading" className="font-display text-heading">
@@ -60,7 +60,7 @@ export default function MenuPreview({ band }: { band: Band }) {
             >
               <span
                 aria-hidden="true"
-                className="grid size-6 shrink-0 place-items-center rounded-full bg-accent font-medium text-accent-foreground text-xs tabular-nums"
+                className="grid size-6 shrink-0 place-items-center rounded-full bg-primary font-semibold text-primary-foreground text-xs tabular-nums"
               >
                 {index + 1}
               </span>

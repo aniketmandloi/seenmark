@@ -65,16 +65,16 @@ export default function NextSteps() {
             >
               <span
                 aria-hidden="true"
-                className="w-8 shrink-0 font-display text-heading text-muted-foreground tabular-nums"
+                className="grid size-9 shrink-0 place-items-center rounded-full bg-primary font-display font-semibold text-primary-foreground tabular-nums"
               >
-                {String(index + 1).padStart(2, "0")}
+                {index + 1}
               </span>
-              <p className="text-base leading-7">{step}</p>
+              <p className="pt-1 text-lg leading-7">{step}</p>
             </li>
           ))}
         </ol>
       ) : (
-        <Empty className="mt-10 animate-fade-in rounded-3xl border border-border bg-card/70">
+        <Empty className="mt-10 animate-fade-in rounded-2xl border-2 border-border border-dashed bg-card">
           <EmptyHeader>
             <h2 className="font-display text-heading">No band chosen yet</h2>
             <EmptyDescription>
@@ -131,7 +131,7 @@ function StepsSkeleton() {
     >
       {[0, 1, 2].map((row) => (
         <div key={row} className="flex gap-5 py-6 sm:gap-8">
-          <Skeleton className="h-7 w-8 shrink-0 rounded-md" />
+          <Skeleton className="size-9 shrink-0 rounded-full" />
           <div className="flex-1 space-y-3 pt-1">
             <Skeleton className="h-4 rounded-md" />
             <Skeleton className="h-4 w-3/5 rounded-md" />

@@ -16,6 +16,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@seenmark/ui/componen
 import { Separator } from "@seenmark/ui/components/separator";
 import { Spinner } from "@seenmark/ui/components/spinner";
 import { useMutation } from "@tanstack/react-query";
+import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
 import { toast } from "sonner";
@@ -25,6 +26,12 @@ import { authClient } from "@/lib/auth-client";
 import { forgetMemberData, runAsMember } from "@/lib/member-session";
 import { signOut } from "@/lib/sign-out";
 import { queryClient, trpc } from "@/utils/trpc";
+
+const privacy = [
+  "Only you can see your check-ins.",
+  "Nothing is sent to a clinic, including an introduction request.",
+  "Deleting a check-in removes its photo. Deleting your account removes every check-in photo.",
+];
 
 export default function Account({ session }: { session: typeof authClient.$Infer.Session }) {
   const router = useRouter();
@@ -100,13 +107,15 @@ export default function Account({ session }: { session: typeof authClient.$Infer
         <h2 id="privacy-heading" className="font-display text-heading">
           Your privacy
         </h2>
-        <ul className="mt-4 list-disc space-y-2 pl-5 text-muted-foreground text-sm leading-6">
-          <li>Only you can see your check-ins.</li>
-          <li>Nothing is sent to a clinic, including an introduction request.</li>
-          <li>
-            Deleting a check-in removes its photo. Deleting your account removes every check-in
-            photo.
-          </li>
+        <ul className="mt-5 space-y-3 text-[15px] text-muted-foreground leading-6">
+          {privacy.map((line) => (
+            <li key={line} className="flex gap-3">
+              <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+                <Check aria-hidden="true" className="size-3" strokeWidth={3} />
+              </span>
+              {line}
+            </li>
+          ))}
         </ul>
       </section>
 
@@ -115,7 +124,7 @@ export default function Account({ session }: { session: typeof authClient.$Infer
       <section
         aria-labelledby="danger-heading"
         style={{ "--i": 3 } as CSSProperties}
-        className="stagger animate-rise rounded-3xl border border-destructive/30 p-6 sm:p-8"
+        className="stagger animate-rise rounded-2xl border border-destructive/30 p-6 sm:p-8"
       >
         <h2 id="danger-heading" className="font-display text-heading">
           Danger zone

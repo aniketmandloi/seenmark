@@ -1,11 +1,13 @@
+import { discardAllCaptures } from "@/lib/captures";
 import { queryClient } from "@/utils/trpc";
 
 /**
  * Member reads are private to the member who made them, and their query keys do not
  * name that member, so the cache is emptied (in-flight reads cancelled first) whenever
- * the member it belongs to may have changed.
+ * the member it belongs to may have changed. Camera files the member left are deleted too.
  */
 export async function forgetMemberData() {
+	discardAllCaptures();
 	await queryClient.cancelQueries();
 	queryClient.clear();
 }

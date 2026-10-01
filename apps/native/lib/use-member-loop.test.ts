@@ -3,7 +3,7 @@ import * as ImagePicker from "expo-image-picker";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as feedback from "@/lib/feedback";
-import { claimMemberCache } from "@/lib/member-session";
+import { claimMemberCache, forgetMemberData } from "@/lib/member-session";
 
 import { useMemberActions } from "./use-member-loop";
 
@@ -384,5 +384,16 @@ describe("a camera file", () => {
 		await expect(render().takeCheckIn()).resolves.toBe(false);
 		expect(transport).not.toHaveBeenCalled();
 		expect(files.has(captureUri)).toBe(false);
+	});
+
+	it("and any other camera file are deleted when the member signs out", async () => {
+		const unclaimed = "file://cache/ImagePicker/never-returned.jpg";
+		const elsewhere = "file://cache/other/kept.jpg";
+		files.add(unclaimed);
+		files.add(elsewhere);
+
+		await forgetMemberData();
+
+		expect([...files]).toEqual([elsewhere]);
 	});
 });

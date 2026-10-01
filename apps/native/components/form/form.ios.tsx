@@ -31,6 +31,7 @@ import {
 	aspectRatio,
 	autocorrectionDisabled,
 	background,
+	buttonBorderShape,
 	buttonStyle,
 	clipShape,
 	contentTransition,
@@ -62,6 +63,7 @@ import {
 	tag,
 	textContentType,
 	textInputAutocapitalization,
+	tint,
 } from "@expo/ui/swift-ui/modifiers";
 import { Stack } from "expo-router";
 import { type ReactNode, useState } from "react";
@@ -401,15 +403,22 @@ export function FormButton({
 	pending = false,
 	prominent = false,
 }: FormButtonProps) {
+	const { theme } = useColorScheme();
 	const disabledModifiers = disabled || pending ? [disableControl(true)] : [];
 
 	if (prominent) {
-		const fill = frame({ maxWidth: Number.POSITIVE_INFINITY });
+		const labelStyle = [
+			font({ textStyle: "headline" }),
+			frame({ maxWidth: Number.POSITIVE_INFINITY }),
+			foregroundStyle(theme.primaryForeground),
+		];
 		return (
 			<Button
 				onPress={onPress}
 				modifiers={[
 					buttonStyle("borderedProminent"),
+					buttonBorderShape("capsule"),
+					tint(theme.primary),
 					controlSize("large"),
 					listRowBackground("clear"),
 					listRowInsets({ top: 0, leading: 0, bottom: 0, trailing: 0 }),
@@ -419,12 +428,10 @@ export function FormButton({
 				{pending ? (
 					<PendingLabel
 						label={label}
-						modifiers={[font({ textStyle: "headline" }), fill]}
+						modifiers={[...labelStyle, tint(theme.primaryForeground)]}
 					/>
 				) : (
-					<Text modifiers={[font({ textStyle: "headline" }), fill]}>
-						{label}
-					</Text>
+					<Text modifiers={labelStyle}>{label}</Text>
 				)}
 			</Button>
 		);
@@ -704,7 +711,17 @@ export function FormTextField({
 }
 
 export function FormToggle({ label, value, onValueChange }: FormToggleProps) {
-	return <Toggle label={label} isOn={value} onIsOnChange={onValueChange} />;
+	const { theme } = useColorScheme();
+
+	// The screen's ink tint would draw a dark-mode switch almost as light as its knob.
+	return (
+		<Toggle
+			label={label}
+			isOn={value}
+			onIsOnChange={onValueChange}
+			modifiers={[tint(theme.primary)]}
+		/>
+	);
 }
 
 export function FormChoice<T extends string>({

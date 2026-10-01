@@ -165,7 +165,6 @@ export function FormScreen({
 }
 
 function ScreenBody({ children, primaryAction, onRefresh }: FormScreenProps) {
-	const colors = useMaterialColors();
 	const { theme } = useColorScheme();
 	const [isRefreshing, setIsRefreshing] = useState(false);
 	const modifiers = [fillMaxSize(), background(theme.background)];
@@ -184,6 +183,7 @@ function ScreenBody({ children, primaryAction, onRefresh }: FormScreenProps) {
 			</Column>
 			{primaryAction ? (
 				<ExtendedFloatingActionButton
+					containerColor={theme.primary}
 					onClick={
 						primaryAction.disabled || primaryAction.pending
 							? undefined
@@ -199,13 +199,16 @@ function ScreenBody({ children, primaryAction, onRefresh }: FormScreenProps) {
 				>
 					<ExtendedFloatingActionButton.Icon>
 						{primaryAction.pending ? (
-							<Spinner color={colors.onPrimaryContainer} />
+							<Spinner color={theme.primaryForeground} />
 						) : (
-							<Icon source={ICONS[primaryAction.icon].android} />
+							<Icon
+								source={ICONS[primaryAction.icon].android}
+								tint={theme.primaryForeground}
+							/>
 						)}
 					</ExtendedFloatingActionButton.Icon>
 					<ExtendedFloatingActionButton.Text>
-						<Text>{primaryAction.label}</Text>
+						<Text color={theme.primaryForeground}>{primaryAction.label}</Text>
 					</ExtendedFloatingActionButton.Text>
 				</ExtendedFloatingActionButton>
 			) : null}
@@ -561,17 +564,24 @@ export function FormButton({
 	prominent = false,
 }: FormButtonProps) {
 	const colors = useMaterialColors();
+	const { theme } = useColorScheme();
 
 	if (prominent) {
 		return (
 			<Button
 				onClick={onPress}
 				enabled={!disabled && !pending}
+				colors={{
+					containerColor: theme.primary,
+					contentColor: theme.primaryForeground,
+				}}
 				modifiers={[fillMaxWidth(), defaultMinSize({ minHeight: 52 })]}
 			>
 				<Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
 					{pending ? <Spinner color={colors.onSurfaceVariant} /> : null}
-					<Text style={{ typography: "labelLarge" }}>{label}</Text>
+					<Text style={{ typography: "labelLarge", fontWeight: "600" }}>
+						{label}
+					</Text>
 				</Row>
 			</Button>
 		);
@@ -881,6 +891,7 @@ export function FormChoice<T extends string>({
 	disabled = false,
 	pendingValue,
 }: FormChoiceProps<T>) {
+	const { theme } = useColorScheme();
 	const status = useChoiceStatus(pendingValue, selection);
 
 	return (
@@ -896,6 +907,10 @@ export function FormChoice<T extends string>({
 						key={option.value}
 						selected={selection === option.value}
 						enabled={!disabled && pendingValue === undefined}
+						colors={{
+							activeContainerColor: theme.primary,
+							activeContentColor: theme.primaryForeground,
+						}}
 						onClick={() => onSelectionChange(option.value)}
 					>
 						<SegmentedButton.Label>

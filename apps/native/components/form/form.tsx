@@ -736,7 +736,7 @@ const styles = StyleSheet.create({
 	},
 	prominent: {
 		minHeight: 50,
-		borderRadius: 12,
+		borderRadius: 999,
 		flexDirection: "row",
 		gap: 8,
 		alignItems: "center",
@@ -784,7 +784,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		alignItems: "center",
 		paddingVertical: 8,
-		borderRadius: 8,
+		borderRadius: 999,
 		borderWidth: 1,
 	},
 	skeletonLine: {
@@ -800,7 +800,7 @@ const styles = StyleSheet.create({
 	skeletonChoice: {
 		flex: 1,
 		height: 32,
-		borderRadius: 8,
+		borderRadius: 999,
 	},
 	empty: {
 		alignItems: "center",

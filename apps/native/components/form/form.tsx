@@ -1,5 +1,5 @@
 import * as ExpoLinking from "expo-linking";
-import { useState } from "react";
+import { use, useState } from "react";
 import {
 	ActivityIndicator,
 	Alert,
@@ -18,7 +18,7 @@ import Animated, { Easing, FadeInDown } from "react-native-reanimated";
 import { useChoiceStatus } from "@/components/form/choice-status";
 import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
-import { splitHighlight } from "@/components/form/highlight";
+import { OnHighlight, splitHighlight } from "@/components/form/highlight";
 import { Logo } from "@/components/form/logo";
 import type {
 	FormButtonProps,
@@ -154,8 +154,14 @@ export function FormHero({
 	);
 }
 
-export function FormSection({ title, footer, children }: FormSectionProps) {
+export function FormSection({
+	title,
+	footer,
+	highlighted = false,
+	children,
+}: FormSectionProps) {
 	const { theme } = useColorScheme();
+	const fill = highlighted ? theme.primary : theme.card;
 
 	return (
 		<View style={styles.section}>
@@ -170,10 +176,13 @@ export function FormSection({ title, footer, children }: FormSectionProps) {
 			<View
 				style={[
 					styles.sectionBody,
-					{ backgroundColor: theme.card, borderColor: theme.border },
+					{
+						backgroundColor: fill,
+						borderColor: highlighted ? fill : theme.border,
+					},
 				]}
 			>
-				{children}
+				<OnHighlight value={highlighted}>{children}</OnHighlight>
 			</View>
 			{footer ? (
 				<Text style={[styles.footnote, { color: theme.muted }]}>{footer}</Text>
@@ -219,7 +228,14 @@ function ListRow({
 					{ text: "Cancel", style: "cancel" },
 				])
 		: undefined;
-	const color = tone === "destructive" ? theme.notification : theme.text;
+	const onHighlight = use(OnHighlight);
+	const color =
+		tone === "destructive"
+			? theme.notification
+			: onHighlight
+				? theme.primaryForeground
+				: theme.text;
+	const supporting = onHighlight ? `${theme.primaryForeground}BF` : theme.muted;
 
 	return (
 		<Pressable
@@ -241,18 +257,18 @@ function ListRow({
 					{title}
 				</Text>
 				{subtitle ? (
-					<Text style={[styles.footnote, { color: theme.muted }]}>
+					<Text style={[styles.footnote, { color: supporting }]}>
 						{subtitle}
 					</Text>
 				) : null}
 			</View>
 			{pending ? <ActivityIndicator color={color} /> : null}
-			{value ? <Text style={{ color: theme.muted }}>{value}</Text> : null}
+			{value ? <Text style={{ color: supporting }}>{value}</Text> : null}
 			{showsChevron ? (
 				<Text
 					accessibilityElementsHidden
 					importantForAccessibility="no"
-					style={{ color: theme.muted }}
+					style={{ color: supporting }}
 				>
 					›
 				</Text>

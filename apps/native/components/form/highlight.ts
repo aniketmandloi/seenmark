@@ -1,3 +1,5 @@
+import { createContext } from "react";
+
 /** Splits a title around the words its highlighter mark sits behind, or null if it has none. */
 export function splitHighlight(title: string, highlight?: string) {
 	const start = highlight ? title.indexOf(highlight) : -1;
@@ -9,3 +11,6 @@ export function splitHighlight(title: string, highlight?: string) {
 		after: title.slice(start + highlight.length),
 	};
 }
+
+/** True inside a highlighted section, whose rows draw ink on the yellow. */
+export const OnHighlight = createContext(false);

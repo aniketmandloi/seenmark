@@ -36,6 +36,8 @@ export type FormHeroProps = {
 export type FormSectionProps = {
 	title?: string;
 	footer?: string;
+	/** Sets the rows in ink on the yellow, as the web's sign-in promises are. */
+	highlighted?: boolean;
 	children: ReactNode;
 };
 

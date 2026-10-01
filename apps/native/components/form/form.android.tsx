@@ -62,6 +62,7 @@ import {
 	isValidElement,
 	type ReactElement,
 	type ReactNode,
+	use,
 	useCallback,
 	useRef,
 	useState,
@@ -79,7 +80,7 @@ import {
 } from "@/components/form/choice-status";
 import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
-import { splitHighlight } from "@/components/form/highlight";
+import { OnHighlight, splitHighlight } from "@/components/form/highlight";
 import { Logo } from "@/components/form/logo";
 import { useStackedRows } from "@/components/form/text-scale";
 import type {
@@ -366,7 +367,12 @@ function SectionFooter({ children }: { children: string }) {
 	);
 }
 
-export function FormSection({ title, footer, children }: FormSectionProps) {
+export function FormSection({
+	title,
+	footer,
+	highlighted = false,
+	children,
+}: FormSectionProps) {
 	const { theme } = useColorScheme();
 	const rows = flattenRows(children);
 
@@ -380,10 +386,10 @@ export function FormSection({ title, footer, children }: FormSectionProps) {
 					modifiers={[
 						fillMaxWidth(),
 						clip(rowShape(index, rows.length)),
-						background(theme.card),
+						background(highlighted ? theme.primary : theme.card),
 					]}
 				>
-					{row}
+					<OnHighlight value={highlighted}>{row}</OnHighlight>
 				</Column>
 			))}
 			{footer ? <SectionFooter>{footer}</SectionFooter> : null}
@@ -429,6 +435,8 @@ function ListRow({
 	actions,
 }: FormRowProps & { pending?: boolean }) {
 	const colors = useMaterialColors();
+	const { theme } = useColorScheme();
+	const onHighlight = use(OnHighlight);
 	const [menuExpanded, setMenuExpanded] = useState(false);
 	const [confirming, setConfirming] = useState<FormRowAction | null>(null);
 	const stacked = useStackedRows();
@@ -436,15 +444,22 @@ function ListRow({
 	const titleColor =
 		tone === "destructive"
 			? colors.error
-			: tone === "accent"
-				? colors.primary
-				: colors.onSurface;
+			: onHighlight
+				? theme.primaryForeground
+				: tone === "accent"
+					? colors.primary
+					: colors.onSurface;
 	const iconColor =
 		tone === "destructive"
 			? colors.error
-			: tone === "accent"
-				? colors.primary
-				: colors.onSurfaceVariant;
+			: onHighlight
+				? theme.primaryForeground
+				: tone === "accent"
+					? colors.primary
+					: colors.onSurfaceVariant;
+	const supportingColor = onHighlight
+		? `${theme.primaryForeground}BF`
+		: colors.onSurfaceVariant;
 
 	const gesture =
 		pressable && actions?.length
@@ -469,11 +484,9 @@ function ListRow({
 			{subtitle || (stacked && value) ? (
 				<ListItem.SupportingContent>
 					<Column>
-						{subtitle ? (
-							<Text color={colors.onSurfaceVariant}>{subtitle}</Text>
-						) : null}
+						{subtitle ? <Text color={supportingColor}>{subtitle}</Text> : null}
 						{stacked && value ? (
-							<Text color={colors.onSurfaceVariant}>{value}</Text>
+							<Text color={supportingColor}>{value}</Text>
 						) : null}
 					</Column>
 				</ListItem.SupportingContent>

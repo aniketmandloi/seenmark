@@ -21,7 +21,7 @@ export default function WelcomeScreen() {
 				reveal
 			/>
 			<FormReveal index={4}>
-				<FormSection>
+				<FormSection highlighted>
 					<FormRow
 						icon="camera"
 						title="Start with one photo"

@@ -69,7 +69,7 @@ import {
 	tint,
 } from "@expo/ui/swift-ui/modifiers";
 import { Stack } from "expo-router";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, use, useState } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 
 import {
@@ -78,7 +78,7 @@ import {
 } from "@/components/form/choice-status";
 import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
-import { splitHighlight } from "@/components/form/highlight";
+import { OnHighlight, splitHighlight } from "@/components/form/highlight";
 import { Logo } from "@/components/form/logo";
 import { useStackedRows } from "@/components/form/text-scale";
 import type {
@@ -294,10 +294,15 @@ export function FormHero({
 	);
 }
 
-export function FormSection({ title, footer, children }: FormSectionProps) {
+export function FormSection({
+	title,
+	footer,
+	highlighted = false,
+	children,
+}: FormSectionProps) {
 	return (
 		<Section title={title} footer={footer ? <Text>{footer}</Text> : undefined}>
-			{children}
+			<OnHighlight value={highlighted}>{children}</OnHighlight>
 		</Section>
 	);
 }
@@ -316,15 +321,17 @@ export function FormRow({
 	actions,
 }: FormRowProps) {
 	const { theme } = useColorScheme();
+	const onHighlight = use(OnHighlight);
 	const [confirming, setConfirming] = useState<FormRowAction | null>(null);
 	const [isConfirming, setIsConfirming] = useState(false);
 	const stacked = useStackedRows();
+	const rowBackground = onHighlight ? [listRowBackground(theme.primary)] : [];
 	const valueText = value ? (
 		<Text modifiers={[secondary, monospacedDigit()]}>{value}</Text>
 	) : null;
 
 	const content = (
-		<HStack spacing={12}>
+		<HStack spacing={12} modifiers={rowBackground}>
 			{icon ? (
 				<Image
 					systemName={ICONS[icon].ios}
@@ -338,7 +345,13 @@ export function FormRow({
 								]
 							: [
 									font({ textStyle: "body" }),
-									foregroundStyle(tone === "destructive" ? "red" : theme.text),
+									foregroundStyle(
+										tone === "destructive"
+											? "red"
+											: onHighlight
+												? theme.primaryForeground
+												: theme.text,
+									),
 									frame({ minWidth: 28 }),
 								]),
 						accessibilityHidden(true),
@@ -348,14 +361,25 @@ export function FormRow({
 			<VStack alignment="leading" spacing={2}>
 				<Text
 					modifiers={[
-						foregroundStyle({ type: "hierarchical", style: "primary" }),
+						foregroundStyle(
+							onHighlight
+								? theme.primaryForeground
+								: { type: "hierarchical", style: "primary" },
+						),
 						...toneStyle(tone),
 					]}
 				>
 					{title}
 				</Text>
 				{subtitle ? (
-					<Text modifiers={[font({ textStyle: "footnote" }), secondary]}>
+					<Text
+						modifiers={[
+							font({ textStyle: "footnote" }),
+							onHighlight
+								? foregroundStyle(`${theme.primaryForeground}BF`)
+								: secondary,
+						]}
+					>
 						{subtitle}
 					</Text>
 				) : null}
@@ -379,7 +403,10 @@ export function FormRow({
 	const row = onPress ? (
 		<Button
 			onPress={onPress}
-			modifiers={disabled ? [disableControl(true)] : undefined}
+			modifiers={[
+				...rowBackground,
+				...(disabled ? [disableControl(true)] : []),
+			]}
 		>
 			{content}
 		</Button>

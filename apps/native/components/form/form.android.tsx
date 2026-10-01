@@ -62,12 +62,12 @@ import {
 	isValidElement,
 	type ReactElement,
 	type ReactNode,
+	use,
 	useCallback,
 	useRef,
 	useState,
 } from "react";
 import {
-	Image as RNImage,
 	Text as RNText,
 	StyleSheet,
 	useWindowDimensions,
@@ -80,6 +80,8 @@ import {
 } from "@/components/form/choice-status";
 import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
+import { OnHighlight, splitHighlight } from "@/components/form/highlight";
+import { Logo } from "@/components/form/logo";
 import { useStackedRows } from "@/components/form/text-scale";
 import type {
 	FormButtonProps,
@@ -108,6 +110,7 @@ import type {
 } from "@/components/form/types";
 import { SKELETON_COUNT } from "@/components/form/types";
 import { enter } from "@/lib/compose-motion";
+import { DISPLAY_FONT } from "@/lib/constants";
 import { showResultsIn } from "@/lib/feedback";
 import { ICONS } from "@/lib/icons";
 import { staggerDelay, useMotion } from "@/lib/motion";
@@ -165,9 +168,9 @@ export function FormScreen({
 }
 
 function ScreenBody({ children, primaryAction, onRefresh }: FormScreenProps) {
-	const colors = useMaterialColors();
+	const { theme } = useColorScheme();
 	const [isRefreshing, setIsRefreshing] = useState(false);
-	const modifiers = [fillMaxSize(), background(colors.surface)];
+	const modifiers = [fillMaxSize(), background(theme.background)];
 
 	const content = (
 		<>
@@ -183,6 +186,7 @@ function ScreenBody({ children, primaryAction, onRefresh }: FormScreenProps) {
 			</Column>
 			{primaryAction ? (
 				<ExtendedFloatingActionButton
+					containerColor={theme.primary}
 					onClick={
 						primaryAction.disabled || primaryAction.pending
 							? undefined
@@ -198,13 +202,16 @@ function ScreenBody({ children, primaryAction, onRefresh }: FormScreenProps) {
 				>
 					<ExtendedFloatingActionButton.Icon>
 						{primaryAction.pending ? (
-							<Spinner color={colors.onPrimaryContainer} />
+							<Spinner color={theme.primaryForeground} />
 						) : (
-							<Icon source={ICONS[primaryAction.icon].android} />
+							<Icon
+								source={ICONS[primaryAction.icon].android}
+								tint={theme.primaryForeground}
+							/>
 						)}
 					</ExtendedFloatingActionButton.Icon>
 					<ExtendedFloatingActionButton.Text>
-						<Text>{primaryAction.label}</Text>
+						<Text color={theme.primaryForeground}>{primaryAction.label}</Text>
 					</ExtendedFloatingActionButton.Text>
 				</ExtendedFloatingActionButton>
 			) : null}
@@ -264,36 +271,62 @@ function HeroPart({
 export function FormHero({
 	eyebrow,
 	title,
+	highlight,
 	description,
-	image,
+	logo = false,
 	reveal = false,
 }: FormHeroProps) {
 	const colors = useMaterialColors();
+	const { theme } = useColorScheme();
+	const parts = splitHighlight(title, highlight);
 
 	return (
 		<Column
 			verticalArrangement={{ spacedBy: 8 }}
 			modifiers={[fillMaxWidth(), padding(8, 16, 8, 0)]}
 		>
-			{image ? (
+			{logo ? (
 				<HeroPart reveal={reveal} index={0}>
 					<RNHostView matchContents>
-						<View pointerEvents="none" style={styles.heroImageFrame}>
-							<RNImage source={image} style={styles.heroImage} />
+						<View pointerEvents="none" style={styles.heroLogo}>
+							<Logo />
 						</View>
 					</RNHostView>
 				</HeroPart>
 			) : null}
 			{eyebrow ? (
 				<HeroPart reveal={reveal} index={1}>
-					<Text color={colors.primary} style={{ typography: "labelLarge" }}>
-						{eyebrow.toUpperCase()}
+					<Text
+						color={colors.onSurfaceVariant}
+						style={{ typography: "titleSmall" }}
+					>
+						{eyebrow}
 					</Text>
 				</HeroPart>
 			) : null}
 			<HeroPart reveal={reveal} index={2}>
-				<Text color={colors.onSurface} style={{ typography: "headlineLarge" }}>
-					{title}
+				<Text
+					color={colors.onSurface}
+					style={{
+						typography: "headlineLarge",
+						fontFamily: DISPLAY_FONT,
+						letterSpacing: -1,
+					}}
+				>
+					{/* Spans must be direct children, and no-break spaces keep the mark on one line. */}
+					{parts
+						? [
+								parts.before,
+								<Text
+									key="marked"
+									color={theme.primaryForeground}
+									style={{ background: theme.primary }}
+								>
+									{parts.marked.replaceAll(" ", "\u00A0")}
+								</Text>,
+								parts.after,
+							]
+						: title}
 				</Text>
 			</HeroPart>
 			<HeroPart reveal={reveal} index={3}>
@@ -309,10 +342,10 @@ export function FormHero({
 }
 
 function SectionTitle({ children }: { children: string }) {
-	const colors = useMaterialColors();
+	const { theme } = useColorScheme();
 	return (
 		<Text
-			color={colors.primary}
+			color={theme.text}
 			style={{ typography: "titleSmall" }}
 			modifiers={[padding(16, 0, 16, 6)]}
 		>
@@ -334,8 +367,13 @@ function SectionFooter({ children }: { children: string }) {
 	);
 }
 
-export function FormSection({ title, footer, children }: FormSectionProps) {
-	const colors = useMaterialColors();
+export function FormSection({
+	title,
+	footer,
+	highlighted = false,
+	children,
+}: FormSectionProps) {
+	const { theme } = useColorScheme();
 	const rows = flattenRows(children);
 
 	return (
@@ -348,10 +386,10 @@ export function FormSection({ title, footer, children }: FormSectionProps) {
 					modifiers={[
 						fillMaxWidth(),
 						clip(rowShape(index, rows.length)),
-						background(colors.surfaceContainer),
+						background(highlighted ? theme.primary : theme.card),
 					]}
 				>
-					{row}
+					<OnHighlight value={highlighted}>{row}</OnHighlight>
 				</Column>
 			))}
 			{footer ? <SectionFooter>{footer}</SectionFooter> : null}
@@ -397,6 +435,8 @@ function ListRow({
 	actions,
 }: FormRowProps & { pending?: boolean }) {
 	const colors = useMaterialColors();
+	const { theme } = useColorScheme();
+	const onHighlight = use(OnHighlight);
 	const [menuExpanded, setMenuExpanded] = useState(false);
 	const [confirming, setConfirming] = useState<FormRowAction | null>(null);
 	const stacked = useStackedRows();
@@ -404,15 +444,22 @@ function ListRow({
 	const titleColor =
 		tone === "destructive"
 			? colors.error
-			: tone === "accent"
-				? colors.primary
-				: colors.onSurface;
+			: onHighlight
+				? theme.primaryForeground
+				: tone === "accent"
+					? colors.primary
+					: colors.onSurface;
 	const iconColor =
 		tone === "destructive"
 			? colors.error
-			: tone === "accent"
-				? colors.primary
-				: colors.onSurfaceVariant;
+			: onHighlight
+				? theme.primaryForeground
+				: tone === "accent"
+					? colors.primary
+					: colors.onSurfaceVariant;
+	const supportingColor = onHighlight
+		? `${theme.primaryForeground}BF`
+		: colors.onSurfaceVariant;
 
 	const gesture =
 		pressable && actions?.length
@@ -437,11 +484,9 @@ function ListRow({
 			{subtitle || (stacked && value) ? (
 				<ListItem.SupportingContent>
 					<Column>
-						{subtitle ? (
-							<Text color={colors.onSurfaceVariant}>{subtitle}</Text>
-						) : null}
+						{subtitle ? <Text color={supportingColor}>{subtitle}</Text> : null}
 						{stacked && value ? (
-							<Text color={colors.onSurfaceVariant}>{value}</Text>
+							<Text color={supportingColor}>{value}</Text>
 						) : null}
 					</Column>
 				</ListItem.SupportingContent>
@@ -557,17 +602,24 @@ export function FormButton({
 	prominent = false,
 }: FormButtonProps) {
 	const colors = useMaterialColors();
+	const { theme } = useColorScheme();
 
 	if (prominent) {
 		return (
 			<Button
 				onClick={onPress}
 				enabled={!disabled && !pending}
+				colors={{
+					containerColor: theme.primary,
+					contentColor: theme.primaryForeground,
+				}}
 				modifiers={[fillMaxWidth(), defaultMinSize({ minHeight: 52 })]}
 			>
 				<Row verticalAlignment="center" horizontalArrangement={{ spacedBy: 8 }}>
 					{pending ? <Spinner color={colors.onSurfaceVariant} /> : null}
-					<Text style={{ typography: "labelLarge" }}>{label}</Text>
+					<Text style={{ typography: "labelLarge", fontWeight: "600" }}>
+						{label}
+					</Text>
 				</Row>
 			</Button>
 		);
@@ -877,6 +929,7 @@ export function FormChoice<T extends string>({
 	disabled = false,
 	pendingValue,
 }: FormChoiceProps<T>) {
+	const { theme } = useColorScheme();
 	const status = useChoiceStatus(pendingValue, selection);
 
 	return (
@@ -892,6 +945,10 @@ export function FormChoice<T extends string>({
 						key={option.value}
 						selected={selection === option.value}
 						enabled={!disabled && pendingValue === undefined}
+						colors={{
+							activeContainerColor: theme.primary,
+							activeContentColor: theme.primaryForeground,
+						}}
 						onClick={() => onSelectionChange(option.value)}
 					>
 						<SegmentedButton.Label>
@@ -923,7 +980,16 @@ function ChoiceStatusRow({ status }: { status: ChoiceStatus | null }) {
 		</Row>
 	);
 	const saved = statusLine(
-		<Icon source={ICONS.done.android} tint={theme.success} size={18} />,
+		<Box
+			contentAlignment="center"
+			modifiers={[size(18, 18), clip(Shapes.Circle), background(theme.primary)]}
+		>
+			<Icon
+				source={ICONS.check.android}
+				tint={theme.primaryForeground}
+				size={14}
+			/>
+		</Box>,
 		"Saved",
 	);
 
@@ -1008,6 +1074,7 @@ export function FormPicker({
 
 export function FormStep({ number, total, text }: FormStepProps) {
 	const colors = useMaterialColors();
+	const { theme } = useColorScheme();
 
 	// Compose here can't hide text from TalkBack, so React Native draws the number and hides it
 	// there, and "Step 1 of 3:" rides on transparent text ahead of the step.
@@ -1015,9 +1082,14 @@ export function FormStep({ number, total, text }: FormStepProps) {
 		<ListItem colors={{ containerColor: "transparent" }}>
 			<ListItem.LeadingContent>
 				<RNHostView matchContents>
-					<View importantForAccessibility="no-hide-descendants">
-						<RNText style={[styles.stepNumber, { color: colors.primary }]}>
-							{String(number).padStart(2, "0")}
+					<View
+						importantForAccessibility="no-hide-descendants"
+						style={[styles.stepCircle, { backgroundColor: theme.primary }]}
+					>
+						<RNText
+							style={[styles.stepNumber, { color: theme.primaryForeground }]}
+						>
+							{number}
 						</RNText>
 					</View>
 				</RNHostView>
@@ -1050,7 +1122,11 @@ export function FormEmptyState({
 			<Icon source={ICONS[icon].android} tint={colors.primary} size={48} />
 			<Text
 				color={colors.onSurface}
-				style={{ typography: "titleLarge", textAlign: "center" }}
+				style={{
+					typography: "titleLarge",
+					fontFamily: DISPLAY_FONT,
+					textAlign: "center",
+				}}
 			>
 				{title}
 			</Text>
@@ -1173,9 +1249,7 @@ export function FormSkeleton({
 							horizontalArrangement={{ spacedBy: 16 }}
 							modifiers={[fillMaxWidth(), padding(16, 14, 24, 14)]}
 						>
-							<Placeholder
-								modifiers={[size(20, 16), clip(Shapes.RoundedCorner(4))]}
-							/>
+							<Placeholder modifiers={[size(32, 32), clip(Shapes.Circle)]} />
 							<Column
 								verticalArrangement={{ spacedBy: 8 }}
 								modifiers={[weight(1)]}
@@ -1227,15 +1301,8 @@ const styles = StyleSheet.create({
 	fill: {
 		flex: 1,
 	},
-	heroImageFrame: {
-		width: 64,
-		height: 64,
+	heroLogo: {
 		marginBottom: 8,
-	},
-	heroImage: {
-		width: 64,
-		height: 64,
-		borderRadius: 16,
 	},
 	photoRow: {
 		flexDirection: "row",
@@ -1246,11 +1313,17 @@ const styles = StyleSheet.create({
 		marginTop: 6,
 	},
 	// Material 3 titleMedium, with tabular digits.
+	stepCircle: {
+		minWidth: 32,
+		minHeight: 32,
+		borderRadius: 999,
+		alignItems: "center",
+		justifyContent: "center",
+	},
 	stepNumber: {
+		fontFamily: DISPLAY_FONT,
 		fontSize: 16,
 		lineHeight: 24,
-		fontWeight: "500",
-		letterSpacing: 0.15,
 		fontVariant: ["tabular-nums"],
 	},
 	captions: {

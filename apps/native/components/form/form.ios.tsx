@@ -31,14 +31,15 @@ import {
 	aspectRatio,
 	autocorrectionDisabled,
 	background,
+	buttonBorderShape,
 	buttonStyle,
 	clipShape,
 	contentTransition,
 	controlSize,
 	disabled as disableControl,
 	font,
-	foregroundStyle,
 	frame,
+	kerning,
 	keyboardType,
 	labelsHidden,
 	listRowBackground,
@@ -56,6 +57,7 @@ import {
 	redacted,
 	refreshable,
 	scrollDismissesKeyboard,
+	shapes,
 	submitLabel,
 	symbolEffect,
 	tag,
@@ -63,8 +65,8 @@ import {
 	textInputAutocapitalization,
 } from "@expo/ui/swift-ui/modifiers";
 import { Stack } from "expo-router";
-import { type ReactNode, useState } from "react";
-import { Platform, Image as RNImage, StyleSheet, View } from "react-native";
+import { type ReactNode, use, useState } from "react";
+import { Platform, StyleSheet } from "react-native";
 
 import {
 	type ChoiceStatus,
@@ -72,6 +74,7 @@ import {
 } from "@/components/form/choice-status";
 import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
+import { OnHighlight, splitHighlight } from "@/components/form/highlight";
 import { useStackedRows } from "@/components/form/text-scale";
 import type {
 	FormButtonProps,
@@ -99,26 +102,28 @@ import type {
 	Tone,
 } from "@/components/form/types";
 import { SKELETON_COUNT } from "@/components/form/types";
+import { DISPLAY_FONT } from "@/lib/constants";
 import { ICONS } from "@/lib/icons";
 import { staggerDelay, useMotion } from "@/lib/motion";
 import { easeOut } from "@/lib/swift-ui-motion";
+import { fill, foreground, tintColor } from "@/lib/swift-ui-paint";
 import { useColorScheme } from "@/lib/use-color-scheme";
 
 // SwiftUI's ContentUnavailableView renders nothing before iOS 17.
 const hasContentUnavailableView =
 	Number.parseInt(String(Platform.Version), 10) >= 17;
 
-const secondary = foregroundStyle({ type: "hierarchical", style: "secondary" });
-const tertiary = foregroundStyle({ type: "hierarchical", style: "tertiary" });
-const quaternary = foregroundStyle({
+const secondary = foreground({ type: "hierarchical", style: "secondary" });
+const tertiary = foreground({ type: "hierarchical", style: "tertiary" });
+const quaternary = foreground({
 	type: "hierarchical",
 	style: "quaternary",
 });
 
-function useToneStyle(tone: Tone): ModifierConfig[] {
-	const { theme } = useColorScheme();
-	if (tone === "destructive") return [foregroundStyle("red")];
-	if (tone === "accent") return [foregroundStyle(theme.primary)];
+function toneStyle(tone: Tone): ModifierConfig[] {
+	if (tone === "destructive") return [foreground("red")];
+	if (tone === "accent")
+		return [font({ textStyle: "body", weight: "semibold" })];
 	return [];
 }
 
@@ -145,7 +150,7 @@ export function FormScreen({
 				style={styles.fill}
 				useViewportSizeMeasurement
 				colorScheme={colorScheme}
-				seedColor={theme.primary}
+				seedColor={theme.text}
 			>
 				<Form
 					modifiers={[
@@ -168,15 +173,101 @@ function HeroPart({
 	return reveal ? <FormReveal index={index}>{children}</FormReveal> : children;
 }
 
+const heroTitleFont = [
+	font({ family: DISPLAY_FONT, size: 34, textStyle: "largeTitle" }),
+	kerning(-1),
+];
+
+/** SwiftUI can't draw a mark behind part of one Text, so the marked words get their own line. */
+function HeroTitle({
+	title,
+	highlight,
+}: Pick<FormHeroProps, "title" | "highlight">) {
+	const { theme } = useColorScheme();
+	const parts = splitHighlight(title, highlight);
+
+	if (!parts) {
+		return (
+			<Text
+				modifiers={[...heroTitleFont, accessibilityAddTraits(["isHeader"])]}
+			>
+				{title}
+			</Text>
+		);
+	}
+
+	return (
+		<VStack
+			alignment="leading"
+			spacing={0}
+			modifiers={[
+				accessibilityElement("ignore"),
+				accessibilityLabel(title),
+				accessibilityAddTraits(["isHeader"]),
+			]}
+		>
+			{parts.before.trim() ? (
+				<Text modifiers={heroTitleFont}>{parts.before.trim()}</Text>
+			) : null}
+			<HStack spacing={0}>
+				<Text
+					modifiers={[
+						...heroTitleFont,
+						foreground(theme.primaryForeground),
+						padding({ horizontal: 4 }),
+						fill(theme.primary, shapes.roundedRectangle({ cornerRadius: 8 })),
+					]}
+				>
+					{parts.marked}
+				</Text>
+				{parts.after ? (
+					<Text modifiers={heroTitleFont}>{parts.after}</Text>
+				) : null}
+			</HStack>
+		</VStack>
+	);
+}
+
+/** The web's ring-and-dot mark beside the wordmark, drawn natively so no hosted view sizes the hero. */
+function HeroLogo() {
+	const { theme } = useColorScheme();
+
+	return (
+		<HStack
+			spacing={8}
+			modifiers={[
+				padding({ bottom: 8 }),
+				accessibilityElement("ignore"),
+				accessibilityLabel("Seenmark"),
+			]}
+		>
+			<Image
+				systemName="smallcircle.filled.circle"
+				modifiers={[
+					font({ textStyle: "title3", weight: "semibold" }),
+					foreground(theme.text),
+				]}
+			/>
+			<Text
+				modifiers={[
+					font({ family: DISPLAY_FONT, size: 20, textStyle: "title3" }),
+					kerning(-0.5),
+				]}
+			>
+				seenmark
+			</Text>
+		</HStack>
+	);
+}
+
 export function FormHero({
 	eyebrow,
 	title,
+	highlight,
 	description,
-	image,
+	logo = false,
 	reveal = false,
 }: FormHeroProps) {
-	const { theme } = useColorScheme();
-
 	return (
 		<Section>
 			<VStack
@@ -187,36 +278,25 @@ export function FormHero({
 					listRowInsets({ top: 8, leading: 4, bottom: 8, trailing: 4 }),
 				]}
 			>
-				{image ? (
+				{logo ? (
 					<HeroPart reveal={reveal} index={0}>
-						<RNHostView matchContents>
-							<View pointerEvents="none" style={styles.heroImageFrame}>
-								<RNImage source={image} style={styles.heroImage} />
-							</View>
-						</RNHostView>
+						<HeroLogo />
 					</HeroPart>
 				) : null}
 				{eyebrow ? (
 					<HeroPart reveal={reveal} index={1}>
 						<Text
 							modifiers={[
-								font({ textStyle: "caption", weight: "semibold" }),
-								foregroundStyle(theme.primary),
+								font({ textStyle: "subheadline", weight: "medium" }),
+								secondary,
 							]}
 						>
-							{eyebrow.toUpperCase()}
+							{eyebrow}
 						</Text>
 					</HeroPart>
 				) : null}
 				<HeroPart reveal={reveal} index={2}>
-					<Text
-						modifiers={[
-							font({ textStyle: "largeTitle", weight: "bold" }),
-							accessibilityAddTraits(["isHeader"]),
-						]}
-					>
-						{title}
-					</Text>
+					<HeroTitle title={title} highlight={highlight} />
 				</HeroPart>
 				<HeroPart reveal={reveal} index={3}>
 					<Text modifiers={[font({ textStyle: "body" }), secondary]}>
@@ -228,10 +308,15 @@ export function FormHero({
 	);
 }
 
-export function FormSection({ title, footer, children }: FormSectionProps) {
+export function FormSection({
+	title,
+	footer,
+	highlighted = false,
+	children,
+}: FormSectionProps) {
 	return (
 		<Section title={title} footer={footer ? <Text>{footer}</Text> : undefined}>
-			{children}
+			<OnHighlight value={highlighted}>{children}</OnHighlight>
 		</Section>
 	);
 }
@@ -249,24 +334,40 @@ export function FormRow({
 	disabled = false,
 	actions,
 }: FormRowProps) {
-	const toneStyle = useToneStyle(tone);
 	const { theme } = useColorScheme();
+	const onHighlight = use(OnHighlight);
 	const [confirming, setConfirming] = useState<FormRowAction | null>(null);
 	const [isConfirming, setIsConfirming] = useState(false);
 	const stacked = useStackedRows();
+	const rowBackground = onHighlight ? [listRowBackground(theme.primary)] : [];
 	const valueText = value ? (
 		<Text modifiers={[secondary, monospacedDigit()]}>{value}</Text>
 	) : null;
 
 	const content = (
-		<HStack spacing={12}>
+		<HStack spacing={12} modifiers={rowBackground}>
 			{icon ? (
 				<Image
 					systemName={ICONS[icon].ios}
 					modifiers={[
-						font({ textStyle: "body" }),
-						foregroundStyle(tone === "destructive" ? "red" : theme.primary),
-						frame({ minWidth: 28 }),
+						...(tone === "accent"
+							? [
+									font({ textStyle: "subheadline", weight: "semibold" }),
+									foreground(theme.primaryForeground),
+									frame({ width: 28, height: 28 }),
+									fill(theme.primary, shapes.circle()),
+								]
+							: [
+									font({ textStyle: "body" }),
+									foreground(
+										tone === "destructive"
+											? "red"
+											: onHighlight
+												? theme.primaryForeground
+												: theme.text,
+									),
+									frame({ minWidth: 28 }),
+								]),
 						accessibilityHidden(true),
 					]}
 				/>
@@ -274,14 +375,25 @@ export function FormRow({
 			<VStack alignment="leading" spacing={2}>
 				<Text
 					modifiers={[
-						foregroundStyle({ type: "hierarchical", style: "primary" }),
-						...toneStyle,
+						foreground(
+							onHighlight
+								? theme.primaryForeground
+								: { type: "hierarchical", style: "primary" },
+						),
+						...toneStyle(tone),
 					]}
 				>
 					{title}
 				</Text>
 				{subtitle ? (
-					<Text modifiers={[font({ textStyle: "footnote" }), secondary]}>
+					<Text
+						modifiers={[
+							font({ textStyle: "footnote" }),
+							...(onHighlight
+								? [foreground(theme.primaryForeground), opacity(0.75)]
+								: [secondary]),
+						]}
+					>
 						{subtitle}
 					</Text>
 				) : null}
@@ -305,7 +417,10 @@ export function FormRow({
 	const row = onPress ? (
 		<Button
 			onPress={onPress}
-			modifiers={disabled ? [disableControl(true)] : undefined}
+			modifiers={[
+				...rowBackground,
+				...(disabled ? [disableControl(true)] : []),
+			]}
 		>
 			{content}
 		</Button>
@@ -394,15 +509,22 @@ export function FormButton({
 	pending = false,
 	prominent = false,
 }: FormButtonProps) {
+	const { theme } = useColorScheme();
 	const disabledModifiers = disabled || pending ? [disableControl(true)] : [];
 
 	if (prominent) {
-		const fill = frame({ maxWidth: Number.POSITIVE_INFINITY });
+		const labelStyle = [
+			font({ textStyle: "headline" }),
+			frame({ maxWidth: Number.POSITIVE_INFINITY }),
+			foreground(theme.primaryForeground),
+		];
 		return (
 			<Button
 				onPress={onPress}
 				modifiers={[
 					buttonStyle("borderedProminent"),
+					buttonBorderShape("capsule"),
+					tintColor(theme.primary),
 					controlSize("large"),
 					listRowBackground("clear"),
 					listRowInsets({ top: 0, leading: 0, bottom: 0, trailing: 0 }),
@@ -412,12 +534,10 @@ export function FormButton({
 				{pending ? (
 					<PendingLabel
 						label={label}
-						modifiers={[font({ textStyle: "headline" }), fill]}
+						modifiers={[...labelStyle, tintColor(theme.primaryForeground)]}
 					/>
 				) : (
-					<Text modifiers={[font({ textStyle: "headline" }), fill]}>
-						{label}
-					</Text>
+					<Text modifiers={labelStyle}>{label}</Text>
 				)}
 			</Button>
 		);
@@ -697,7 +817,17 @@ export function FormTextField({
 }
 
 export function FormToggle({ label, value, onValueChange }: FormToggleProps) {
-	return <Toggle label={label} isOn={value} onIsOnChange={onValueChange} />;
+	const { theme } = useColorScheme();
+
+	// The screen's ink tint would draw a dark-mode switch almost as light as its knob.
+	return (
+		<Toggle
+			label={label}
+			isOn={value}
+			onIsOnChange={onValueChange}
+			modifiers={[tintColor(theme.primary)]}
+		/>
+	);
 }
 
 export function FormChoice<T extends string>({
@@ -756,10 +886,12 @@ function ChoiceStatusRow({ status }: { status: ChoiceStatus }) {
 		>
 			{saved ? (
 				<Image
-					systemName={ICONS.done.ios}
+					systemName={ICONS.check.ios}
 					modifiers={[
-						footnote,
-						foregroundStyle(theme.success),
+						font({ textStyle: "caption2", weight: "bold" }),
+						foreground(theme.primaryForeground),
+						frame({ minWidth: 18, minHeight: 18 }),
+						fill(theme.primary, shapes.circle()),
 						accessibilityHidden(true),
 						...(motion.reduced
 							? []
@@ -832,12 +964,14 @@ export function FormStep({ number, total, text }: FormStepProps) {
 		>
 			<Text
 				modifiers={[
-					font({ textStyle: "title3", weight: "semibold" }),
+					font({ family: DISPLAY_FONT, size: 17, textStyle: "headline" }),
 					monospacedDigit(),
-					foregroundStyle(theme.primary),
+					foreground(theme.primaryForeground),
+					frame({ minWidth: 32, minHeight: 32 }),
+					fill(theme.primary, shapes.circle()),
 				]}
 			>
-				{String(number).padStart(2, "0")}
+				{number}
 			</Text>
 			<Text>{text}</Text>
 		</HStack>
@@ -876,7 +1010,11 @@ export function FormEmptyState({
 					systemName={ICONS[icon].ios}
 					modifiers={[font({ size: 44 }), secondary, accessibilityHidden(true)]}
 				/>
-				<Text modifiers={[font({ textStyle: "title2", weight: "bold" })]}>
+				<Text
+					modifiers={[
+						font({ family: DISPLAY_FONT, size: 22, textStyle: "title2" }),
+					]}
+				>
 					{title}
 				</Text>
 				<Text
@@ -1020,15 +1158,5 @@ export function FormErrorState({
 const styles = StyleSheet.create({
 	fill: {
 		flex: 1,
-	},
-	heroImageFrame: {
-		width: 64,
-		height: 64,
-		marginBottom: 8,
-	},
-	heroImage: {
-		width: 64,
-		height: 64,
-		borderRadius: 15,
 	},
 });

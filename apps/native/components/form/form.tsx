@@ -1,10 +1,9 @@
 import * as ExpoLinking from "expo-linking";
-import { useState } from "react";
+import { use, useState } from "react";
 import {
 	ActivityIndicator,
 	Alert,
 	type AlertButton,
-	Image,
 	Pressable,
 	RefreshControl,
 	ScrollView,
@@ -19,6 +18,8 @@ import Animated, { Easing, FadeInDown } from "react-native-reanimated";
 import { useChoiceStatus } from "@/components/form/choice-status";
 import { ComparedPhotos } from "@/components/form/compared-photos";
 import { FadeInPhoto } from "@/components/form/fade-in-photo";
+import { OnHighlight, splitHighlight } from "@/components/form/highlight";
+import { Logo } from "@/components/form/logo";
 import type {
 	FormButtonProps,
 	FormChoiceProps,
@@ -96,23 +97,27 @@ function HeroPart({
 export function FormHero({
 	eyebrow,
 	title,
+	highlight,
 	description,
-	image,
+	logo = false,
 	reveal = false,
 }: FormHeroProps) {
 	const { theme } = useColorScheme();
+	const parts = splitHighlight(title, highlight);
 
 	return (
 		<View style={styles.hero}>
-			{image ? (
+			{logo ? (
 				<HeroPart reveal={reveal} index={0}>
-					<Image source={image} style={styles.heroImage} />
+					<View style={styles.heroLogo}>
+						<Logo />
+					</View>
 				</HeroPart>
 			) : null}
 			{eyebrow ? (
 				<HeroPart reveal={reveal} index={1}>
-					<Text style={[styles.eyebrow, { color: theme.primary }]}>
-						{eyebrow.toUpperCase()}
+					<Text style={[styles.eyebrow, { color: theme.muted }]}>
+						{eyebrow}
 					</Text>
 				</HeroPart>
 			) : null}
@@ -121,7 +126,25 @@ export function FormHero({
 					accessibilityRole="header"
 					style={[styles.heroTitle, { color: theme.text }]}
 				>
-					{title}
+					{parts ? (
+						<>
+							{parts.before}
+							<Text
+								style={[
+									styles.mark,
+									{
+										color: theme.primaryForeground,
+										backgroundColor: theme.primary,
+									},
+								]}
+							>
+								{parts.marked}
+							</Text>
+							{parts.after}
+						</>
+					) : (
+						title
+					)}
 				</Text>
 			</HeroPart>
 			<HeroPart reveal={reveal} index={3}>
@@ -131,8 +154,14 @@ export function FormHero({
 	);
 }
 
-export function FormSection({ title, footer, children }: FormSectionProps) {
+export function FormSection({
+	title,
+	footer,
+	highlighted = false,
+	children,
+}: FormSectionProps) {
 	const { theme } = useColorScheme();
+	const fill = highlighted ? theme.primary : theme.card;
 
 	return (
 		<View style={styles.section}>
@@ -147,10 +176,13 @@ export function FormSection({ title, footer, children }: FormSectionProps) {
 			<View
 				style={[
 					styles.sectionBody,
-					{ backgroundColor: theme.card, borderColor: theme.border },
+					{
+						backgroundColor: fill,
+						borderColor: highlighted ? fill : theme.border,
+					},
 				]}
 			>
-				{children}
+				<OnHighlight value={highlighted}>{children}</OnHighlight>
 			</View>
 			{footer ? (
 				<Text style={[styles.footnote, { color: theme.muted }]}>{footer}</Text>
@@ -196,12 +228,14 @@ function ListRow({
 					{ text: "Cancel", style: "cancel" },
 				])
 		: undefined;
+	const onHighlight = use(OnHighlight);
 	const color =
 		tone === "destructive"
 			? theme.notification
-			: tone === "accent"
-				? theme.primary
+			: onHighlight
+				? theme.primaryForeground
 				: theme.text;
+	const supporting = onHighlight ? `${theme.primaryForeground}BF` : theme.muted;
 
 	return (
 		<Pressable
@@ -213,20 +247,28 @@ function ListRow({
 			style={[styles.row, disabled && styles.disabled]}
 		>
 			<View style={styles.rowCopy}>
-				<Text style={[styles.rowTitle, { color }]}>{title}</Text>
+				<Text
+					style={[
+						styles.rowTitle,
+						tone === "accent" && styles.strong,
+						{ color },
+					]}
+				>
+					{title}
+				</Text>
 				{subtitle ? (
-					<Text style={[styles.footnote, { color: theme.muted }]}>
+					<Text style={[styles.footnote, { color: supporting }]}>
 						{subtitle}
 					</Text>
 				) : null}
 			</View>
 			{pending ? <ActivityIndicator color={color} /> : null}
-			{value ? <Text style={{ color: theme.muted }}>{value}</Text> : null}
+			{value ? <Text style={{ color: supporting }}>{value}</Text> : null}
 			{showsChevron ? (
 				<Text
 					accessibilityElementsHidden
 					importantForAccessibility="no"
-					style={{ color: theme.muted }}
+					style={{ color: supporting }}
 				>
 					›
 				</Text>
@@ -278,8 +320,10 @@ export function FormButton({
 					disabled && styles.disabled,
 				]}
 			>
-				{pending ? <ActivityIndicator color={theme.background} /> : null}
-				<Text style={[styles.prominentLabel, { color: theme.background }]}>
+				{pending ? <ActivityIndicator color={theme.primaryForeground} /> : null}
+				<Text
+					style={[styles.prominentLabel, { color: theme.primaryForeground }]}
+				>
 					{label}
 				</Text>
 			</Pressable>
@@ -410,10 +454,10 @@ export function FormCompareSlider({ earlier, latest }: FormCompareSliderProps) {
 				style={styles.captions}
 			>
 				<Pressable onPress={() => move(-DIVIDER_STEP)}>
-					<Text style={{ color: theme.primary }}>− Earlier</Text>
+					<Text style={{ color: theme.text }}>− Earlier</Text>
 				</Pressable>
 				<Pressable onPress={() => move(DIVIDER_STEP)}>
-					<Text style={{ color: theme.primary }}>Latest +</Text>
+					<Text style={{ color: theme.text }}>Latest +</Text>
 				</Pressable>
 			</View>
 		</View>
@@ -425,7 +469,7 @@ export function FormProgress({ label }: FormProgressProps) {
 
 	return (
 		<View style={styles.row}>
-			<ActivityIndicator color={theme.primary} />
+			<ActivityIndicator color={theme.text} />
 			<Text style={{ color: theme.muted }}>{label}</Text>
 		</View>
 	);
@@ -497,7 +541,11 @@ export function FormChoice<T extends string>({
 								selected && { backgroundColor: theme.primary },
 							]}
 						>
-							<Text style={{ color: selected ? theme.background : theme.text }}>
+							<Text
+								style={{
+									color: selected ? theme.primaryForeground : theme.text,
+								}}
+							>
 								{option.label}
 							</Text>
 						</Pressable>
@@ -511,7 +559,17 @@ export function FormChoice<T extends string>({
 				</View>
 			) : status === "saved" ? (
 				<View style={styles.row}>
-					<Text style={{ color: theme.success }}>✓</Text>
+					<Text
+						style={[
+							styles.check,
+							{
+								color: theme.primaryForeground,
+								backgroundColor: theme.primary,
+							},
+						]}
+					>
+						✓
+					</Text>
 					<Text style={{ color: theme.muted }}>Saved</Text>
 				</View>
 			) : null}
@@ -562,9 +620,11 @@ export function FormStep({ number, total, text }: FormStepProps) {
 			accessibilityLabel={`Step ${number} of ${total}: ${text}`}
 			style={[styles.row, styles.step]}
 		>
-			<Text style={[styles.stepNumber, { color: theme.primary }]}>
-				{String(number).padStart(2, "0")}
-			</Text>
+			<View style={[styles.stepCircle, { backgroundColor: theme.primary }]}>
+				<Text style={[styles.stepNumber, { color: theme.primaryForeground }]}>
+					{number}
+				</Text>
+			</View>
 			<Text style={[styles.body, styles.rowCopy, { color: theme.text }]}>
 				{text}
 			</Text>
@@ -669,20 +729,19 @@ const styles = StyleSheet.create({
 		gap: 8,
 		paddingTop: 16,
 	},
-	heroImage: {
-		width: 64,
-		height: 64,
-		borderRadius: 15,
+	heroLogo: {
 		marginBottom: 8,
 	},
 	eyebrow: {
-		fontSize: 12,
-		fontWeight: "600",
-		letterSpacing: 1,
+		fontSize: 14,
+		fontWeight: "500",
 	},
 	heroTitle: {
 		fontSize: 32,
 		fontWeight: "700",
+	},
+	mark: {
+		borderRadius: 6,
 	},
 	body: {
 		fontSize: 16,
@@ -720,12 +779,15 @@ const styles = StyleSheet.create({
 	rowTitle: {
 		fontSize: 17,
 	},
+	strong: {
+		fontWeight: "600",
+	},
 	disabled: {
 		opacity: 0.4,
 	},
 	prominent: {
 		minHeight: 50,
-		borderRadius: 12,
+		borderRadius: 999,
 		flexDirection: "row",
 		gap: 8,
 		alignItems: "center",
@@ -773,7 +835,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		alignItems: "center",
 		paddingVertical: 8,
-		borderRadius: 8,
+		borderRadius: 999,
 		borderWidth: 1,
 	},
 	skeletonLine: {
@@ -789,7 +851,7 @@ const styles = StyleSheet.create({
 	skeletonChoice: {
 		flex: 1,
 		height: 32,
-		borderRadius: 8,
+		borderRadius: 999,
 	},
 	empty: {
 		alignItems: "center",
@@ -802,10 +864,26 @@ const styles = StyleSheet.create({
 	step: {
 		alignItems: "flex-start",
 	},
+	stepCircle: {
+		minWidth: 32,
+		minHeight: 32,
+		borderRadius: 999,
+		alignItems: "center",
+		justifyContent: "center",
+	},
 	stepNumber: {
-		fontSize: 17,
+		fontSize: 16,
 		fontWeight: "600",
-		lineHeight: 23,
 		fontVariant: ["tabular-nums"],
+	},
+	check: {
+		width: 18,
+		height: 18,
+		borderRadius: 9,
+		overflow: "hidden",
+		fontSize: 11,
+		fontWeight: "700",
+		lineHeight: 18,
+		textAlign: "center",
 	},
 });

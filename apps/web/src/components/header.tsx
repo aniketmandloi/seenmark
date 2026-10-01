@@ -20,6 +20,7 @@ import { authClient } from "@/lib/auth-client";
 
 import Logo from "./logo";
 import { ModeToggle } from "./mode-toggle";
+import NavPills from "./nav-pills";
 import UserMenu from "./user-menu";
 
 const visitorLinks: { href: Route; label: string }[] = [
@@ -52,30 +53,7 @@ export default function Header() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-5 px-5 sm:px-8 lg:px-10">
         <Logo />
 
-        {links.length > 0 ? (
-          <nav
-            aria-label="Main navigation"
-            className="hidden items-center rounded-full border border-border bg-card p-1 lg:flex"
-          >
-            {links.map((link) => {
-              const isCurrent = link.href === current;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  aria-current={isCurrent ? "page" : undefined}
-                  className={`rounded-full px-4 py-2 font-medium text-[15px] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                    isCurrent
-                      ? "bg-foreground text-background"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
-          </nav>
-        ) : null}
+        {links.length > 0 ? <NavPills links={links} current={current} /> : null}
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <ModeToggle />

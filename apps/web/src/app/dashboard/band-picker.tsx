@@ -66,11 +66,7 @@ export default function BandPicker({
           </p>
         </div>
         {band ? (
-          <Check
-            key={band}
-            aria-hidden="true"
-            className="mt-1 size-5 shrink-0 animate-pop text-primary"
-          />
+          <Check key={band} aria-hidden="true" className="mt-1 size-5 shrink-0 animate-pop" />
         ) : null}
       </div>
 

@@ -7,63 +7,66 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.985 0.009 112);
-  --foreground: oklch(0.225 0.024 163);
-  --card: oklch(0.998 0.003 112);
-  --card-foreground: oklch(0.225 0.024 163);
-  --popover: oklch(0.998 0.003 112);
-  --popover-foreground: oklch(0.225 0.024 163);
-  --primary: oklch(0.39 0.065 160);
-  --primary-foreground: oklch(0.985 0.009 112);
-  --secondary: oklch(0.952 0.012 118);
-  --secondary-foreground: oklch(0.275 0.028 163);
-  --muted: oklch(0.952 0.012 118);
-  --muted-foreground: oklch(0.49 0.021 163);
-  --accent: oklch(0.927 0.025 151);
-  --accent-foreground: oklch(0.29 0.045 160);
+  --background: oklch(0.961 0.004 271);
+  --foreground: oklch(0.202 0.01 285);
+  --card: oklch(0.988 0.001 286);
+  --card-foreground: oklch(0.202 0.01 285);
+  --popover: oklch(0.988 0.001 286);
+  --popover-foreground: oklch(0.202 0.01 285);
+  --primary: oklch(0.891 0.166 94);
+  --primary-foreground: oklch(0.202 0.01 285);
+  --secondary: oklch(0.931 0.006 265);
+  --secondary-foreground: oklch(0.202 0.01 285);
+  --muted: oklch(0.931 0.006 265);
+  --muted-foreground: oklch(0.413 0.018 286);
+  --accent: oklch(0.961 0.068 97);
+  --accent-foreground: oklch(0.202 0.01 285);
   --destructive: oklch(0.53 0.18 27);
   --success: oklch(0.49 0.11 152);
-  --success-foreground: oklch(0.985 0.009 112);
-  --border: oklch(0.895 0.014 142);
-  --input: oklch(0.87 0.016 142);
-  --ring: oklch(0.57 0.085 159);
-  --radius: 0.8rem;
-  --shadow-soft:
-    0 1px 2px oklch(0.33 0.04 160 / 0.06), 0 12px 32px -20px oklch(0.33 0.04 160 / 0.28);
+  --success-foreground: oklch(0.988 0.001 286);
+  --border: oklch(0.88 0.01 273);
+  --input: oklch(0.84 0.012 273);
+  --ring: oklch(0.202 0.01 285);
+  --radius: 0.75rem;
+  --shadow-soft: 0 1px 2px oklch(0.2 0.02 285 / 0.06), 0 12px 32px -20px oklch(0.2 0.02 285 / 0.28);
   --shadow-lifted:
-    0 2px 6px -2px oklch(0.33 0.04 160 / 0.08), 0 28px 80px -44px oklch(0.33 0.04 160 / 0.48);
+    0 2px 6px -2px oklch(0.2 0.02 285 / 0.08), 0 28px 80px -44px oklch(0.2 0.02 285 / 0.48);
+  --shadow-paper: 0 18px 30px -16px oklch(0.2 0.02 285 / 0.38);
+  --shadow-glow: 0 10px 22px -12px oklch(0.45 0.09 90 / 0.7);
 }
 
 .dark {
-  --background: oklch(0.18 0.018 163);
-  --foreground: oklch(0.955 0.009 112);
-  --card: oklch(0.215 0.02 163);
-  --card-foreground: oklch(0.955 0.009 112);
-  --popover: oklch(0.23 0.021 163);
-  --popover-foreground: oklch(0.955 0.009 112);
-  --primary: oklch(0.72 0.095 154);
-  --primary-foreground: oklch(0.18 0.024 163);
-  --secondary: oklch(0.28 0.02 163);
-  --secondary-foreground: oklch(0.94 0.009 112);
-  --muted: oklch(0.27 0.019 163);
-  --muted-foreground: oklch(0.73 0.02 145);
-  --accent: oklch(0.3 0.034 157);
-  --accent-foreground: oklch(0.94 0.009 112);
+  --background: oklch(0.184 0.006 286);
+  --foreground: oklch(0.959 0.004 286);
+  --card: oklch(0.246 0.011 286);
+  --card-foreground: oklch(0.959 0.004 286);
+  --popover: oklch(0.246 0.011 286);
+  --popover-foreground: oklch(0.959 0.004 286);
+  --primary: oklch(0.891 0.166 94);
+  --primary-foreground: oklch(0.202 0.01 285);
+  --secondary: oklch(0.224 0.01 286);
+  --secondary-foreground: oklch(0.959 0.004 286);
+  --muted: oklch(0.224 0.01 286);
+  --muted-foreground: oklch(0.78 0.017 286);
+  --accent: oklch(0.324 0.044 98);
+  --accent-foreground: oklch(0.959 0.004 286);
   --destructive: oklch(0.72 0.16 25);
   --success: oklch(0.74 0.13 152);
-  --success-foreground: oklch(0.18 0.024 163);
-  --border: oklch(1 0.01 145 / 12%);
-  --input: oklch(1 0.01 145 / 16%);
-  --ring: oklch(0.72 0.095 154);
-  --shadow-soft: 0 1px 2px oklch(0.1 0.015 163 / 0.3), 0 12px 32px -20px oklch(0.1 0.015 163 / 0.7);
+  --success-foreground: oklch(0.184 0.006 286);
+  --border: oklch(0.3 0.014 286);
+  --input: oklch(0.36 0.014 286);
+  --ring: oklch(0.959 0.004 286);
+  --shadow-soft: 0 1px 2px oklch(0.1 0.01 286 / 0.3), 0 12px 32px -20px oklch(0.1 0.01 286 / 0.7);
   --shadow-lifted:
-    0 2px 6px -2px oklch(0.1 0.015 163 / 0.4), 0 28px 80px -40px oklch(0.1 0.015 163 / 0.85);
+    0 2px 6px -2px oklch(0.1 0.01 286 / 0.4), 0 28px 80px -40px oklch(0.1 0.01 286 / 0.85);
+  --shadow-paper: 0 18px 30px -16px oklch(0.08 0.01 286 / 0.8);
+  --shadow-glow: 0 10px 22px -12px oklch(0.5 0.1 90 / 0.5);
 }
 
 @theme inline {
-  --font-sans: var(--font-dm-sans, ui-sans-serif);
+  --font-sans: var(--font-bricolage, ui-sans-serif);
   --font-mono: var(--font-geist-mono, ui-monospace);
-  --font-display: var(--font-dm-sans, ui-sans-serif);
+  --font-display: var(--font-bricolage, ui-sans-serif);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -88,6 +91,8 @@
      on :root and .dark and only a var() reference goes here. */
   --shadow-soft: var(--shadow-soft);
   --shadow-lifted: var(--shadow-lifted);
+  --shadow-paper: var(--shadow-paper);
+  --shadow-glow: var(--shadow-glow);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -98,13 +103,13 @@
 }
 
 @theme {
-  --text-display: clamp(3rem, 2.25rem + 3vw, 4.5rem);
-  --text-display--line-height: 1.05;
+  --text-display: clamp(2.9rem, 2rem + 3.6vw, 4.6rem);
+  --text-display--line-height: 1;
   --text-display--letter-spacing: -0.035em;
   --text-display--font-weight: 600;
-  --text-title: clamp(2.25rem, 1.9rem + 1.4vw, 3rem);
-  --text-title--line-height: 1.1;
-  --text-title--letter-spacing: -0.03em;
+  --text-title: clamp(2.25rem, 1.6rem + 2.6vw, 3.75rem);
+  --text-title--line-height: 1.02;
+  --text-title--letter-spacing: -0.035em;
   --text-title--font-weight: 600;
   --text-heading: 1.5rem;
   --text-heading--line-height: 1.25;
@@ -123,6 +128,7 @@
   --animate-settle: settle 500ms var(--ease-out-soft) both;
   --animate-pop: pop 200ms var(--ease-out-soft) both;
   --animate-breathe: breathe 2.4s ease-in-out infinite;
+  --animate-drop: drop 700ms var(--ease-out-soft) both;
 
   @keyframes fade-in {
     from {
@@ -155,6 +161,19 @@
       transform: scale(0.9);
     }
   }
+  /* Moves only translate and scale, so an element's own rotate-* class keeps its tilt throughout. */
+  @keyframes drop {
+    from {
+      opacity: 0;
+      translate: 0 -28px;
+      scale: 0.92;
+    }
+  }
+  @keyframes sweep {
+    from {
+      scale: 0 1;
+    }
+  }
   @keyframes breathe {
     50% {
       opacity: 0.6;
@@ -180,6 +199,33 @@
    keeps the member waiting for its last rows. */
 @utility stagger {
   animation-delay: calc(min(var(--i, 0), 8) * 40ms);
+}
+
+/* A highlighter mark behind a few words. The mark is a pseudo-element, so the words stay plain
+   text, and nowrap keeps the mark from splitting across lines. */
+@utility hl {
+  position: relative;
+  isolation: isolate;
+  white-space: nowrap;
+  color: var(--primary-foreground);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0.06em -0.14em 0.02em;
+    z-index: -1;
+    border-radius: 0.2em 0.35em 0.25em 0.4em;
+    background: var(--primary);
+    rotate: -1.2deg;
+    transform-origin: left center;
+  }
+}
+
+/* Draws the mark in once the page has settled. Pair with hl. */
+@utility hl-sweep {
+  &::before {
+    animation: sweep 900ms var(--ease-out-soft) 500ms both;
+  }
 }
 
 /* The reduced-motion rule below can't stop a scroll-driven animation, so this gates itself. Without

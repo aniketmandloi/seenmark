@@ -65,7 +65,7 @@ export default function NextSteps() {
             >
               <span
                 aria-hidden="true"
-                className="w-8 shrink-0 font-display text-heading text-primary tabular-nums"
+                className="w-8 shrink-0 font-display text-heading text-muted-foreground tabular-nums"
               >
                 {String(index + 1).padStart(2, "0")}
               </span>
@@ -104,7 +104,7 @@ export default function NextSteps() {
                 target="_blank"
                 rel="sponsored noopener noreferrer"
                 aria-describedby="paid-link-label"
-                className="inline-flex min-w-0 items-center gap-1 break-all font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex min-w-0 items-center gap-1 break-all font-medium text-foreground underline decoration-2 decoration-primary underline-offset-4 hover:decoration-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {paidLink.destination}
                 <ArrowUpRight aria-hidden="true" className="size-3.5 shrink-0" />

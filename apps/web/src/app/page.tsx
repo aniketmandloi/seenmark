@@ -87,7 +87,7 @@ export default function Home() {
       <section className="mx-auto grid max-w-7xl items-center gap-12 px-5 pt-12 pb-20 sm:px-8 md:gap-14 md:pt-16 md:pb-28 lg:grid-cols-2 lg:px-10">
         <div className="max-w-xl">
           <p
-            className="stagger mb-5 animate-rise font-semibold text-primary text-sm uppercase tracking-widest"
+            className="stagger mb-5 animate-rise font-semibold text-muted-foreground text-sm uppercase tracking-widest"
             style={{ "--i": 0 } as CSSProperties}
           >
             Your hairline, your call
@@ -156,7 +156,7 @@ export default function Home() {
               {steps.map((step, index) => (
                 <li key={step.title} className="reveal grid gap-2 py-6 sm:grid-cols-3 sm:gap-8">
                   <h3 className="flex items-baseline gap-3 font-display text-heading">
-                    <span aria-hidden="true" className="text-primary tabular-nums">
+                    <span aria-hidden="true" className="text-muted-foreground tabular-nums">
                       {String(index + 1).padStart(2, "0")}
                     </span>
                     {step.title}
@@ -195,7 +195,7 @@ export default function Home() {
                 <Card className="h-full">
                   <CardContent>
                     <h3 className="font-display text-heading">{band.name}</h3>
-                    <p className="mt-1 font-semibold text-primary">{band.focus}</p>
+                    <p className="mt-1 font-semibold">{band.focus}</p>
                     <p className="mt-4 text-muted-foreground">{band.description}</p>
                   </CardContent>
                 </Card>
@@ -214,7 +214,7 @@ export default function Home() {
                 {faq.question}
                 <Plus
                   aria-hidden="true"
-                  className="size-5 shrink-0 text-primary transition-transform group-open:rotate-45 motion-reduce:transition-none"
+                  className="size-5 shrink-0 transition-transform group-open:rotate-45 motion-reduce:transition-none"
                 />
               </summary>
               <p className="max-w-2xl pb-6 text-muted-foreground">{faq.answer}</p>

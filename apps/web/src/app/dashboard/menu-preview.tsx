@@ -73,7 +73,7 @@ export default function MenuPreview({ band }: { band: Band }) {
       <p className="mt-6 border-border/70 border-t pt-4 text-sm leading-6">
         <Link
           href="/dashboard/next-steps"
-          className="group inline-flex items-center gap-1 font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="group inline-flex items-center gap-1 font-medium text-foreground underline decoration-2 decoration-primary underline-offset-4 hover:decoration-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           Open your next steps{" "}
           <ArrowUpRight

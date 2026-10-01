@@ -21,7 +21,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         <ul className="grid gap-4 text-foreground text-sm leading-6">
           {promises.map((promise) => (
             <li key={promise} className="flex gap-3">
-              <Check aria-hidden="true" className="mt-1 size-4 shrink-0 text-primary" />
+              <Check aria-hidden="true" className="mt-1 size-4 shrink-0" />
               {promise}
             </li>
           ))}

@@ -1,5 +1,4 @@
 import {
-	Background,
 	Button,
 	ConfirmationDialog,
 	ContentUnavailableView,
@@ -58,7 +57,6 @@ import {
 	pickerStyle,
 	redacted,
 	refreshable,
-	rotationEffect,
 	scrollDismissesKeyboard,
 	shapes,
 	submitLabel,
@@ -214,26 +212,21 @@ function HeroTitle({
 				<Text modifiers={heroTitleFont}>{parts.before.trim()}</Text>
 			) : null}
 			<HStack spacing={0}>
-				<Background>
-					<Text
-						modifiers={[
-							...heroTitleFont,
-							foregroundStyle(theme.primaryForeground),
-						]}
-					>
-						{parts.marked}
-					</Text>
-					<Background.Content>
-						<RoundedRectangle
-							cornerRadius={8}
-							modifiers={[
-								foregroundStyle(theme.primary),
-								padding({ horizontal: -5 }),
-								rotationEffect(-1.2),
-							]}
-						/>
-					</Background.Content>
-				</Background>
+				{/* The outer negative padding lets the mark overhang the words without moving them. */}
+				<Text
+					modifiers={[
+						...heroTitleFont,
+						foregroundStyle(theme.primaryForeground),
+						padding({ horizontal: 5 }),
+						background(
+							theme.primary,
+							shapes.roundedRectangle({ cornerRadius: 8 }),
+						),
+						padding({ horizontal: -5 }),
+					]}
+				>
+					{parts.marked}
+				</Text>
 				{parts.after ? (
 					<Text modifiers={heroTitleFont}>{parts.after}</Text>
 				) : null}

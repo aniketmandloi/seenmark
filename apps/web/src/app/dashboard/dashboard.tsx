@@ -124,7 +124,14 @@ export default function Dashboard() {
             ) : null}
           </>
         }
-        actions={<PhotoPicker disabled={isBusy} label="Add check-in" onFile={addCheckIn} />}
+        actions={
+          <PhotoPicker
+            disabled={isBusy}
+            saving={isPreparingPhoto || record.isPending}
+            label="Add check-in"
+            onFile={addCheckIn}
+          />
+        }
       />
 
       {reminder.data?.due ? (

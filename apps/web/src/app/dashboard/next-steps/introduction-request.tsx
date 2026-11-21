@@ -94,7 +94,8 @@ export default function IntroductionRequest({
           </h2>
           {band === "late" ? (
             <CardDescription>
-              Your request is recorded for you. It is not sent to a clinic.
+              Recording it tells Seenmark you want a clinic conversation. It stays on your record
+              until you remove it, and it is not sent to a clinic.
             </CardDescription>
           ) : recorded ? (
             <CardDescription>

@@ -1,5 +1,8 @@
 import type { ReactNode, Ref } from "react";
 
+/** Indents content outside a MarginSection to line up with its entry column (11rem + gap-x-10). */
+export const marginEntryIndent = "lg:pl-[13.5rem]";
+
 /**
  * A section whose heading sits in the page's left margin from lg up, like a label written beside
  * a notebook entry. Below lg the heading stacks above its content.

@@ -12,7 +12,7 @@ import Link from "next/link";
 import { type CSSProperties, useRef } from "react";
 
 import ErrorState from "@/components/error-state";
-import MarginSection from "@/components/margin-section";
+import MarginSection, { marginEntryIndent } from "@/components/margin-section";
 import PageHeader from "@/components/page-header";
 import { trpc } from "@/utils/trpc";
 
@@ -88,8 +88,7 @@ export default function NextSteps() {
         </Empty>
       )}
 
-      {/* Lines up with the entry column of the margin layout above. */}
-      <div className="lg:pl-[13.5rem]">
+      <div className={marginEntryIndent}>
         <IntroductionRequest band={currentMenu?.band} fallbackFocus={title} />
 
         {paidLink ? (

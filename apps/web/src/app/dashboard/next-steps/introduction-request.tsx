@@ -126,8 +126,8 @@ export default function IntroductionRequest({
           ) : recorded ? (
             <div className="flex animate-fade-in flex-wrap items-center justify-between gap-3">
               <p className="text-muted-foreground text-sm tabular-nums">
-                Recorded on <time dateTime={recorded.filedAt}>{formatDate(recorded.filedAt)}</time>{" "}
-                · {relativeTime(recorded.filedAt, now)}
+                Recorded on <time dateTime={recorded.filedAt}>{formatDate(recorded.filedAt)}</time>,{" "}
+                {relativeTime(recorded.filedAt, now)}.
               </p>
               <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
                 <AlertDialogTrigger ref={removeTrigger} render={<Button variant="outline" />}>

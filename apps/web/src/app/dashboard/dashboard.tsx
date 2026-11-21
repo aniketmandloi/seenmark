@@ -106,23 +106,23 @@ export default function Dashboard() {
     <div className="mx-auto max-w-7xl px-5 pt-10 pb-16 sm:px-8 md:pt-14 lg:px-10">
       <PageHeader
         titleRef={title}
-        eyebrow="Only you can see your photos"
-        title={
-          <>
-            Your <span className="hl hl-sweep">check-ins</span>
-          </>
-        }
+        title="Your check-ins"
         lede={
-          latest ? (
-            <span className="tabular-nums">
-              {items.length}
-              {checkIns.hasNextPage ? "+" : ""} {items.length === 1 ? "check-in" : "check-ins"} ·
-              last one{" "}
-              <time dateTime={latest.takenAt} title={formatDate(latest.takenAt)}>
-                {relativeTime(latest.takenAt, now)}
-              </time>
-            </span>
-          ) : undefined
+          <>
+            Only you can see these photos.
+            {latest ? (
+              <span className="tabular-nums">
+                {" "}
+                You have {items.length}
+                {checkIns.hasNextPage ? "+" : ""} {items.length === 1 ? "check-in" : "check-ins"},
+                and the last one was{" "}
+                <time dateTime={latest.takenAt} title={formatDate(latest.takenAt)}>
+                  {relativeTime(latest.takenAt, now)}
+                </time>
+                .
+              </span>
+            ) : null}
+          </>
         }
         actions={<PhotoPicker disabled={isBusy} label="Add check-in" onFile={addCheckIn} />}
       />

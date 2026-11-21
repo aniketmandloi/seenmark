@@ -3,7 +3,6 @@
 import { type Band, bands } from "@seenmark/api/bands";
 import { Skeleton } from "@seenmark/ui/components/skeleton";
 import { useMutation } from "@tanstack/react-query";
-import { Check } from "lucide-react";
 import { toast } from "sonner";
 
 import ErrorState from "@/components/error-state";
@@ -56,24 +55,12 @@ export default function BandPicker({
       aria-labelledby="band-heading"
       className="rounded-2xl bg-card p-6 shadow-paper ring-1 ring-border sm:p-8"
     >
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 id="band-heading" className="text-heading">
-            Choose your band
-          </h2>
-          <p className="mt-2 max-w-sm text-muted-foreground text-sm leading-6">
-            This is your choice after looking at your own check-ins. It is not a diagnosis.
-          </p>
-        </div>
-        {band ? (
-          <span
-            key={band}
-            className="mt-1 grid size-7 shrink-0 animate-pop place-items-center rounded-full bg-primary text-primary-foreground"
-          >
-            <Check aria-hidden="true" className="size-4" strokeWidth={2.5} />
-          </span>
-        ) : null}
-      </div>
+      <h2 id="band-heading" className="text-heading">
+        Choose your band
+      </h2>
+      <p className="mt-2 max-w-sm text-muted-foreground text-sm leading-6">
+        This is your choice after looking at your own check-ins. It is not a diagnosis.
+      </p>
 
       {failed ? (
         <ErrorState

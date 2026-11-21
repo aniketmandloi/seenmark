@@ -1,5 +1,4 @@
 import { buttonVariants } from "@seenmark/ui/components/button";
-import { cn } from "@seenmark/ui/lib/utils";
 import { Check } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -80,7 +79,7 @@ const faqs = [
     question: "Does Seenmark diagnose my hair?",
     answer:
       "No. Seenmark keeps your check-ins and shows them back to you side by side. It doesn't analyze them. You look, and you choose your band.",
-    card: "bg-primary text-primary-foreground -rotate-[1.4deg]",
+    card: "bg-card ring-1 ring-border -rotate-[1.4deg]",
   },
   {
     question: "Who can see my photos?",
@@ -141,7 +140,7 @@ export default function Home() {
                   <p className="mt-1.5 text-muted-foreground text-sm leading-snug">{note.body}</p>
                 </div>
               ) : (
-                <p className="rounded-md bg-primary p-5 font-semibold text-lg text-primary-foreground leading-snug tracking-tight shadow-paper">
+                <p className="rounded-md bg-accent p-5 font-semibold text-accent-foreground text-lg leading-snug tracking-tight shadow-paper ring-1 ring-border">
                   {note.body}
                 </p>
               )}
@@ -221,7 +220,7 @@ export default function Home() {
           <ul className="space-y-10 md:space-y-14 lg:col-span-8">
             {privacy.map((item) => (
               <li key={item.title} className="reveal flex items-start gap-4 md:gap-5">
-                <span className="mt-1 grid size-8 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground md:mt-2.5 md:size-10">
+                <span className="mt-1 grid size-8 shrink-0 place-items-center rounded-full border-2 border-foreground text-foreground md:mt-2.5 md:size-10">
                   <Check aria-hidden="true" className="size-4 md:size-5" strokeWidth={2.5} />
                 </span>
                 <div>
@@ -259,17 +258,17 @@ export default function Home() {
       </section>
 
       <section className="px-5 pb-8 sm:px-8 lg:px-10">
-        <div className="reveal mx-auto max-w-7xl rounded-2xl bg-primary p-8 text-primary-foreground md:p-16">
+        <div className="reveal mx-auto max-w-7xl rounded-2xl bg-foreground p-8 text-background md:p-16">
           <h2 className="max-w-[10ch] font-display font-semibold text-5xl leading-[0.98] tracking-[-0.04em] md:text-8xl">
             Start with one check-in.
           </h2>
           <div className="mt-10 flex flex-wrap items-center gap-x-7 gap-y-4">
             <Link
               href="/signup"
-              className={cn(
-                buttonVariants({ size: "lg" }),
-                "bg-primary-foreground text-primary shadow-none hover:brightness-125 focus-visible:ring-primary-foreground focus-visible:ring-offset-primary",
-              )}
+              className={buttonVariants({
+                size: "lg",
+                className: "focus-visible:ring-primary focus-visible:ring-offset-foreground",
+              })}
             >
               Get started
             </Link>

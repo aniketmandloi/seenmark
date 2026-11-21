@@ -219,7 +219,7 @@ function FirstCheckIn({ busy, onAdd }: { busy: boolean; onAdd: (file: File) => v
       <EmptyHeader>
         <EmptyMedia
           variant="icon"
-          className={`size-14 rounded-2xl bg-primary text-primary-foreground transition-transform ${
+          className={`size-14 rounded-2xl border-2 border-foreground text-foreground transition-transform ${
             dragging ? "-translate-y-0.5 scale-105" : ""
           }`}
         >

@@ -125,12 +125,15 @@ export default function Dashboard() {
           </>
         }
         actions={
-          <PhotoPicker
-            disabled={isBusy}
-            saving={isPreparingPhoto || record.isPending}
-            label="Add check-in"
-            onFile={addCheckIn}
-          />
+          // The empty state carries its own Add button, so the header shows one only alongside photos.
+          latest ? (
+            <PhotoPicker
+              disabled={isBusy}
+              saving={isPreparingPhoto || record.isPending}
+              label="Add check-in"
+              onFile={addCheckIn}
+            />
+          ) : undefined
         }
       />
 

@@ -101,7 +101,7 @@ export default function Account({ session }: { session: typeof authClient.$Infer
         <ul className="space-y-3 text-[15px] text-muted-foreground leading-6">
           {privacy.map((line) => (
             <li key={line} className="flex gap-3">
-              <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+              <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border-2 border-foreground text-foreground">
                 <Check aria-hidden="true" className="size-3" strokeWidth={3} />
               </span>
               {line}

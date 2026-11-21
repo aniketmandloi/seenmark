@@ -58,8 +58,11 @@ export default function Header() {
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <ModeToggle />
           <UserMenu />
-          {!isPending && !session ? (
-            <Link href="/signup" className={cn(buttonVariants(), "hidden h-10 sm:inline-flex")}>
+          {!isPending && !session && pathname !== "/signup" ? (
+            <Link
+              href="/signup"
+              className={cn(buttonVariants({ variant: "outline" }), "hidden h-10 sm:inline-flex")}
+            >
               Get started
             </Link>
           ) : null}

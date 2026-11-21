@@ -188,6 +188,15 @@
   body {
     @apply min-h-dvh bg-background font-sans text-foreground antialiased;
   }
+  /* Selecting text marks it with the highlighter, the same mark the brand uses. */
+  ::selection {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+  }
+  input,
+  textarea {
+    caret-color: var(--foreground);
+  }
   /* Keeps a lone word off the last line of short copy, which reads as a typo at this size. */
   p {
     text-wrap: pretty;

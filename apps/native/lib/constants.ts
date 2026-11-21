@@ -6,7 +6,7 @@ export const NAV_THEME = {
 		border: "#D5D7DE",
 		card: "#FBFBFC",
 		muted: "#4A4A55",
-		notification: "#BE2F2C",
+		notification: "#B01F1F",
 		primary: "#FFD83D",
 		primaryForeground: "#16161B",
 		text: "#16161B",

@@ -38,24 +38,29 @@ export default function BandSampler() {
           {bands.map((option) => {
             const isChosen = option.name === chosen;
             return (
-              <button
+              <label
                 key={option.name}
-                type="button"
-                aria-pressed={isChosen}
-                onClick={() => setChosen(option.name)}
-                className={`flex items-baseline justify-between gap-4 rounded-xl border-2 px-5 py-4 text-left outline-none transition-[background-color,border-color,scale] duration-200 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card active:scale-99 ${
+                className={`flex cursor-pointer items-baseline justify-between gap-4 rounded-xl border-2 px-5 py-4 transition-[background-color,border-color,scale] duration-200 active:scale-99 has-focus-visible:ring-2 has-focus-visible:ring-ring has-focus-visible:ring-offset-2 has-focus-visible:ring-offset-card ${
                   isChosen
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border hover:border-foreground"
                 }`}
               >
+                <input
+                  type="radio"
+                  name="band-sampler"
+                  value={option.name}
+                  checked={isChosen}
+                  onChange={() => setChosen(option.name)}
+                  className="sr-only"
+                />
                 <span className="font-semibold text-2xl tracking-tight md:text-3xl">
                   {option.name}
                 </span>
                 <span className={isChosen ? "font-medium" : "text-muted-foreground"}>
                   {option.focus}
                 </span>
-              </button>
+              </label>
             );
           })}
         </div>

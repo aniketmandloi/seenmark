@@ -37,7 +37,7 @@ export default function NextSteps() {
         lede="A short menu to read at your pace. These are not a treatment plan."
         actions={
           currentMenu ? (
-            <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>
+            <Link href="/dashboard#band-heading" className={buttonVariants({ variant: "outline" })}>
               Change band
             </Link>
           ) : undefined

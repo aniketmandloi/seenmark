@@ -2,7 +2,7 @@ import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cn } from "@seenmark/ui/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 
-const buttonVariants = cva(
+const buttonClasses = cva(
   "group/button inline-flex shrink-0 select-none items-center justify-center whitespace-nowrap rounded-full border border-transparent bg-clip-padding font-semibold text-sm outline-none transition-[color,background-color,border-color,box-shadow,opacity,scale,filter] duration-150 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:not-aria-[haspopup]:scale-97 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
@@ -37,16 +37,24 @@ const buttonVariants = cva(
   },
 );
 
+/**
+ * Merged, so a variant's border or background replaces the base's transparent one. Links styled as
+ * buttons call this directly; unmerged, the base border-transparent can win and hide an outline.
+ */
+function buttonVariants(props?: Parameters<typeof buttonClasses>[0]) {
+  return cn(buttonClasses(props));
+}
+
 function Button({
   className,
   variant = "default",
   size = "default",
   ...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+}: ButtonPrimitive.Props & VariantProps<typeof buttonClasses>) {
   return (
     <ButtonPrimitive
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={buttonVariants({ variant, size, className })}
       {...props}
     />
   );

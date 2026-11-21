@@ -30,7 +30,7 @@ export default function AboutSeenmark() {
 					<FormRow
 						icon="privacy"
 						title="Nothing is sent for you"
-						subtitle="An introduction request stays on your record until you choose to continue."
+						subtitle="An introduction request stays on your record until you remove it. It is not sent to a clinic."
 					/>
 				</FormSection>
 			</FormReveal>

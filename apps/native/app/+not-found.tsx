@@ -21,7 +21,7 @@ export default function NotFoundScreen() {
 					<FormEmptyState
 						icon="info"
 						title="We can’t find that page."
-						description="Your check-ins are still right where you left them."
+						description="The link may be old, or the address may have a typo."
 					/>
 				</FormReveal>
 				<FormReveal index={1}>

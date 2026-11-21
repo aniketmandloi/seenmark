@@ -93,7 +93,7 @@ export default function NextStepsScreen() {
 							? menu?.band === "late"
 								? "Your request is saved here. Nothing has been sent."
 								: "You asked on the late band. Your request is still saved here, and nothing has been sent."
-							: "If you want, you can request an introduction. It will not book anything or send until you choose to continue."
+							: "If you want, you can record an introduction request. It does not book anything, and it is not sent to a clinic."
 					}
 				>
 					{steps.introduction ? (

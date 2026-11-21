@@ -12,7 +12,7 @@ const promises = [
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <section className="mx-auto grid max-w-6xl gap-8 px-5 py-10 sm:px-8 sm:py-14 lg:grid-cols-2 lg:gap-12 lg:px-10 lg:py-20">
-      <div className="flex flex-col justify-between gap-10 rounded-2xl bg-primary p-7 text-primary-foreground sm:p-10 lg:p-12 [&_p]:text-primary-foreground/75">
+      <div className="order-last flex flex-col justify-between gap-10 rounded-2xl bg-primary p-7 text-primary-foreground sm:p-10 lg:order-first lg:p-12 [&_p]:text-primary-foreground">
         <PageHeader
           title="Your hairline, on your terms."
           lede="Keep the photos you take, look back when you choose, and decide what feels right for you."

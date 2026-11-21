@@ -104,7 +104,7 @@ const paper = "rounded-md bg-card shadow-paper ring-1 ring-border";
 export default function Home() {
   return (
     <div>
-      <section className="flex flex-col xl:relative xl:min-h-[calc(100dvh-4rem)]">
+      <section className="flex flex-col xl:relative xl:min-h-[44rem]">
         <ul
           aria-label="What Seenmark promises"
           className="order-last grid grid-cols-2 gap-x-5 gap-y-7 px-5 pb-16 sm:px-8 md:grid-cols-3 xl:absolute xl:inset-0 xl:block xl:p-0"

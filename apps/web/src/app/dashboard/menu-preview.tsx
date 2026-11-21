@@ -26,7 +26,7 @@ export default function MenuPreview({ band }: { band: Band }) {
       className="rounded-2xl border border-border bg-card p-6 sm:p-8"
     >
       <div className="flex items-center justify-between gap-3">
-        <h2 id="menu-heading" className="font-display text-heading">
+        <h2 id="menu-heading" className="text-heading">
           Next steps
         </h2>
         <Badge key={band} variant="secondary" className="animate-fade-in">

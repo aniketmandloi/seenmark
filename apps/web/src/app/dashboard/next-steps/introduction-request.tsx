@@ -88,7 +88,7 @@ export default function IntroductionRequest({
             ref={heading}
             id="introduction-heading"
             tabIndex={-1}
-            className="font-display text-heading outline-none"
+            className="text-heading outline-none"
           >
             {band === "late" ? "Ask for an introduction" : "Your introduction request"}
           </h2>

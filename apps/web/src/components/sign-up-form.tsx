@@ -91,7 +91,7 @@ export default function SignUpForm() {
   return (
     <div className="animate-fade-in">
       <div className="mb-7">
-        <h2 className="font-display text-heading">Create your account</h2>
+        <h2 className="text-heading">Create your account</h2>
         <p className="mt-2 text-muted-foreground text-sm leading-6">
           Your check-ins stay private to you.
         </p>

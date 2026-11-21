@@ -70,7 +70,7 @@ export default function Account({ session }: { session: typeof authClient.$Infer
       >
         <Card>
           <CardHeader>
-            <h2 id="details-heading" className="font-display text-heading">
+            <h2 id="details-heading" className="text-heading">
               Your details
             </h2>
           </CardHeader>
@@ -104,7 +104,7 @@ export default function Account({ session }: { session: typeof authClient.$Infer
         style={{ "--i": 2 } as CSSProperties}
         className="stagger mt-12 animate-rise"
       >
-        <h2 id="privacy-heading" className="font-display text-heading">
+        <h2 id="privacy-heading" className="text-heading">
           Your privacy
         </h2>
         <ul className="mt-5 space-y-3 text-[15px] text-muted-foreground leading-6">
@@ -126,7 +126,7 @@ export default function Account({ session }: { session: typeof authClient.$Infer
         style={{ "--i": 3 } as CSSProperties}
         className="stagger animate-rise rounded-2xl border border-destructive/30 p-6 sm:p-8"
       >
-        <h2 id="danger-heading" className="font-display text-heading">
+        <h2 id="danger-heading" className="text-heading">
           Danger zone
         </h2>
         <p className="mt-2 max-w-md text-muted-foreground text-sm leading-6">

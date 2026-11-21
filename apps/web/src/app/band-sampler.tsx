@@ -31,7 +31,7 @@ export default function BandSampler() {
   return (
     <div className="grid gap-6 lg:grid-cols-12 lg:gap-10">
       <fieldset className="rounded-2xl border border-border bg-card p-6 md:p-10 lg:col-span-7">
-        <legend className="float-left font-display text-heading">
+        <legend className="float-left text-heading">
           How would you describe your hair right now?
         </legend>
         <div className="clear-left grid gap-3 pt-6">
@@ -49,7 +49,7 @@ export default function BandSampler() {
                     : "border-border hover:border-foreground"
                 }`}
               >
-                <span className="font-display font-semibold text-2xl tracking-tight md:text-3xl">
+                <span className="font-semibold text-2xl tracking-tight md:text-3xl">
                   {option.name}
                 </span>
                 <span className={isChosen ? "font-medium" : "text-muted-foreground"}>
@@ -67,14 +67,14 @@ export default function BandSampler() {
       >
         {band ? (
           <div key={band.name} className="animate-rise">
-            <h3 className="font-display text-heading">
+            <h3 className="text-heading">
               {band.name}: {band.focus.toLowerCase()}
             </h3>
             <p className="mt-4 text-lg text-muted-foreground leading-snug">{band.description}</p>
           </div>
         ) : (
           <>
-            <h3 className="font-display text-heading">Its menu</h3>
+            <h3 className="text-heading">Its menu</h3>
             <p className="mt-4 max-w-[32ch] text-lg text-muted-foreground leading-snug">
               Nothing chosen yet. Seenmark never picks a band for you, so this waits for you too.
             </p>

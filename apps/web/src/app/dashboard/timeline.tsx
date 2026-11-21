@@ -58,7 +58,7 @@ export default function Timeline({
         ref={headingRef}
         id="timeline-heading"
         tabIndex={-1}
-        className="font-display text-heading outline-none"
+        className="text-heading outline-none"
       >
         Timeline
       </h2>

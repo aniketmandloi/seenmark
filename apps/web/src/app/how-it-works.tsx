@@ -84,7 +84,7 @@ export default function HowItWorks() {
                 </span>
                 <span className="block">
                   <span
-                    className={`block font-display font-semibold tracking-tight ${
+                    className={`block font-semibold tracking-tight ${
                       isOpen ? "text-3xl md:text-4xl" : "text-lg leading-snug"
                     }`}
                   >

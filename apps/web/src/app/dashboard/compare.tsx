@@ -68,7 +68,7 @@ export default function Compare({
   if (!earlier) {
     return (
       <section aria-labelledby="compare-heading">
-        <h2 id="compare-heading" className="scroll-mt-24 font-display text-heading">
+        <h2 id="compare-heading" className="scroll-mt-24 text-heading">
           Your baseline
         </h2>
         <p className="mt-2 text-muted-foreground text-sm leading-6">
@@ -87,7 +87,7 @@ export default function Compare({
   return (
     <section aria-labelledby="compare-heading">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="compare-heading" className="scroll-mt-24 font-display text-heading">
+        <h2 id="compare-heading" className="scroll-mt-24 text-heading">
           Compare
         </h2>
         <ChoiceGroup aria-label="Compare mode" options={modes} value={mode} onChoose={setMode} />
@@ -225,7 +225,7 @@ function FirstCheckIn({ busy, onAdd }: { busy: boolean; onAdd: (file: File) => v
         >
           <Camera aria-hidden="true" className="size-6" />
         </EmptyMedia>
-        <h2 className="font-display text-heading">Start with one photo</h2>
+        <h2 className="text-heading">Start with one photo</h2>
         <EmptyDescription>
           Take a clear photo of your own hairline, or drop one here. You can add another check-in
           whenever you want.

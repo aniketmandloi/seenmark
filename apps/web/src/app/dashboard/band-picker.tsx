@@ -58,7 +58,7 @@ export default function BandPicker({
     >
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 id="band-heading" className="font-display text-heading">
+          <h2 id="band-heading" className="text-heading">
             Choose your band
           </h2>
           <p className="mt-2 max-w-sm text-muted-foreground text-sm leading-6">

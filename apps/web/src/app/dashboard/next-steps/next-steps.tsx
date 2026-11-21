@@ -76,7 +76,7 @@ export default function NextSteps() {
       ) : (
         <Empty className="mt-10 animate-fade-in rounded-2xl border-2 border-border border-dashed bg-card">
           <EmptyHeader>
-            <h2 className="font-display text-heading">No band chosen yet</h2>
+            <h2 className="text-heading">No band chosen yet</h2>
             <EmptyDescription>
               Choose the band that feels right on your check-ins, and the next steps for it appear
               here.

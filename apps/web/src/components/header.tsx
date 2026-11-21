@@ -90,7 +90,7 @@ export default function Header() {
                         onClick={closeSheet}
                         aria-current={isCurrent ? "page" : undefined}
                         style={{ "--i": index } as CSSProperties}
-                        className={`stagger animate-rise rounded-full px-5 py-3 font-display text-heading transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                        className={`stagger animate-rise rounded-full px-5 py-3 text-heading transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                           isCurrent ? "bg-accent text-accent-foreground" : "text-foreground"
                         }`}
                       >

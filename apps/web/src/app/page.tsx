@@ -252,7 +252,7 @@ export default function Home() {
               <div
                 className={`rounded-md p-7 shadow-paper transition-[rotate,translate] duration-300 hover:-translate-y-1 hover:rotate-0 md:p-9 ${faq.card}`}
               >
-                <h3 className="text-balance font-display font-semibold text-2xl leading-snug tracking-tight">
+                <h3 className="text-balance font-semibold text-xl leading-snug tracking-tight md:text-2xl">
                   {faq.question}
                 </h3>
                 <p className="mt-4 text-[15px] leading-relaxed opacity-80">{faq.answer}</p>

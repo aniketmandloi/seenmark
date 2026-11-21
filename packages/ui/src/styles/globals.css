@@ -188,6 +188,18 @@
   body {
     @apply min-h-dvh bg-background font-sans text-foreground antialiased;
   }
+  /* No double-tap zoom delay on controls; the page itself keeps pinch zoom. */
+  a,
+  button,
+  label,
+  input,
+  select,
+  summary,
+  [role="button"],
+  [role="radio"],
+  [role="checkbox"] {
+    touch-action: manipulation;
+  }
   /* Selecting text marks it with the highlighter, the same mark the brand uses. */
   ::selection {
     background-color: var(--primary);

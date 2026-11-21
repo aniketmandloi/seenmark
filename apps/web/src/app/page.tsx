@@ -31,7 +31,7 @@ const notes: Note[] = [
   {
     kind: "note",
     title: "Only you can see your photos.",
-    body: "Seenmark keeps them so you can compare. It doesn't analyze them.",
+    body: "Seenmark keeps them so you can compare. It doesn’t analyze them.",
     x: "76%",
     y: "11%",
     width: "270px",
@@ -60,7 +60,7 @@ const privacy = [
   {
     title: "Only you can see your photos.",
     description:
-      "Seenmark keeps your check-ins so you can look back and compare them. It doesn't analyze them.",
+      "Seenmark keeps your check-ins so you can look back and compare them. It doesn’t analyze them.",
   },
   {
     title: "You choose your band.",
@@ -70,7 +70,7 @@ const privacy = [
   {
     title: "Clinics cannot see your photos.",
     description:
-      "Seenmark doesn't send your check-ins to a clinic. An introduction is only ever your request.",
+      "Seenmark doesn’t send your check-ins to a clinic. An introduction is only ever your request.",
   },
 ];
 
@@ -78,12 +78,12 @@ const faqs = [
   {
     question: "Does Seenmark diagnose my hair?",
     answer:
-      "No. Seenmark keeps your check-ins and shows them back to you side by side. It doesn't analyze them. You look, and you choose your band.",
+      "No. Seenmark keeps your check-ins and shows them back to you side by side. It doesn’t analyze them. You look, and you choose your band.",
     card: "bg-card ring-1 ring-border -rotate-[1.4deg]",
   },
   {
     question: "Who can see my photos?",
-    answer: "Only you. Your check-ins aren't shared with clinics or anyone else.",
+    answer: "Only you. Your check-ins aren’t shared with clinics or anyone else.",
     card: "bg-card ring-1 ring-border rotate-[1.2deg] md:mt-16",
   },
   {
@@ -94,7 +94,7 @@ const faqs = [
   {
     question: "Can I delete everything?",
     answer:
-      "Yes. Deleting a check-in removes its photo. Deleting your account removes it along with every photo you've kept.",
+      "Yes. Deleting a check-in removes its photo. Deleting your account removes it along with every photo you’ve kept.",
     card: "bg-card ring-1 ring-border -rotate-1 md:mt-16",
   },
 ];
@@ -198,7 +198,7 @@ export default function Home() {
       <section id="bands" className="bg-muted">
         <div className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-10 lg:py-32">
           <div className="reveal">
-            <h2 className="max-w-[16ch] font-display text-title">
+            <h2 className="max-w-[16ch] text-balance font-display text-title">
               Three bands, three short menus.
             </h2>
             <p className="mt-6 max-w-[48ch] text-lede text-muted-foreground">
@@ -215,7 +215,9 @@ export default function Home() {
       <section id="privacy" className="border-border border-b">
         <div className="mx-auto grid max-w-7xl gap-12 px-5 py-24 sm:px-8 lg:grid-cols-12 lg:gap-10 lg:px-10 lg:py-32">
           <div className="lg:col-span-4">
-            <h2 className="font-display text-title lg:sticky lg:top-28">Private by design.</h2>
+            <h2 className="text-balance font-display text-title lg:sticky lg:top-28">
+              Private by design.
+            </h2>
           </div>
           <ul className="space-y-10 md:space-y-14 lg:col-span-8">
             {privacy.map((item) => (
@@ -238,7 +240,7 @@ export default function Home() {
       </section>
 
       <section id="questions" className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-10 lg:py-32">
-        <h2 className="reveal max-w-[16ch] font-display text-title">
+        <h2 className="reveal max-w-[16ch] text-balance font-display text-title">
           Questions, answered plainly.
         </h2>
         <ul className="mt-14 grid gap-8 md:grid-cols-2 md:gap-x-10">
@@ -261,7 +263,7 @@ export default function Home() {
 
       <section className="px-5 pb-8 sm:px-8 lg:px-10">
         <div className="reveal mx-auto max-w-7xl rounded-2xl bg-foreground p-8 text-background md:p-16">
-          <h2 className="max-w-[10ch] font-display font-semibold text-5xl leading-[0.98] tracking-[-0.04em] md:text-8xl">
+          <h2 className="max-w-[10ch] text-balance font-display font-semibold text-5xl leading-[0.98] tracking-[-0.04em] md:text-8xl">
             Start with one check-in.
           </h2>
           <div className="mt-10 flex flex-wrap items-center gap-x-7 gap-y-4">
@@ -275,7 +277,7 @@ export default function Home() {
               Get started
             </Link>
             <p className="max-w-[38ch] font-medium leading-snug">
-              Take one photo today. Compare it with the next one whenever you're ready.
+              Take one photo today. Compare it with the next one whenever you’re ready.
             </p>
           </div>
         </div>

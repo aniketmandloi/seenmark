@@ -1,9 +1,14 @@
 import { buttonVariants } from "@seenmark/ui/components/button";
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
 
 import PageHeader from "@/components/page-header";
 import { authClient } from "@/lib/auth-client";
+
+export const metadata: Metadata = {
+  title: "Page not found",
+};
 
 export default async function NotFound() {
   // A failed session read only changes where the link points, so it never breaks this page.

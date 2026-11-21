@@ -72,6 +72,7 @@ export default function CompareSlider({ earlier, latest }: { earlier: CheckIn; l
           max={100}
           value={position}
           aria-label="Divider between the earlier and latest photos"
+          aria-valuetext={`${position}% of the earlier photo shown`}
           className="sr-only"
           onChange={(event) => setPosition(Number(event.currentTarget.value))}
         />

@@ -106,6 +106,7 @@ export default function NextSteps() {
                   className="inline-flex min-w-0 items-center gap-1 font-medium text-foreground underline decoration-2 decoration-primary underline-offset-4 [overflow-wrap:anywhere] hover:decoration-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   {paidLink.destination}
+                  <span className="sr-only"> (opens in a new tab)</span>
                   <ArrowUpRight aria-hidden="true" className="size-3.5 shrink-0" />
                 </a>
               </p>

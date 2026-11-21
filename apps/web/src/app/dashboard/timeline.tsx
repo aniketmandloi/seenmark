@@ -106,7 +106,7 @@ export default function Timeline({
         <div className="mt-6 space-y-3">
           {loadEarlierFailed ? (
             <Alert variant="destructive">
-              <AlertDescription>Couldn't load earlier check-ins.</AlertDescription>
+              <AlertDescription>Couldn’t load earlier check-ins.</AlertDescription>
             </Alert>
           ) : null}
           {/* The same button retries, so keyboard focus stays where it was. */}

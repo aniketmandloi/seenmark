@@ -19,7 +19,7 @@ const bands = [
     name: "Late",
     focus: "A clinic conversation",
     description:
-      "What a clinic conversation is, and what verified means: a clinic Seenmark has checked for a named US-licensed physician, a published price range, and result photos at least 12 months out that aren't the clinic's ads. No clinic is verified yet, and there's no directory.",
+      "What a clinic conversation is, and what verified means: a clinic Seenmark has checked for a named US-licensed physician, a published price range, and result photos at least 12 months out that aren’t the clinic’s ads. No clinic is verified yet, and there’s no directory.",
   },
 ];
 

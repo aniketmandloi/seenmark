@@ -44,7 +44,7 @@ All values are the live tokens in `packages/ui/src/styles/globals.css`, converte
 | `--destructive` | `#BE2F2C` | 0.53 0.18 27 | Delete, errors |
 | `--success` | `#227240` | 0.49 0.11 152 | "Recorded", "Saved" |
 | `--border` | `#D5D7DE` | 0.88 0.01 273 | Dividers (decorative only) |
-| `--input` | `#C8CAD3` | 0.84 0.012 273 | Field borders (see the fix below) |
+| `--input` | `#83868F` | 0.62 0.014 273 | Field and control borders, 3.5:1 on Sheet |
 
 ### Dark
 
@@ -60,7 +60,7 @@ All values are the live tokens in `packages/ui/src/styles/globals.css`, converte
 | `--destructive` | `#F97770` | Delete, errors |
 | `--success` | `#65C281` | Saved |
 | `--border` | `#2D2D35` | Dividers |
-| `--input` | `#3C3C44` | Field borders |
+| `--input` | `#71717A` | Field and control borders, 3.3:1 on card |
 
 ### Measured contrast (WCAG 2.x)
 
@@ -73,7 +73,7 @@ All values are the live tokens in `packages/ui/src/styles/globals.css`, converte
 | ink / primary (yellow) | 13.0 | 13.0 | 7:1 ✅ |
 | destructive / card | 5.6 | 6.1 | 4.5:1 ✅ |
 | success / card | 5.7 | 7.4 | 4.5:1 ✅ |
-| **input / card** | **1.6** | **1.5** | **3:1 ❌**. Field and control boundaries must reach 3:1 (WCAG 1.4.11). Text fields and selects use a `foreground/40`-level border instead (the outline buttons already use ink). |
+| input / card | 3.5 | 3.3 | 3:1 ✅. Raised from 1.6 / 1.5 (was `#C8CAD3` / `#3C3C44`) so field and control boundaries meet WCAG 1.4.11. |
 | primary / background (yellow as a shape) | 1.2 | 13.5 | Yellow alone never carries meaning in light mode. It always pairs with ink text, a check icon or an ink outline. |
 
 Rules:

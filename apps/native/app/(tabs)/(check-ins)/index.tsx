@@ -16,7 +16,7 @@ import {
 import { useQueries } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Linking } from "react-native";
+import { Linking, Platform } from "react-native";
 
 import {
 	FormButton,
@@ -162,8 +162,20 @@ export default function CheckInsScreen() {
 			{loop.items[0] ? (
 				<FormSection>
 					<FormText>
-						{`${loop.items.length}${loop.hasEarlier ? "+" : ""} ${loop.items.length === 1 ? "check-in" : "check-ins"} . The last one was ${relativeTime(loop.items[0].takenAt, now)}.`}
+						{`${loop.items.length}${loop.hasEarlier ? "+" : ""} ${loop.items.length === 1 ? "check-in" : "check-ins"}. The last one was ${relativeTime(loop.items[0].takenAt, now)}.`}
 					</FormText>
+					{/* Android's labeled button floats in reach; iOS's toolbar glyph is a top-corner
+					    shortcut, so the main action also sits here with its name. */}
+					{Platform.OS === "ios" ? (
+						<FormButton
+							label={actions.isRecording ? "Saving check-in…" : "Take check-in"}
+							icon="camera"
+							onPress={takeCheckIn}
+							disabled={actions.isBusy}
+							pending={actions.isRecording}
+							prominent
+						/>
+					) : null}
 				</FormSection>
 			) : null}
 

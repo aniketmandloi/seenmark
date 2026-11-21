@@ -91,7 +91,14 @@ export default function Compare({
         <h2 id="compare-heading" className="scroll-mt-24 text-heading">
           Compare
         </h2>
-        <ChoiceGroup aria-label="Compare mode" options={modes} value={mode} onChoose={setMode} />
+        {/* A view setting, not the member's own choice, so its pressed state is ink, not yellow. */}
+        <ChoiceGroup
+          aria-label="Compare mode"
+          options={modes}
+          value={mode}
+          onChoose={setMode}
+          itemClassName="data-pressed:border-foreground data-pressed:bg-foreground data-pressed:text-background dark:data-pressed:border-foreground dark:data-pressed:bg-foreground"
+        />
       </div>
 
       <div className="mt-5 flex items-end gap-2 sm:gap-3">

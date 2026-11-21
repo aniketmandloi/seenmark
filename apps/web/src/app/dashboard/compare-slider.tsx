@@ -4,6 +4,7 @@ import { type CheckIn, formatDate } from "@seenmark/api/check-in-dates";
 import { ChevronsLeftRight } from "lucide-react";
 import { type PointerEvent, useState } from "react";
 
+import { compareDate } from "./compare-date";
 import { dividerPercent } from "./divider-percent";
 import Photo from "./photo";
 
@@ -76,13 +77,13 @@ export default function CompareSlider({ earlier, latest }: { earlier: CheckIn; l
         />
       </div>
       <figcaption className="mt-3 flex justify-between gap-3 text-muted-foreground text-sm tabular-nums">
-        <span>
-          <span className="font-medium text-foreground">Earlier</span> ·{" "}
-          <time dateTime={earlier.takenAt}>{formatDate(earlier.takenAt)}</time>
+        <span className="flex flex-col">
+          <span className="font-medium text-foreground">Earlier</span>
+          <time dateTime={earlier.takenAt}>{compareDate(earlier, latest)}</time>
         </span>
-        <span className="text-right">
-          <span className="font-medium text-foreground">Latest</span> ·{" "}
-          <time dateTime={latest.takenAt}>{formatDate(latest.takenAt)}</time>
+        <span className="flex flex-col text-right">
+          <span className="font-medium text-foreground">Latest</span>
+          <time dateTime={latest.takenAt}>{compareDate(latest, earlier)}</time>
         </span>
       </figcaption>
     </figure>

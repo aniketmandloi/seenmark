@@ -21,6 +21,7 @@ import { ArrowLeftRight, Camera } from "lucide-react";
 import { useState } from "react";
 
 import ChoiceGroup from "./choice-group";
+import { compareDate } from "./compare-date";
 import CompareSlider from "./compare-slider";
 import Photo from "./photo";
 import PhotoPicker from "./photo-picker";
@@ -126,7 +127,10 @@ export default function Compare({
                   item={slots[slot]}
                   alt={`${slotLabels[slot]} check-in photo from ${formatDate(slots[slot].takenAt)}`}
                 />
-                <CheckInCaption item={slots[slot]} />
+                <CheckInCaption
+                  item={slots[slot]}
+                  other={slots[slot === "earlier" ? "latest" : "earlier"]}
+                />
               </figure>
             ))}
           </div>
@@ -165,7 +169,7 @@ function SlotPicker({
           <SelectValue>
             {(id: string) => {
               const item = items.find((candidate) => candidate.id === id);
-              return item ? formatDate(item.takenAt) : null;
+              return item ? compareDate(item, other) : null;
             }}
           </SelectValue>
         </SelectTrigger>
@@ -186,10 +190,13 @@ function SlotPicker({
   );
 }
 
-function CheckInCaption({ item }: { item: CheckIn }) {
+/** With `other`, the date is the compared form, which adds the time when both share a day. */
+function CheckInCaption({ item, other }: { item: CheckIn; other?: CheckIn }) {
   return (
     <figcaption className="mt-3 text-muted-foreground text-sm tabular-nums">
-      <time dateTime={item.takenAt}>{formatDate(item.takenAt)}</time>
+      <time dateTime={item.takenAt}>
+        {other ? compareDate(item, other) : formatDate(item.takenAt)}
+      </time>
     </figcaption>
   );
 }

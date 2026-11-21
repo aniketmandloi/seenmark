@@ -30,7 +30,7 @@ export default function CompareSlider({ earlier, latest }: { earlier: CheckIn; l
         // Presses on a photo pass through to the frame, so they never start a native image drag,
         // which would cancel the pointer stream mid-drag. A failed photo's retry button still
         // takes its own presses.
-        className="group relative aspect-3/4 w-full cursor-ew-resize touch-pan-y select-none overflow-hidden rounded-2xl bg-muted has-focus-visible:ring-2 has-focus-visible:ring-ring has-focus-visible:ring-offset-2 has-focus-visible:ring-offset-background [&_img]:pointer-events-none"
+        className="group relative mx-auto aspect-3/4 w-full max-w-[calc(70svh*3/4)] cursor-ew-resize touch-pan-y select-none overflow-hidden rounded-2xl bg-muted has-focus-visible:ring-2 has-focus-visible:ring-ring has-focus-visible:ring-offset-2 has-focus-visible:ring-offset-background [&_img]:pointer-events-none"
         onPointerDown={(event) => {
           // Capturing the pointer would retarget the button's click to the frame.
           if ((event.target as Element).closest("button")) return;

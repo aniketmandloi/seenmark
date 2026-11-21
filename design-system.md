@@ -177,3 +177,62 @@ Direct labels go on the marks, axis labels are Public Sans `text-xs` with `tabul
 9. **Hover-only disclosure.** Every hover interaction (how-it-works panels, nav pill) needs a click, tap and keyboard path.
 10. **Generic SaaS landing furniture.** Three identical icon cards, gradient blobs, glassmorphism, emoji icons, or "Trusted by" logo strips.
 11. **Motion without cause.** Autoplaying carousels, parallax, and looping attention animations (the existing `breathe` is for loading only).
+
+## 9. Creative direction (frontend-design)
+
+**Concept: the margin of a private notebook.** A member's record is a set of dated entries. The design borrows the one device a personal notebook has that an app usually doesn't: a **margin**. Dates, months, band names and section names live in a narrow left margin, and the entry (photo, step, detail) sits to its right. The highlighter is the member's own pen: it marks what they chose, and nothing else.
+
+### Palette (named)
+
+| Name | Hex | Role |
+| --- | --- | --- |
+| Paper | `#F1F2F5` | Page |
+| Sheet | `#FBFBFC` | Cards, fields, dialogs |
+| Ink | `#16161B` | Text, outlines, focus, field borders at 40%+ |
+| Pencil | `#4A4A55` | Margin labels, dates, captions |
+| Highlighter | `#FFD83D` | The member's mark: chosen band, current nav, the one primary action |
+| Wash | `#FFF3BF` | Pale highlighter for reminders and the request card |
+
+Functional red `#BE2F2C` and green `#227240` are status colors, not part of the palette.
+
+### Type
+
+- **Bricolage Grotesque**: headlines (`h1`, section `h2`), the logo wordmark and the final CTA line. Nothing else.
+- **Public Sans**: everything a person reads or operates, including body, labels, buttons, nav, fields, band options, step lists, dates and counts. Numbers always use `tabular-nums`.
+
+### Layout
+
+```
+member pages (lg+)                         mobile
+┌────────────┬─────────────────────────┐   ┌──────────────────┐
+│ margin     │ entry                   │   │ margin label     │
+│ (3 cols)   │ (9 cols)                │   │ entry            │
+│ Nov 2026   │ ▢ 21 Nov  2 days ago  … │   │                  │
+│            │ ▢ 3 Nov   3 weeks ago … │   │ Oct 2026         │
+│ Oct 2026   │ ▢ 12 Oct  …             │   │ entry            │
+└────────────┴─────────────────────────┘   └──────────────────┘
+```
+
+Content is left-aligned throughout and nothing is centered except empty states. Margin labels are Pencil-colored Public Sans in 14px medium, and they're real headings (`h2`/`h3`) so the outline stays intact.
+
+### Principles
+
+1. Yellow marks only what the member chose or the one thing to do next.
+2. Structure carries information. Steps are numbered only where they are a sequence (how it works). Menu items are facts, not steps, so they get a highlighter tick, not a number.
+3. One memorable moment per page: the hero highlighter sweep on the landing page, and the margin on member pages. Everything else stays quiet.
+
+### Review against the brief: what changed and why
+
+The first draft of this plan kept the screens as they were. Reviewing it against the frontend-design defaults list and the brief changed five things:
+
+- **Highlighted words in every headline → only in the landing hero.** "Three bands, *three short menus*" and "Your *check-ins*" accented a phrase for decoration, which is a stock tell. The highlighter now means "yours" (the chosen band, the current page). The hero mark stays because it is the brand's established moment (brief: keep `hl`).
+- **Middle-dot meta strings → sentences.** "3 check-ins · last one 2 days ago" becomes "3 check-ins. The last one was 2 days ago." The same applies to "Recorded on …".
+- **Eyebrow labels above titles → removed.** The privacy line on the dashboard becomes the lede, and the 404 title already says "not here".
+- **Arrow glyphs on CTAs → removed.** "Get started" states the action.
+- **Numbered circles on menus → highlighter ticks.** The early, mid and late menus are not sequences (brief: "Menu: not a store", educational facts).
+
+The direction is also not one of the default clusters. There is no cream and terracotta, no near-black with acid green, and no hairline broadsheet. The yellow and cool-grey pair comes from the brand, and the margin layout comes from the subject (a dated personal record), not from a template.
+
+### Charts
+
+There are none in the product, and per §7 none are added. The grids this applies to are the landing promise grid, the FAQ grid, the dashboard 2/3 + 1/3 grid, the compare grid and the timeline.

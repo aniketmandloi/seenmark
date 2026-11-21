@@ -21,6 +21,7 @@ import { ArrowLeftRight, Camera } from "lucide-react";
 import { useState } from "react";
 
 import ChoiceGroup from "./choice-group";
+import { compareDate } from "./compare-date";
 import CompareSlider from "./compare-slider";
 import Photo from "./photo";
 import PhotoPicker from "./photo-picker";
@@ -68,7 +69,7 @@ export default function Compare({
   if (!earlier) {
     return (
       <section aria-labelledby="compare-heading">
-        <h2 id="compare-heading" className="scroll-mt-24 font-display text-heading">
+        <h2 id="compare-heading" className="scroll-mt-24 text-heading">
           Your baseline
         </h2>
         <p className="mt-2 text-muted-foreground text-sm leading-6">
@@ -87,10 +88,17 @@ export default function Compare({
   return (
     <section aria-labelledby="compare-heading">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="compare-heading" className="scroll-mt-24 font-display text-heading">
+        <h2 id="compare-heading" className="scroll-mt-24 text-heading">
           Compare
         </h2>
-        <ChoiceGroup aria-label="Compare mode" options={modes} value={mode} onChoose={setMode} />
+        {/* A view setting, not the member's own choice, so its pressed state is ink, not yellow. */}
+        <ChoiceGroup
+          aria-label="Compare mode"
+          options={modes}
+          value={mode}
+          onChoose={setMode}
+          itemClassName="data-pressed:border-foreground data-pressed:bg-foreground data-pressed:text-background dark:data-pressed:border-foreground dark:data-pressed:bg-foreground"
+        />
       </div>
 
       <div className="mt-5 flex items-end gap-2 sm:gap-3">
@@ -126,7 +134,10 @@ export default function Compare({
                   item={slots[slot]}
                   alt={`${slotLabels[slot]} check-in photo from ${formatDate(slots[slot].takenAt)}`}
                 />
-                <CheckInCaption item={slots[slot]} />
+                <CheckInCaption
+                  item={slots[slot]}
+                  other={slots[slot === "earlier" ? "latest" : "earlier"]}
+                />
               </figure>
             ))}
           </div>
@@ -165,7 +176,7 @@ function SlotPicker({
           <SelectValue>
             {(id: string) => {
               const item = items.find((candidate) => candidate.id === id);
-              return item ? formatDate(item.takenAt) : null;
+              return item ? compareDate(item, other) : null;
             }}
           </SelectValue>
         </SelectTrigger>
@@ -186,10 +197,13 @@ function SlotPicker({
   );
 }
 
-function CheckInCaption({ item }: { item: CheckIn }) {
+/** With `other`, the date is the compared form, which adds the time when both share a day. */
+function CheckInCaption({ item, other }: { item: CheckIn; other?: CheckIn }) {
   return (
     <figcaption className="mt-3 text-muted-foreground text-sm tabular-nums">
-      <time dateTime={item.takenAt}>{formatDate(item.takenAt)}</time>
+      <time dateTime={item.takenAt}>
+        {other ? compareDate(item, other) : formatDate(item.takenAt)}
+      </time>
     </figcaption>
   );
 }
@@ -219,13 +233,13 @@ function FirstCheckIn({ busy, onAdd }: { busy: boolean; onAdd: (file: File) => v
       <EmptyHeader>
         <EmptyMedia
           variant="icon"
-          className={`size-14 rounded-2xl bg-primary text-primary-foreground transition-transform ${
+          className={`size-14 rounded-2xl border-2 border-foreground text-foreground transition-transform ${
             dragging ? "-translate-y-0.5 scale-105" : ""
           }`}
         >
           <Camera aria-hidden="true" className="size-6" />
         </EmptyMedia>
-        <h2 className="font-display text-heading">Start with one photo</h2>
+        <h2 className="text-heading">Start with one photo</h2>
         <EmptyDescription>
           Take a clear photo of your own hairline, or drop one here. You can add another check-in
           whenever you want.
@@ -233,7 +247,7 @@ function FirstCheckIn({ busy, onAdd }: { busy: boolean; onAdd: (file: File) => v
       </EmptyHeader>
       <EmptyContent>
         <PhotoPicker disabled={busy} label="Add your first check-in" onFile={onAdd} />
-        <p className="text-muted-foreground text-xs leading-5">On mobile, you can take one now.</p>
+        <p className="text-muted-foreground text-sm leading-6">On mobile, you can take one now.</p>
       </EmptyContent>
     </Empty>
   );

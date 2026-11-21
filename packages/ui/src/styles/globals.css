@@ -21,11 +21,11 @@
   --muted-foreground: oklch(0.413 0.018 286);
   --accent: oklch(0.961 0.068 97);
   --accent-foreground: oklch(0.202 0.01 285);
-  --destructive: oklch(0.53 0.18 27);
+  --destructive: oklch(0.49 0.18 27);
   --success: oklch(0.49 0.11 152);
   --success-foreground: oklch(0.988 0.001 286);
   --border: oklch(0.88 0.01 273);
-  --input: oklch(0.84 0.012 273);
+  --input: oklch(0.62 0.014 273);
   --ring: oklch(0.202 0.01 285);
   --radius: 0.75rem;
   --shadow-soft: 0 1px 2px oklch(0.2 0.02 285 / 0.06), 0 12px 32px -20px oklch(0.2 0.02 285 / 0.28);
@@ -54,7 +54,7 @@
   --success: oklch(0.74 0.13 152);
   --success-foreground: oklch(0.184 0.006 286);
   --border: oklch(0.3 0.014 286);
-  --input: oklch(0.36 0.014 286);
+  --input: oklch(0.55 0.014 286);
   --ring: oklch(0.959 0.004 286);
   --shadow-soft: 0 1px 2px oklch(0.1 0.01 286 / 0.3), 0 12px 32px -20px oklch(0.1 0.01 286 / 0.7);
   --shadow-lifted:
@@ -64,7 +64,7 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-bricolage, ui-sans-serif);
+  --font-sans: var(--font-public-sans, ui-sans-serif);
   --font-mono: var(--font-geist-mono, ui-monospace);
   --font-display: var(--font-bricolage, ui-sans-serif);
   --color-ring: var(--ring);
@@ -187,6 +187,31 @@
   }
   body {
     @apply min-h-dvh bg-background font-sans text-foreground antialiased;
+  }
+  /* No double-tap zoom delay on controls; the page itself keeps pinch zoom. */
+  a,
+  button,
+  label,
+  input,
+  select,
+  summary,
+  [role="button"],
+  [role="radio"],
+  [role="checkbox"] {
+    touch-action: manipulation;
+  }
+  /* Selecting text marks it with the highlighter, the same mark the brand uses. */
+  ::selection {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+  }
+  input,
+  textarea {
+    caret-color: var(--foreground);
+  }
+  /* Keeps a lone word off the last line of short copy, which reads as a typo at this size. */
+  p {
+    text-wrap: pretty;
   }
   html {
     @apply font-sans;

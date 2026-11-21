@@ -4,10 +4,13 @@ import { Camera } from "lucide-react";
 
 export default function PhotoPicker({
   disabled,
+  saving = disabled,
   label,
   onFile,
 }: {
   disabled: boolean;
+  /** A photo is being saved. Disabled alone can mean another save is in flight. */
+  saving?: boolean;
   label: string;
   onFile: (file: File) => void;
 }) {
@@ -20,15 +23,14 @@ export default function PhotoPicker({
         }`,
       })}
     >
-      {disabled ? <Spinner /> : <Camera aria-hidden="true" />}
+      {saving ? <Spinner /> : <Camera aria-hidden="true" />}
       {label}
       <input
         type="file"
         accept="image/*"
-        capture="user"
         className="sr-only"
         disabled={disabled}
-        aria-busy={disabled || undefined}
+        aria-busy={saving || undefined}
         onChange={(event) => {
           const input = event.currentTarget;
           const file = input.files?.[0];

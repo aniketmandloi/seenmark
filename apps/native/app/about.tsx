@@ -11,9 +11,7 @@ export default function AboutSeenmark() {
 		<FormScreen>
 			<FormHero
 				logo
-				eyebrow="About your record"
 				title="Your photos are yours."
-				highlight="yours"
 				description="Seenmark keeps your check-in photos private to your account. You choose how to describe what you see, and we do not interpret or diagnose a photo."
 				reveal
 			/>
@@ -32,7 +30,7 @@ export default function AboutSeenmark() {
 					<FormRow
 						icon="privacy"
 						title="Nothing is sent for you"
-						subtitle="An introduction request stays on your record until you choose to continue."
+						subtitle="An introduction request stays on your record until you remove it. It is not sent to a clinic."
 					/>
 				</FormSection>
 			</FormReveal>

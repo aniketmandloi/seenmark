@@ -1,9 +1,18 @@
 type Errors = ReadonlyArray<{ message: string } | undefined>;
 
-/** Marks a control invalid and points it at the FieldError rendered for the same field. */
-export function fieldErrorProps(name: string, errors: Errors) {
+/**
+ * Marks a control invalid and points it at the FieldError rendered for the same field, and at a
+ * persistent hint when the field has one.
+ */
+export function fieldErrorProps(name: string, errors: Errors, hintId?: string) {
   const invalid = errors.length > 0;
-  return { "aria-invalid": invalid, "aria-describedby": invalid ? `${name}-error` : undefined };
+  const describedBy = [invalid ? `${name}-error` : null, hintId].filter(Boolean).join(" ");
+  return { "aria-invalid": invalid, "aria-describedby": describedBy || undefined };
+}
+
+/** Moves focus to the first invalid control once the errors from a failed submit have rendered. */
+export function focusFirstInvalid(form: HTMLFormElement | null) {
+  requestAnimationFrame(() => form?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus());
 }
 
 export default function FieldError({ name, errors }: { name: string; errors: Errors }) {

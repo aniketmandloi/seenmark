@@ -88,18 +88,20 @@ export default function IntroductionRequest({
             ref={heading}
             id="introduction-heading"
             tabIndex={-1}
-            className="font-display text-heading outline-none"
+            className="text-heading outline-none"
           >
-            {band === "late" ? "Ask for an introduction" : "Your introduction request"}
+            {band === "late" && !recorded ? "Ask for an introduction" : "Your introduction request"}
           </h2>
-          {band === "late" ? (
+          {recorded ? (
             <CardDescription>
-              Your request is recorded for you. It is not sent to a clinic.
+              {band === "late"
+                ? "It tells Seenmark you want a clinic conversation. It stays on your record until you remove it, and it is not sent to a clinic."
+                : "You asked on the late band. It is still recorded for you, and it is not sent to a clinic."}
             </CardDescription>
-          ) : recorded ? (
+          ) : band === "late" ? (
             <CardDescription>
-              You asked on the late band. It is still recorded for you, and it is not sent to a
-              clinic.
+              Recording it tells Seenmark you want a clinic conversation. It stays on your record
+              until you remove it, and it is not sent to a clinic.
             </CardDescription>
           ) : null}
           {recorded ? (
@@ -126,8 +128,8 @@ export default function IntroductionRequest({
           ) : recorded ? (
             <div className="flex animate-fade-in flex-wrap items-center justify-between gap-3">
               <p className="text-muted-foreground text-sm tabular-nums">
-                Recorded on <time dateTime={recorded.filedAt}>{formatDate(recorded.filedAt)}</time>{" "}
-                · {relativeTime(recorded.filedAt, now)}
+                Recorded {relativeTime(recorded.filedAt, now)}, on{" "}
+                <time dateTime={recorded.filedAt}>{formatDate(recorded.filedAt)}</time>.
               </p>
               <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
                 <AlertDialogTrigger ref={removeTrigger} render={<Button variant="outline" />}>
@@ -164,7 +166,9 @@ export default function IntroductionRequest({
               </AlertDialog>
             </div>
           ) : (
+            // Outline, not yellow: a clinic is the last step, so the menu stays the page's focus.
             <Button
+              variant="outline"
               disabled={fileIntroduction.isPending}
               aria-busy={fileIntroduction.isPending || undefined}
               onClick={handleFile}

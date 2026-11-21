@@ -58,7 +58,7 @@ export default function Timeline({
         ref={headingRef}
         id="timeline-heading"
         tabIndex={-1}
-        className="font-display text-heading outline-none"
+        className="text-heading outline-none"
       >
         Timeline
       </h2>
@@ -68,11 +68,18 @@ export default function Timeline({
 
       <div className="mt-6 space-y-8">
         {groupByMonth(items).map((group) => (
-          <section key={group.key} aria-labelledby={`month-${group.key}`}>
-            <h3 id={`month-${group.key}`} className="font-medium text-muted-foreground text-sm">
+          <section
+            key={group.key}
+            aria-labelledby={`month-${group.key}`}
+            className="sm:grid sm:grid-cols-[8rem_minmax(0,1fr)] sm:gap-x-6"
+          >
+            <h3
+              id={`month-${group.key}`}
+              className="font-medium text-muted-foreground text-sm tabular-nums sm:border-border sm:border-r sm:pt-4 sm:pr-6"
+            >
               {group.label}
             </h3>
-            <ul className="mt-3 divide-y divide-border/80 rounded-2xl border border-border/80 bg-card">
+            <ul className="mt-3 divide-y divide-border/80 rounded-2xl border border-border/80 bg-card sm:mt-0">
               {group.items.map((item) => (
                 <TimelineRow
                   key={item.id}
@@ -99,7 +106,7 @@ export default function Timeline({
         <div className="mt-6 space-y-3">
           {loadEarlierFailed ? (
             <Alert variant="destructive">
-              <AlertDescription>Couldn't load earlier check-ins.</AlertDescription>
+              <AlertDescription>Couldn’t load earlier check-ins.</AlertDescription>
             </Alert>
           ) : null}
           {/* The same button retries, so keyboard focus stays where it was. */}

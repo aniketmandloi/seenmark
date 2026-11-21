@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Geist_Mono } from "next/font/google";
+import { Bricolage_Grotesque, Geist_Mono, Public_Sans } from "next/font/google";
 
 import "../index.css";
 import Header from "@/components/header";
@@ -11,6 +11,12 @@ const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
   subsets: ["latin"],
   axes: ["opsz"],
+});
+
+// Headlines only. Everything read or operated, numbers included, sets in Public Sans.
+const publicSans = Public_Sans({
+  variable: "--font-public-sans",
+  subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
@@ -48,7 +54,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${bricolage.variable} ${geistMono.variable} antialiased`}>
+      <body
+        className={`${bricolage.variable} ${publicSans.variable} ${geistMono.variable} antialiased`}
+      >
         <Providers>
           <a href="#main-content" className="skip-link">
             Skip to content

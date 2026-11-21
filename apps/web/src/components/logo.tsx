@@ -5,6 +5,7 @@ export default function Logo({ className = "" }: { className?: string }) {
     <Link
       href="/"
       aria-label="Seenmark home"
+      translate="no"
       className={`flex w-fit shrink-0 items-center gap-2.5 rounded-full font-display font-semibold text-foreground text-xl tracking-tight outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background ${className}`}
     >
       <span

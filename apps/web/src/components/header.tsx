@@ -58,8 +58,11 @@ export default function Header() {
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <ModeToggle />
           <UserMenu />
-          {!isPending && !session ? (
-            <Link href="/signup" className={cn(buttonVariants(), "hidden h-10 sm:inline-flex")}>
+          {!isPending && !session && pathname !== "/signup" ? (
+            <Link
+              href="/signup"
+              className={cn(buttonVariants({ variant: "outline" }), "hidden h-10 sm:inline-flex")}
+            >
               Get started
             </Link>
           ) : null}
@@ -90,7 +93,7 @@ export default function Header() {
                         onClick={closeSheet}
                         aria-current={isCurrent ? "page" : undefined}
                         style={{ "--i": index } as CSSProperties}
-                        className={`stagger animate-rise rounded-full px-5 py-3 font-display text-heading transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                        className={`stagger animate-rise rounded-full px-5 py-3 text-heading transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                           isCurrent ? "bg-accent text-accent-foreground" : "text-foreground"
                         }`}
                       >

@@ -4,6 +4,7 @@ import { type CheckIn, formatDate } from "@seenmark/api/check-in-dates";
 import { ChevronsLeftRight } from "lucide-react";
 import { type PointerEvent, useState } from "react";
 
+import { compareDate } from "./compare-date";
 import { dividerPercent } from "./divider-percent";
 import Photo from "./photo";
 
@@ -23,7 +24,8 @@ export default function CompareSlider({ earlier, latest }: { earlier: CheckIn; l
   }
 
   return (
-    <figure>
+    // Capped so the whole frame, its handle and its dates fit in one view.
+    <figure className="mx-auto max-w-[calc(70svh*3/4)]">
       <div
         data-dragging={dragging || undefined}
         // Presses on a photo pass through to the frame, so they never start a native image drag,
@@ -71,18 +73,19 @@ export default function CompareSlider({ earlier, latest }: { earlier: CheckIn; l
           max={100}
           value={position}
           aria-label="Divider between the earlier and latest photos"
+          aria-valuetext={`${position}% of the earlier photo shown`}
           className="sr-only"
           onChange={(event) => setPosition(Number(event.currentTarget.value))}
         />
       </div>
       <figcaption className="mt-3 flex justify-between gap-3 text-muted-foreground text-sm tabular-nums">
-        <span>
-          <span className="font-medium text-foreground">Earlier</span> ·{" "}
-          <time dateTime={earlier.takenAt}>{formatDate(earlier.takenAt)}</time>
+        <span className="flex flex-col">
+          <span className="font-medium text-foreground">Earlier</span>
+          <time dateTime={earlier.takenAt}>{compareDate(earlier, latest)}</time>
         </span>
-        <span className="text-right">
-          <span className="font-medium text-foreground">Latest</span> ·{" "}
-          <time dateTime={latest.takenAt}>{formatDate(latest.takenAt)}</time>
+        <span className="flex flex-col text-right">
+          <span className="font-medium text-foreground">Latest</span>
+          <time dateTime={latest.takenAt}>{compareDate(latest, earlier)}</time>
         </span>
       </figcaption>
     </figure>

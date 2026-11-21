@@ -23,7 +23,6 @@ import BandPicker from "./band-picker";
 import CheckInDialog from "./check-in-dialog";
 import CheckInsSkeleton from "./check-ins-skeleton";
 import Compare from "./compare";
-import MenuPreview from "./menu-preview";
 import PhotoPicker from "./photo-picker";
 import { preparePhoto } from "./prepare-photo";
 import Timeline from "./timeline";
@@ -103,28 +102,38 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-5 pt-10 pb-16 sm:px-8 md:pt-14 lg:px-10">
+    <div className="mx-auto max-w-5xl px-5 pt-10 pb-16 sm:px-8 md:pt-14 lg:px-10">
       <PageHeader
         titleRef={title}
-        eyebrow="Only you can see your photos"
-        title={
+        title="Your check-ins"
+        lede={
           <>
-            Your <span className="hl hl-sweep">check-ins</span>
+            Only you can see these photos.
+            {latest ? (
+              <span className="tabular-nums">
+                {" "}
+                You have {items.length}
+                {checkIns.hasNextPage ? "+" : ""} {items.length === 1 ? "check-in" : "check-ins"},
+                and the last one was{" "}
+                <time dateTime={latest.takenAt} title={formatDate(latest.takenAt)}>
+                  {relativeTime(latest.takenAt, now)}
+                </time>
+                .
+              </span>
+            ) : null}
           </>
         }
-        lede={
+        actions={
+          // The empty state carries its own Add button, so the header shows one only alongside photos.
           latest ? (
-            <span className="tabular-nums">
-              {items.length}
-              {checkIns.hasNextPage ? "+" : ""} {items.length === 1 ? "check-in" : "check-ins"} ·
-              last one{" "}
-              <time dateTime={latest.takenAt} title={formatDate(latest.takenAt)}>
-                {relativeTime(latest.takenAt, now)}
-              </time>
-            </span>
+            <PhotoPicker
+              disabled={isBusy}
+              saving={isPreparingPhoto || record.isPending}
+              label="Add check-in"
+              onFile={addCheckIn}
+            />
           ) : undefined
         }
-        actions={<PhotoPicker disabled={isBusy} label="Add check-in" onFile={addCheckIn} />}
       />
 
       {reminder.data?.due ? (
@@ -134,67 +143,37 @@ export default function Dashboard() {
         </Alert>
       ) : null}
 
-      <div className="mt-10 grid gap-12 lg:grid-cols-3">
-        <div className="min-w-0 lg:col-span-2">
-          {checkIns.isLoading ? (
-            <CheckInsSkeleton />
-          ) : checkIns.isError && checkIns.data === undefined ? (
-            <ErrorState
-              message={
-                checkIns.error.message || "Your check-ins are unavailable. Try again in a moment."
-              }
-              retrying={checkIns.isFetching}
-              onRetry={() => checkIns.refetch()}
-            />
-          ) : (
-            <>
-              <Compare
-                items={items}
-                earlier={comparison.earlier}
-                latest={comparison.latest}
-                busy={isBusy}
-                onChoose={(slot, id) => setChoice(chooseSlot(comparison, slot, id))}
-                onSwap={() =>
-                  setChoice({
-                    earlierId: comparison.latest?.id ?? null,
-                    latestId: comparison.earlier?.id ?? null,
-                  })
-                }
-                onAdd={addCheckIn}
-              />
+      {/* One reading column: look at the photos, then choose, then the record. */}
+      <div className="mt-10 space-y-14">
+        {checkIns.isLoading ? (
+          <CheckInsSkeleton />
+        ) : checkIns.isError && checkIns.data === undefined ? (
+          <ErrorState
+            message={
+              checkIns.error.message || "Your check-ins are unavailable. Try again in a moment."
+            }
+            retrying={checkIns.isFetching}
+            onRetry={() => checkIns.refetch()}
+          />
+        ) : (
+          <Compare
+            items={items}
+            earlier={comparison.earlier}
+            latest={comparison.latest}
+            busy={isBusy}
+            onChoose={(slot, id) => setChoice(chooseSlot(comparison, slot, id))}
+            onSwap={() =>
+              setChoice({
+                earlierId: comparison.latest?.id ?? null,
+                latestId: comparison.earlier?.id ?? null,
+              })
+            }
+            onAdd={addCheckIn}
+          />
+        )}
 
-              {items.length > 0 ? (
-                <div className="mt-12">
-                  <Timeline
-                    items={items}
-                    now={now}
-                    comparing={comparison}
-                    busy={isBusy}
-                    headingRef={timelineHeading}
-                    fallbackFocus={title}
-                    hasNextPage={checkIns.hasNextPage}
-                    isFetchingNextPage={checkIns.isFetchingNextPage}
-                    loadEarlierFailed={checkIns.isFetchNextPageError}
-                    onShowEarlier={() => checkIns.fetchNextPage()}
-                    onOpen={(id) => {
-                      setOpened(items.find((item) => item.id === id) ?? null);
-                      setDialogOpen(true);
-                    }}
-                    onCompare={(slot, id) => {
-                      setChoice(chooseSlot(comparison, slot, id));
-                      document
-                        .getElementById("compare-heading")
-                        ?.scrollIntoView({ block: "start" });
-                    }}
-                    onDelete={handleDeleteCheckIn}
-                  />
-                </div>
-              ) : null}
-            </>
-          )}
-        </div>
-
-        <aside className="space-y-8">
+        {/* A band saved before every check-in was deleted stays visible, so it can still be read. */}
+        {items.length > 0 || currentBand.data ? (
           <BandPicker
             band={currentBand.data}
             loading={currentBand.isLoading}
@@ -204,9 +183,31 @@ export default function Dashboard() {
             hasCheckIns={items.length > 0}
             busy={isBusy}
           />
+        ) : null}
 
-          {currentBand.data ? <MenuPreview band={currentBand.data} /> : null}
-        </aside>
+        {items.length > 0 ? (
+          <Timeline
+            items={items}
+            now={now}
+            comparing={comparison}
+            busy={isBusy}
+            headingRef={timelineHeading}
+            fallbackFocus={title}
+            hasNextPage={checkIns.hasNextPage}
+            isFetchingNextPage={checkIns.isFetchingNextPage}
+            loadEarlierFailed={checkIns.isFetchNextPageError}
+            onShowEarlier={() => checkIns.fetchNextPage()}
+            onOpen={(id) => {
+              setOpened(items.find((item) => item.id === id) ?? null);
+              setDialogOpen(true);
+            }}
+            onCompare={(slot, id) => {
+              setChoice(chooseSlot(comparison, slot, id));
+              document.getElementById("compare-heading")?.scrollIntoView({ block: "start" });
+            }}
+            onDelete={handleDeleteCheckIn}
+          />
+        ) : null}
       </div>
 
       <CheckInDialog

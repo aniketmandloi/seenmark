@@ -9,7 +9,7 @@ export default function AuthFormSkeleton({
 }) {
   return (
     <div role="status" aria-busy="true">
-      <span className="sr-only">Loading your account</span>
+      <span className="sr-only">Loading your account…</span>
       <div className="mb-7 space-y-3">
         <Skeleton className="h-8 w-48 rounded-lg" />
         <Skeleton className="h-4 w-64 max-w-full rounded-md" />

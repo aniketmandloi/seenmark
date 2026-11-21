@@ -1,5 +1,9 @@
+"use client";
+
 import type { Route } from "next";
 import Link from "next/link";
+
+import { authClient } from "@/lib/auth-client";
 
 import Logo from "./logo";
 
@@ -23,6 +27,10 @@ const groups: { title: string; links: { href: Route; label: string }[] }[] = [
 ];
 
 export default function SiteFooter() {
+  const { data: session } = authClient.useSession();
+  // Member links only send a visitor to sign in, so visitors see the Seenmark group alone.
+  const shown = session ? groups : groups.slice(0, 1);
+
   return (
     <footer>
       <div className="mx-auto grid max-w-7xl gap-12 px-5 pt-16 pb-12 sm:px-8 lg:grid-cols-12 lg:px-10">
@@ -33,7 +41,7 @@ export default function SiteFooter() {
           </p>
         </div>
         <nav aria-label="Footer navigation" className="grid grid-cols-2 gap-8 lg:col-span-6">
-          {groups.map((group) => (
+          {shown.map((group) => (
             <div key={group.title}>
               <p className="font-semibold text-sm">{group.title}</p>
               <ul className="mt-4 space-y-3 text-[15px] text-muted-foreground">

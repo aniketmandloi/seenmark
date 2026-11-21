@@ -217,8 +217,8 @@ test("the late menu states the verified-clinic check and has no paid link", asyn
 			steps: [
 				"A clinic conversation is you asking to be connected to a clinic.",
 				"A verified clinic is a named physician with an unrestricted US license, a price range published before an introduction is sent, and result photos at least 12 months out that are of that physician's patient and are not the clinic's ads.",
-				"No clinic is verified in v1, and there is no directory.",
-				"Society membership is not the check.",
+				"No clinic has passed this check yet, and there is no directory of clinics.",
+				"Belonging to a professional society does not count as the check.",
 				"There is no star rating and no guaranteed results.",
 			],
 		},
@@ -274,8 +274,8 @@ test("changing from early to late changes the menu", async () => {
 			steps: [
 				"A clinic conversation is you asking to be connected to a clinic.",
 				"A verified clinic is a named physician with an unrestricted US license, a price range published before an introduction is sent, and result photos at least 12 months out that are of that physician's patient and are not the clinic's ads.",
-				"No clinic is verified in v1, and there is no directory.",
-				"Society membership is not the check.",
+				"No clinic has passed this check yet, and there is no directory of clinics.",
+				"Belonging to a professional society does not count as the check.",
 				"There is no star rating and no guaranteed results.",
 			],
 		},

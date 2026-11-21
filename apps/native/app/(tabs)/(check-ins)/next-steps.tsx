@@ -123,7 +123,7 @@ export default function NextStepsScreen() {
 						</>
 					) : (
 						<FormButton
-							label={actions.isFiling ? "Filing…" : "File an introduction"}
+							label={actions.isFiling ? "Recording…" : "Record my request"}
 							onPress={() => void actions.fileAnIntroduction()}
 							disabled={actions.isBusy}
 							pending={actions.isFiling}

@@ -28,7 +28,6 @@ export default function PhotoPicker({
       <input
         type="file"
         accept="image/*"
-        capture="user"
         className="sr-only"
         disabled={disabled}
         aria-busy={saving || undefined}

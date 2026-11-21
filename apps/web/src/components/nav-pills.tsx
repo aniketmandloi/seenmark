@@ -27,7 +27,9 @@ export default function NavPills({
 
     const place = () => {
       const link = target ? navElement.querySelector<HTMLElement>(`[data-href="${target}"]`) : null;
-      if (!link) {
+      // Below lg the nav is display:none and every link measures zero, so the pill hides rather
+      // than growing from nothing when the nav comes back.
+      if (!link || link.offsetWidth === 0) {
         pillElement.style.opacity = "0";
         return;
       }

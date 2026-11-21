@@ -5,12 +5,15 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuLinkItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@seenmark/ui/components/dropdown-menu";
 import { Skeleton } from "@seenmark/ui/components/skeleton";
+import { Spinner } from "@seenmark/ui/components/spinner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { authClient } from "@/lib/auth-client";
 import { signOut } from "@/lib/sign-out";
@@ -18,6 +21,7 @@ import { signOut } from "@/lib/sign-out";
 export default function UserMenu() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
+  const [signingOut, setSigningOut] = useState(false);
 
   if (isPending) {
     return <Skeleton role="status" aria-label="Loading account" className="h-11 w-20 rounded-xl" />;
@@ -36,7 +40,8 @@ export default function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Open account menu"
+        // Starts with the visible name, so voice control users can say what they see.
+        aria-label={`${session.user.name}, account menu`}
         render={<Button variant="ghost" className="h-10 gap-2 px-2.5" />}
       >
         <span className="grid size-7 place-items-center rounded-full bg-accent font-semibold text-accent-foreground text-xs">
@@ -55,25 +60,32 @@ export default function UserMenu() {
             </span>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => router.push("/dashboard")}
+          <DropdownMenuLinkItem
+            render={<Link href="/dashboard" />}
             className="cursor-pointer rounded-lg px-3 py-2"
           >
             Your check-ins
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => router.push("/account")}
+          </DropdownMenuLinkItem>
+          <DropdownMenuLinkItem
+            render={<Link href="/account" />}
             className="cursor-pointer rounded-lg px-3 py-2"
           >
             Account
-          </DropdownMenuItem>
+          </DropdownMenuLinkItem>
           <DropdownMenuItem
+            disabled={signingOut}
+            closeOnClick={false}
+            aria-busy={signingOut || undefined}
             onClick={async () => {
-              if (await signOut()) router.push("/");
+              setSigningOut(true);
+              const signedOut = await signOut();
+              setSigningOut(false);
+              if (signedOut) router.push("/");
             }}
             className="cursor-pointer rounded-lg px-3 py-2"
           >
-            Sign out
+            {signingOut ? <Spinner /> : null}
+            {signingOut ? "Signing out…" : "Sign out"}
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

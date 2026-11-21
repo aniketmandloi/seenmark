@@ -6,11 +6,13 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 import { queryClient } from "@/utils/trpc";
 
+import ThemeColor from "./theme-color";
 import { ThemeProvider } from "./theme-provider";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <ThemeColor />
       <QueryClientProvider client={queryClient}>
         {children}
         <ReactQueryDevtools />

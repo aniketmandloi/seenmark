@@ -1,6 +1,6 @@
 import { buttonVariants } from "@seenmark/ui/components/button";
 import { cn } from "@seenmark/ui/lib/utils";
-import { ArrowRight, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
@@ -168,12 +168,8 @@ export default function Home() {
               className="stagger mt-9 flex animate-rise flex-wrap items-center gap-3"
               style={{ "--i": 3 } as CSSProperties}
             >
-              <Link href="/signup" className={buttonVariants({ size: "lg", className: "group" })}>
+              <Link href="/signup" className={buttonVariants({ size: "lg" })}>
                 Get started
-                <ArrowRight
-                  aria-hidden="true"
-                  className="transition-transform duration-200 group-hover:translate-x-0.5"
-                />
               </Link>
               <Link
                 href="#how-it-works"
@@ -204,7 +200,7 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-10 lg:py-32">
           <div className="reveal">
             <h2 className="max-w-[16ch] font-display text-title">
-              Three bands, <span className="hl">three short menus.</span>
+              Three bands, three short menus.
             </h2>
             <p className="mt-6 max-w-[48ch] text-lede text-muted-foreground">
               A band is how you describe your own hair right now. You choose it after looking at
@@ -272,14 +268,10 @@ export default function Home() {
               href="/signup"
               className={cn(
                 buttonVariants({ size: "lg" }),
-                "group bg-primary-foreground text-primary shadow-none hover:brightness-125 focus-visible:ring-primary-foreground focus-visible:ring-offset-primary",
+                "bg-primary-foreground text-primary shadow-none hover:brightness-125 focus-visible:ring-primary-foreground focus-visible:ring-offset-primary",
               )}
             >
               Get started
-              <ArrowRight
-                aria-hidden="true"
-                className="transition-transform duration-200 group-hover:translate-x-0.5"
-              />
             </Link>
             <p className="max-w-[38ch] font-medium leading-snug">
               Take one photo today. Compare it with the next one whenever you're ready.

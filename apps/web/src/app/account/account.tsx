@@ -17,6 +17,7 @@ import { Spinner } from "@seenmark/ui/components/spinner";
 import { useMutation } from "@tanstack/react-query";
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import MarginSection from "@/components/margin-section";
@@ -35,6 +36,7 @@ const privacy = [
 export default function Account({ session }: { session: typeof authClient.$Infer.Session }) {
   const router = useRouter();
   const deleteAccount = useMutation(trpc.member.deleteAccount.mutationOptions());
+  const [signingOut, setSigningOut] = useState(false);
 
   async function handleDeleteAccount() {
     try {
@@ -85,11 +87,17 @@ export default function Account({ session }: { session: typeof authClient.$Infer
           <CardFooter>
             <Button
               variant="outline"
+              disabled={signingOut}
+              aria-busy={signingOut || undefined}
               onClick={async () => {
-                if (await signOut()) router.push("/");
+                setSigningOut(true);
+                const signedOut = await signOut();
+                setSigningOut(false);
+                if (signedOut) router.push("/");
               }}
             >
-              Sign out
+              {signingOut ? <Spinner data-icon="inline-start" /> : null}
+              {signingOut ? "Signing out…" : "Sign out"}
             </Button>
           </CardFooter>
         </Card>

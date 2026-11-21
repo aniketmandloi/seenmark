@@ -10,7 +10,7 @@ import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import z from "zod";
 
@@ -18,7 +18,7 @@ import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 
 import AuthFormSkeleton from "./auth-form-skeleton";
-import FieldError, { fieldErrorProps } from "./field-error";
+import FieldError, { fieldErrorProps, focusFirstInvalid } from "./field-error";
 import PasswordInput from "./password-input";
 
 export default function SignUpForm() {
@@ -27,6 +27,7 @@ export default function SignUpForm() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const openAccount = useMutation(trpc.member.openAccount.mutationOptions());
 
+  const formElement = useRef<HTMLFormElement>(null);
   const form = useForm({
     defaultValues: {
       name: "",
@@ -66,6 +67,7 @@ export default function SignUpForm() {
       router.push("/dashboard");
       toast.success("Your account is ready");
     },
+    onSubmitInvalid: () => focusFirstInvalid(formElement.current),
     validators: {
       onSubmit: z.object({
         name: z.string().trim().min(2, "Enter at least 2 characters"),
@@ -98,6 +100,8 @@ export default function SignUpForm() {
       </div>
 
       <form
+        ref={formElement}
+        noValidate
         onSubmit={(event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -143,6 +147,8 @@ export default function SignUpForm() {
                 name={field.name}
                 type="email"
                 autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
                 inputMode="email"
                 required
                 value={field.state.value}
@@ -169,9 +175,11 @@ export default function SignUpForm() {
                 value={field.state.value}
                 onBlur={field.handleBlur}
                 onChange={(event) => field.handleChange(event.target.value)}
-                {...fieldErrorProps(field.name, field.state.meta.errors)}
+                {...fieldErrorProps(field.name, field.state.meta.errors, "password-hint")}
               />
-              <p className="text-muted-foreground text-sm">At least 8 characters.</p>
+              <p id="password-hint" className="text-muted-foreground text-sm">
+                At least 8 characters.
+              </p>
               <FieldError name={field.name} errors={field.state.meta.errors} />
             </div>
           )}
@@ -223,14 +231,12 @@ export default function SignUpForm() {
           </form.Field>
         </div>
 
-        <form.Subscribe
-          selector={(state) => ({ canSubmit: state.canSubmit, isSubmitting: state.isSubmitting })}
-        >
-          {({ canSubmit, isSubmitting }) => (
+        <form.Subscribe selector={(state) => state.isSubmitting}>
+          {(isSubmitting) => (
             <Button
               type="submit"
               className="w-full"
-              disabled={!canSubmit || isSubmitting}
+              disabled={isSubmitting}
               aria-busy={isSubmitting || undefined}
             >
               {isSubmitting ? <Spinner data-icon="inline-start" /> : null}

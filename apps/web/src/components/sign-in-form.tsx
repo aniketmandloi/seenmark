@@ -8,14 +8,14 @@ import { Spinner } from "@seenmark/ui/components/spinner";
 import { useForm } from "@tanstack/react-form";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import z from "zod";
 
 import { authClient } from "@/lib/auth-client";
 
 import AuthFormSkeleton from "./auth-form-skeleton";
-import FieldError, { fieldErrorProps } from "./field-error";
+import FieldError, { fieldErrorProps, focusFirstInvalid } from "./field-error";
 import PasswordInput from "./password-input";
 
 export default function SignInForm() {
@@ -23,6 +23,7 @@ export default function SignInForm() {
   const { isPending } = authClient.useSession();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const formElement = useRef<HTMLFormElement>(null);
   const form = useForm({
     defaultValues: {
       email: "",
@@ -48,6 +49,7 @@ export default function SignInForm() {
         },
       );
     },
+    onSubmitInvalid: () => focusFirstInvalid(formElement.current),
     validators: {
       onSubmit: z.object({
         email: z.email("Enter a valid email address"),
@@ -70,6 +72,8 @@ export default function SignInForm() {
       </div>
 
       <form
+        ref={formElement}
+        noValidate
         onSubmit={(event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -93,6 +97,8 @@ export default function SignInForm() {
                 name={field.name}
                 type="email"
                 autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
                 inputMode="email"
                 required
                 value={field.state.value}
@@ -132,14 +138,12 @@ export default function SignInForm() {
           )}
         </form.Field>
 
-        <form.Subscribe
-          selector={(state) => ({ canSubmit: state.canSubmit, isSubmitting: state.isSubmitting })}
-        >
-          {({ canSubmit, isSubmitting }) => (
+        <form.Subscribe selector={(state) => state.isSubmitting}>
+          {(isSubmitting) => (
             <Button
               type="submit"
               className="w-full"
-              disabled={!canSubmit || isSubmitting}
+              disabled={isSubmitting}
               aria-busy={isSubmitting || undefined}
             >
               {isSubmitting ? <Spinner data-icon="inline-start" /> : null}

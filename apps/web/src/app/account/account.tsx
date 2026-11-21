@@ -76,7 +76,9 @@ export default function Account({ session }: { session: typeof authClient.$Infer
               </div>
               <div>
                 <dt className="text-muted-foreground text-sm">Email</dt>
-                <dd className="mt-1 break-all font-medium text-base">{session.user.email}</dd>
+                <dd className="mt-1 font-medium text-base [overflow-wrap:anywhere]">
+                  {session.user.email}
+                </dd>
               </div>
             </dl>
           </CardContent>

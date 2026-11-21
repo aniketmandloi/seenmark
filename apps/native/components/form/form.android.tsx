@@ -94,6 +94,7 @@ import type {
 	FormFieldsProps,
 	FormHeroProps,
 	FormLinkProps,
+	FormMenuItemProps,
 	FormPhotosProps,
 	FormPickerProps,
 	FormProgressProps,
@@ -103,7 +104,6 @@ import type {
 	FormScreenProps,
 	FormSectionProps,
 	FormSkeletonProps,
-	FormStepProps,
 	FormTextFieldProps,
 	FormTextProps,
 	FormToggleProps,
@@ -1072,35 +1072,22 @@ export function FormPicker({
 	);
 }
 
-export function FormStep({ number, total, text }: FormStepProps) {
+export function FormMenuItem({ text }: FormMenuItemProps) {
 	const colors = useMaterialColors();
 	const { theme } = useColorScheme();
 
-	// Compose here can't hide text from TalkBack, so React Native draws the number and hides it
-	// there, and "Step 1 of 3:" rides on transparent text ahead of the step.
 	return (
 		<ListItem colors={{ containerColor: "transparent" }}>
 			<ListItem.LeadingContent>
 				<RNHostView matchContents>
 					<View
 						importantForAccessibility="no-hide-descendants"
-						style={[styles.stepCircle, { backgroundColor: theme.primary }]}
-					>
-						<RNText
-							style={[styles.stepNumber, { color: theme.primaryForeground }]}
-						>
-							{number}
-						</RNText>
-					</View>
+						style={[styles.menuDab, { backgroundColor: theme.primary }]}
+					/>
 				</RNHostView>
 			</ListItem.LeadingContent>
 			<ListItem.HeadlineContent>
-				<Box>
-					<Text color="transparent" modifiers={[matchParentSize()]}>
-						{`Step ${number} of ${total}:`}
-					</Text>
-					<Text color={colors.onSurface}>{text}</Text>
-				</Box>
+				<Text color={colors.onSurface}>{text}</Text>
 			</ListItem.HeadlineContent>
 		</ListItem>
 	);
@@ -1312,19 +1299,11 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		marginTop: 6,
 	},
-	// Material 3 titleMedium, with tabular digits.
-	stepCircle: {
-		minWidth: 32,
-		minHeight: 32,
-		borderRadius: 999,
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	stepNumber: {
-		fontFamily: DISPLAY_FONT,
-		fontSize: 16,
-		lineHeight: 24,
-		fontVariant: ["tabular-nums"],
+	menuDab: {
+		width: 20,
+		height: 11,
+		borderRadius: 3,
+		transform: [{ rotate: "-6deg" }],
 	},
 	captions: {
 		flexDirection: "row",

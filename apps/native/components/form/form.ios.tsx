@@ -86,6 +86,7 @@ import type {
 	FormErrorStateProps,
 	FormHeroProps,
 	FormLinkProps,
+	FormMenuItemProps,
 	FormPhotosProps,
 	FormPickerProps,
 	FormProgressProps,
@@ -95,7 +96,6 @@ import type {
 	FormScreenProps,
 	FormSectionProps,
 	FormSkeletonProps,
-	FormStepProps,
 	FormTextFieldProps,
 	FormTextProps,
 	FormToggleProps,
@@ -949,29 +949,28 @@ export function FormPicker({
 	);
 }
 
-export function FormStep({ number, total, text }: FormStepProps) {
+export function FormMenuItem({ text }: FormMenuItemProps) {
 	const { theme } = useColorScheme();
 
 	return (
 		<HStack
-			alignment="firstTextBaseline"
+			alignment="top"
 			spacing={14}
 			modifiers={[
 				padding({ vertical: 6 }),
 				accessibilityElement("ignore"),
-				accessibilityLabel(`Step ${number} of ${total}: ${text}`),
+				accessibilityLabel(text),
 			]}
 		>
+			{/* The highlighter dab the web menu uses, drawn as a filled empty frame. */}
 			<Text
 				modifiers={[
-					font({ family: DISPLAY_FONT, size: 17, textStyle: "headline" }),
-					monospacedDigit(),
-					foreground(theme.primaryForeground),
-					frame({ minWidth: 32, minHeight: 32 }),
-					fill(theme.primary, shapes.circle()),
+					frame({ width: 20, height: 11 }),
+					fill(theme.primary, shapes.roundedRectangle({ cornerRadius: 3 })),
+					padding({ top: 6 }),
 				]}
 			>
-				{number}
+				{""}
 			</Text>
 			<Text>{text}</Text>
 		</HStack>
@@ -1122,11 +1121,7 @@ export function FormSkeleton({
 					{shape === "rows" ? (
 						<FormRow icon="camera" title={PLACEHOLDER_DATE} />
 					) : (
-						<FormStep
-							number={index + 1}
-							total={count}
-							text={PLACEHOLDER_STEP}
-						/>
+						<FormMenuItem text={PLACEHOLDER_STEP} />
 					)}
 				</Group>
 			))}

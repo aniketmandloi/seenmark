@@ -8,12 +8,12 @@ import {
 	FormEmptyState,
 	FormErrorState,
 	FormLink,
+	FormMenuItem,
 	FormReveal,
 	FormRow,
 	FormScreen,
 	FormSection,
 	FormSkeleton,
-	FormStep,
 	FormText,
 } from "@/components/form/form";
 import { useMemberActions, useNextSteps } from "@/lib/use-member-loop";
@@ -65,11 +65,7 @@ export default function NextStepsScreen() {
 					</FormText>
 					{menu.steps.map((step, index) => (
 						<FormReveal key={step} index={index}>
-							<FormStep
-								number={index + 1}
-								total={menu.steps.length}
-								text={step}
-							/>
+							<FormMenuItem text={step} />
 						</FormReveal>
 					))}
 					<FormButton label="Change band" onPress={backToCheckIns} />

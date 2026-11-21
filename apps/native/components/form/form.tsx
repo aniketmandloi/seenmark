@@ -30,6 +30,7 @@ import type {
 	FormErrorStateProps,
 	FormHeroProps,
 	FormLinkProps,
+	FormMenuItemProps,
 	FormPhotosProps,
 	FormPickerProps,
 	FormProgressProps,
@@ -38,7 +39,6 @@ import type {
 	FormScreenProps,
 	FormSectionProps,
 	FormSkeletonProps,
-	FormStepProps,
 	FormTextFieldProps,
 	FormTextProps,
 	FormToggleProps,
@@ -611,20 +611,16 @@ export function FormPicker({
 	);
 }
 
-export function FormStep({ number, total, text }: FormStepProps) {
+export function FormMenuItem({ text }: FormMenuItemProps) {
 	const { theme } = useColorScheme();
 
 	return (
 		<View
 			accessible
-			accessibilityLabel={`Step ${number} of ${total}: ${text}`}
+			accessibilityLabel={text}
 			style={[styles.row, styles.step]}
 		>
-			<View style={[styles.stepCircle, { backgroundColor: theme.primary }]}>
-				<Text style={[styles.stepNumber, { color: theme.primaryForeground }]}>
-					{number}
-				</Text>
-			</View>
+			<View style={[styles.menuDab, { backgroundColor: theme.primary }]} />
 			<Text style={[styles.body, styles.rowCopy, { color: theme.text }]}>
 				{text}
 			</Text>
@@ -864,17 +860,12 @@ const styles = StyleSheet.create({
 	step: {
 		alignItems: "flex-start",
 	},
-	stepCircle: {
-		minWidth: 32,
-		minHeight: 32,
-		borderRadius: 999,
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	stepNumber: {
-		fontSize: 16,
-		fontWeight: "600",
-		fontVariant: ["tabular-nums"],
+	menuDab: {
+		width: 20,
+		height: 11,
+		marginTop: 6,
+		borderRadius: 3,
+		transform: [{ rotate: "-6deg" }],
 	},
 	check: {
 		width: 18,

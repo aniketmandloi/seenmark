@@ -161,10 +161,8 @@ export type FormPickerProps = {
 	onSelectionChange: (value: string) => void;
 };
 
-/** One step of a numbered list, shown as "01"; screen readers hear "Step 1 of 3: …" instead. */
-export type FormStepProps = {
-	number: number;
-	total: number;
+/** One item of a band's menu. The items are facts, not a sequence, so they carry no number. */
+export type FormMenuItemProps = {
 	text: string;
 };
 

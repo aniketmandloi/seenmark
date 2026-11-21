@@ -11,9 +11,7 @@ export default function AboutSeenmark() {
 		<FormScreen>
 			<FormHero
 				logo
-				eyebrow="About your record"
 				title="Your photos are yours."
-				highlight="yours"
 				description="Seenmark keeps your check-in photos private to your account. You choose how to describe what you see, and we do not interpret or diagnose a photo."
 				reveal
 			/>

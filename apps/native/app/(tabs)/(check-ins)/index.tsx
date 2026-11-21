@@ -162,7 +162,7 @@ export default function CheckInsScreen() {
 			{loop.items[0] ? (
 				<FormSection>
 					<FormText>
-						{`${loop.items.length}${loop.hasEarlier ? "+" : ""} ${loop.items.length === 1 ? "check-in" : "check-ins"} · last one ${relativeTime(loop.items[0].takenAt, now)}`}
+						{`${loop.items.length}${loop.hasEarlier ? "+" : ""} ${loop.items.length === 1 ? "check-in" : "check-ins"} . The last one was ${relativeTime(loop.items[0].takenAt, now)}.`}
 					</FormText>
 				</FormSection>
 			) : null}
@@ -278,7 +278,7 @@ function comparedPhoto(slot: "Earlier" | "Latest", photo: CheckInPhoto) {
 		id: photo.id,
 		uri: checkInPhotoUri(photo),
 		accessibilityLabel: `${slot} check-in photo from ${takenOn}`,
-		caption: `${slot} · ${takenOn}`,
+		caption: `${slot}: ${takenOn}`,
 	};
 }
 

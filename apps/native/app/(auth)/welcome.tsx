@@ -14,7 +14,6 @@ export default function WelcomeScreen() {
 		<FormScreen>
 			<FormHero
 				logo
-				eyebrow="Private by design"
 				title="Your hairline, over time."
 				highlight="over time"
 				description="A quiet place to keep your own check-in photos and look back when you choose."

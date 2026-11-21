@@ -53,8 +53,8 @@ export const ICONS = {
 		android: require("@/assets/icons/logout.xml"),
 	},
 	steps: {
-		ios: "list.number",
-		android: require("@/assets/icons/format_list_numbered.xml"),
+		ios: "list.bullet",
+		android: require("@/assets/icons/format_list_bulleted.xml"),
 	},
 	swap: {
 		ios: "arrow.left.arrow.right",

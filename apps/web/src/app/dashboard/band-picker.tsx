@@ -107,7 +107,7 @@ export default function BandPicker({
         <p className="mt-6 border-border border-t pt-5">
           <Link
             href="/dashboard/next-steps"
-            className="rounded-sm font-medium underline decoration-2 decoration-primary underline-offset-4 transition-colors hover:decoration-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-block rounded-sm py-1 font-medium underline decoration-2 decoration-primary underline-offset-4 transition-colors hover:decoration-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             Read the next steps for the {label.toLowerCase()} band
           </Link>

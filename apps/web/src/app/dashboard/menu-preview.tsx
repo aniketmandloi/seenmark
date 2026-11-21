@@ -51,7 +51,7 @@ export default function MenuPreview({ band }: { band: Band }) {
           <Skeleton className="h-4 w-3/5 rounded-md" />
         </div>
       ) : (
-        <ol className="mt-6 space-y-4">
+        <ul className="mt-6 space-y-4">
           {shownMenu.steps.map((step, index) => (
             <li
               key={step}
@@ -60,14 +60,12 @@ export default function MenuPreview({ band }: { band: Band }) {
             >
               <span
                 aria-hidden="true"
-                className="grid size-6 shrink-0 place-items-center rounded-full bg-primary font-semibold text-primary-foreground text-xs tabular-nums"
-              >
-                {index + 1}
-              </span>
+                className="mt-1.5 h-2.5 w-4 shrink-0 -rotate-6 rounded-[3px] bg-primary ring-1 ring-foreground/20"
+              />
               <span>{step}</span>
             </li>
           ))}
-        </ol>
+        </ul>
       )}
 
       <p className="mt-6 border-border/70 border-t pt-4 text-sm leading-6">

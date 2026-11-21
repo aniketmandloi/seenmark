@@ -56,7 +56,7 @@ export default function NextSteps() {
           onRetry={() => menu.refetch()}
         />
       ) : currentMenu ? (
-        <ol className="mt-10 divide-y divide-border/70 border-border/70 border-y">
+        <ul className="mt-10 divide-y divide-border/70 border-border/70 border-y">
           {currentMenu.steps.map((step, index) => (
             <li
               key={step}
@@ -65,14 +65,12 @@ export default function NextSteps() {
             >
               <span
                 aria-hidden="true"
-                className="grid size-9 shrink-0 place-items-center rounded-full bg-primary font-display font-semibold text-primary-foreground tabular-nums"
-              >
-                {index + 1}
-              </span>
-              <p className="pt-1 text-lg leading-7">{step}</p>
+                className="mt-2 h-3 w-5 shrink-0 -rotate-6 rounded-[3px] bg-primary ring-1 ring-foreground/20"
+              />
+              <p className="text-lg leading-7">{step}</p>
             </li>
           ))}
-        </ol>
+        </ul>
       ) : (
         <Empty className="mt-10 animate-fade-in rounded-2xl border-2 border-border border-dashed bg-card">
           <EmptyHeader>
@@ -121,7 +119,7 @@ export default function NextSteps() {
   );
 }
 
-/** Shaped like the numbered steps. */
+/** Shaped like the marked steps. */
 function StepsSkeleton() {
   return (
     <div
@@ -131,8 +129,8 @@ function StepsSkeleton() {
     >
       {[0, 1, 2].map((row) => (
         <div key={row} className="flex gap-5 py-6 sm:gap-8">
-          <Skeleton className="size-9 shrink-0 rounded-full" />
-          <div className="flex-1 space-y-3 pt-1">
+          <Skeleton className="mt-2 h-3 w-5 shrink-0 rounded-[3px]" />
+          <div className="flex-1 space-y-3">
             <Skeleton className="h-4 rounded-md" />
             <Skeleton className="h-4 w-3/5 rounded-md" />
           </div>

@@ -12,15 +12,14 @@ import {
   AlertDialogTrigger,
 } from "@seenmark/ui/components/alert-dialog";
 import { Button } from "@seenmark/ui/components/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@seenmark/ui/components/card";
-import { Separator } from "@seenmark/ui/components/separator";
+import { Card, CardContent, CardFooter } from "@seenmark/ui/components/card";
 import { Spinner } from "@seenmark/ui/components/spinner";
 import { useMutation } from "@tanstack/react-query";
 import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
-import type { CSSProperties } from "react";
 import { toast } from "sonner";
 
+import MarginSection from "@/components/margin-section";
 import PageHeader from "@/components/page-header";
 import { authClient } from "@/lib/auth-client";
 import { forgetMemberData, runAsMember } from "@/lib/member-session";
@@ -60,20 +59,15 @@ export default function Account({ session }: { session: typeof authClient.$Infer
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-5 pt-10 pb-16 sm:px-8 md:pt-14">
+    <div className="mx-auto max-w-4xl px-5 pt-10 pb-16 sm:px-8 md:pt-14">
       <PageHeader title="Account" lede="Your details, and what happens to your check-ins." />
 
-      <section
-        aria-labelledby="details-heading"
-        style={{ "--i": 1 } as CSSProperties}
-        className="stagger mt-10 animate-rise"
+      <MarginSection
+        id="details-heading"
+        heading="Your details"
+        className="stagger mt-12 animate-rise [--i:1]"
       >
         <Card>
-          <CardHeader>
-            <h2 id="details-heading" className="text-heading">
-              Your details
-            </h2>
-          </CardHeader>
           <CardContent>
             <dl className="grid gap-5 sm:grid-cols-2">
               <div>
@@ -97,17 +91,14 @@ export default function Account({ session }: { session: typeof authClient.$Infer
             </Button>
           </CardFooter>
         </Card>
-      </section>
+      </MarginSection>
 
-      <section
-        aria-labelledby="privacy-heading"
-        style={{ "--i": 2 } as CSSProperties}
-        className="stagger mt-12 animate-rise"
+      <MarginSection
+        id="privacy-heading"
+        heading="Your privacy"
+        className="stagger mt-12 animate-rise [--i:2]"
       >
-        <h2 id="privacy-heading" className="text-heading">
-          Your privacy
-        </h2>
-        <ul className="mt-5 space-y-3 text-[15px] text-muted-foreground leading-6">
+        <ul className="space-y-3 text-[15px] text-muted-foreground leading-6">
           {privacy.map((line) => (
             <li key={line} className="flex gap-3">
               <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
@@ -117,47 +108,44 @@ export default function Account({ session }: { session: typeof authClient.$Infer
             </li>
           ))}
         </ul>
-      </section>
+      </MarginSection>
 
-      <Separator className="my-12" />
-
-      <section
-        aria-labelledby="danger-heading"
-        style={{ "--i": 3 } as CSSProperties}
-        className="stagger animate-rise rounded-2xl border border-destructive/30 p-6 sm:p-8"
+      <MarginSection
+        id="danger-heading"
+        heading="Delete your account"
+        className="stagger mt-12 animate-rise [--i:3]"
       >
-        <h2 id="danger-heading" className="text-heading">
-          Danger zone
-        </h2>
-        <p className="mt-2 max-w-md text-muted-foreground text-sm leading-6">
-          Delete your account and every check-in photo. This cannot be undone.
-        </p>
-        <AlertDialog>
-          <AlertDialogTrigger render={<Button variant="destructive" className="mt-5" />}>
-            Delete account
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete your account and every check-in photo?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This cannot be undone. You will be signed out.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Keep my account</AlertDialogCancel>
-              <AlertDialogAction
-                variant="destructive"
-                disabled={deleteAccount.isPending}
-                aria-busy={deleteAccount.isPending || undefined}
-                onClick={handleDeleteAccount}
-              >
-                {deleteAccount.isPending ? <Spinner data-icon="inline-start" /> : null}
-                {deleteAccount.isPending ? "Deleting…" : "Delete account"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </section>
+        <div className="rounded-2xl border border-destructive/30 p-6 sm:p-8">
+          <p className="max-w-md text-muted-foreground text-sm leading-6">
+            Delete your account and every check-in photo. This cannot be undone.
+          </p>
+          <AlertDialog>
+            <AlertDialogTrigger render={<Button variant="destructive" className="mt-5" />}>
+              Delete account
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete your account and every check-in photo?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This cannot be undone. You will be signed out.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Keep my account</AlertDialogCancel>
+                <AlertDialogAction
+                  variant="destructive"
+                  disabled={deleteAccount.isPending}
+                  aria-busy={deleteAccount.isPending || undefined}
+                  onClick={handleDeleteAccount}
+                >
+                  {deleteAccount.isPending ? <Spinner data-icon="inline-start" /> : null}
+                  {deleteAccount.isPending ? "Deleting…" : "Delete account"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </MarginSection>
     </div>
   );
 }

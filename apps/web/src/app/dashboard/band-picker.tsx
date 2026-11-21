@@ -3,6 +3,7 @@
 import { type Band, bands } from "@seenmark/api/bands";
 import { Skeleton } from "@seenmark/ui/components/skeleton";
 import { useMutation } from "@tanstack/react-query";
+import Link from "next/link";
 import { toast } from "sonner";
 
 import ErrorState from "@/components/error-state";
@@ -50,46 +51,68 @@ export default function BandPicker({
     }
   }
 
+  const label = bands.find((option) => option.value === band)?.label;
+
   return (
     <section
       aria-labelledby="band-heading"
       className="rounded-2xl bg-card p-6 shadow-paper ring-1 ring-border sm:p-8"
     >
-      <h2 id="band-heading" className="text-heading">
-        Choose your band
-      </h2>
-      <p className="mt-2 max-w-sm text-muted-foreground text-sm leading-6">
-        This is your choice after looking at your own check-ins. It is not a diagnosis.
-      </p>
-
-      {failed ? (
-        <ErrorState
-          className="mt-6"
-          message="We could not load your band."
-          retrying={retrying}
-          onRetry={onRetry}
-        />
-      ) : loading ? (
-        <div role="status" aria-label="Loading your band" className="mt-6 grid grid-cols-3 gap-2">
-          {bands.map((option) => (
-            <Skeleton key={option.value} className="h-12 rounded-lg" />
-          ))}
+      <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_22rem] md:items-start md:gap-10">
+        <div>
+          <h2 id="band-heading" className="scroll-mt-24 text-heading">
+            Choose your band
+          </h2>
+          <p className="mt-2 max-w-[46ch] text-muted-foreground leading-7">
+            After looking at your photos, how would you describe your hair right now? This is your
+            choice, not a diagnosis.
+          </p>
         </div>
-      ) : (
-        <ChoiceGroup
-          aria-labelledby="band-heading"
-          options={bands}
-          value={band}
-          pendingValue={chooseBand.isPending ? chooseBand.variables : undefined}
-          disabled={!hasCheckIns || busy}
-          onChoose={handleChooseBand}
-          className="mt-6 grid w-full grid-cols-3"
-          itemClassName="h-12 w-full data-pressed:border-primary"
-        />
-      )}
-      <p className="mt-3 text-muted-foreground text-xs leading-5">
-        You can change your choice whenever you want.
-      </p>
+
+        <div>
+          {failed ? (
+            <ErrorState
+              message="We could not load your band."
+              retrying={retrying}
+              onRetry={onRetry}
+            />
+          ) : loading ? (
+            <div role="status" aria-label="Loading your band" className="grid grid-cols-3 gap-2">
+              {bands.map((option) => (
+                <Skeleton key={option.value} className="h-12 rounded-full" />
+              ))}
+            </div>
+          ) : (
+            <ChoiceGroup
+              aria-labelledby="band-heading"
+              options={bands}
+              value={band}
+              pendingValue={chooseBand.isPending ? chooseBand.variables : undefined}
+              disabled={!hasCheckIns || busy}
+              onChoose={handleChooseBand}
+              className="grid w-full grid-cols-3"
+              itemClassName="h-12 w-full"
+            />
+          )}
+          <p className="mt-3 text-muted-foreground text-sm leading-6">
+            {hasCheckIns
+              ? "You can change your choice whenever you want."
+              : "Add a check-in to choose a band."}
+          </p>
+        </div>
+      </div>
+
+      {/* Steps only on their own page: the early menu's paid link never shares this screen (ADR 0006). */}
+      {label ? (
+        <p className="mt-6 border-border border-t pt-5">
+          <Link
+            href="/dashboard/next-steps"
+            className="rounded-sm font-medium underline decoration-2 decoration-primary underline-offset-4 transition-colors hover:decoration-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Read the next steps for the {label.toLowerCase()} band
+          </Link>
+        </p>
+      ) : null}
     </section>
   );
 }

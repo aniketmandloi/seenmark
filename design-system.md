@@ -41,7 +41,7 @@ All values are the live tokens in `packages/ui/src/styles/globals.css`, converte
 | `--muted` / `--secondary` | `#E6E8EC` | 0.931 0.006 265 | Quiet bands, secondary buttons |
 | `--muted-foreground` | `#4A4A55` | 0.413 0.018 286 | Secondary text, captions, dates |
 | `--accent` | `#FFF3BF` | 0.961 0.068 97 | Pale highlighter wash (reminders, request card) |
-| `--destructive` | `#BE2F2C` | 0.53 0.18 27 | Delete, errors |
+| `--destructive` | `#B01F1F` | 0.49 0.18 27 | Delete, errors; ≥4.5:1 on its own 10–20% tints |
 | `--success` | `#227240` | 0.49 0.11 152 | "Recorded", "Saved" |
 | `--border` | `#D5D7DE` | 0.88 0.01 273 | Dividers (decorative only) |
 | `--input` | `#83868F` | 0.62 0.014 273 | Field and control borders, 3.5:1 on Sheet |
@@ -193,7 +193,7 @@ Direct labels go on the marks, axis labels are Public Sans `text-xs` with `tabul
 | Highlighter | `#FFD83D` | The member's mark: chosen band, current nav, the one primary action |
 | Wash | `#FFF3BF` | Pale highlighter for reminders and the request card |
 
-Functional red `#BE2F2C` and green `#227240` are status colors, not part of the palette.
+Functional red `#B01F1F` and green `#227240` are status colors, not part of the palette.
 
 ### Type
 

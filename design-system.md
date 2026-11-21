@@ -71,7 +71,7 @@ All values are the live tokens in `packages/ui/src/styles/globals.css`, converte
 | muted-foreground / background | 7.8 | 9.3 | 7:1 ✅ (small text and dates) |
 | muted-foreground / muted | 7.1 | 8.6 | 7:1 ✅ |
 | ink / primary (yellow) | 13.0 | 13.0 | 7:1 ✅ |
-| destructive / card | 5.6 | 6.1 | 4.5:1 ✅ |
+| destructive / card | 6.6 | 6.1 | 4.5:1 ✅. Also ≥4.7:1 on its own 10–20% button tints. Darkened from `#BE2F2C`, which fell to 4.46:1 on the page. |
 | success / card | 5.7 | 7.4 | 4.5:1 ✅ |
 | input / card | 3.5 | 3.3 | 3:1 ✅. Raised from 1.6 / 1.5 (was `#C8CAD3` / `#3C3C44`) so field and control boundaries meet WCAG 1.4.11. |
 | primary / background (yellow as a shape) | 1.2 | 13.5 | Yellow alone never carries meaning in light mode. It always pairs with ink text, a check icon or an ink outline. |
@@ -213,11 +213,16 @@ member pages (lg+)                         mobile
 └────────────┴─────────────────────────┘   └──────────────────┘
 ```
 
-Content is left-aligned throughout and nothing is centered except empty states. Margin labels are Pencil-colored Public Sans in 14px medium, and they're real headings (`h2`/`h3`) so the outline stays intact.
+Content is left-aligned throughout and nothing is centered except empty states. Margin labels are real headings, so the outline stays intact, at two levels:
+
+- **Section** (`MarginSection`, `h2`): Ink Public Sans, 16px semibold. Used on the account sections and the band on next steps.
+- **Date** (timeline months, `h3`): Pencil, 14px medium, `tabular-nums`.
+
+Content outside a `MarginSection` lines up with the entry column through `marginEntryIndent`. The dashboard is one reading column (`max-w-5xl`) in the order the member works: compare, then choose a band, then the timeline. It never has a sidebar, and the band's menu lives only on its own page.
 
 ### Principles
 
-1. Yellow marks only what the member chose or the one thing to do next.
+1. Yellow marks only what the member chose (the band, the compare mode, the current page in the nav) or the one thing to do next (one primary button per view). Supporting marks use ink outlines (check discs, step numbers) or Wash (the accent note). The header's visitor "Get started" is an outline button so it doesn't compete with the page's own.
 2. Structure carries information. Steps are numbered only where they are a sequence (how it works). Menu items are facts, not steps, so they get a highlighter tick, not a number.
 3. One memorable moment per page: the hero highlighter sweep on the landing page, and the margin on member pages. Everything else stays quiet.
 

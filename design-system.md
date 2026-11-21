@@ -143,7 +143,7 @@ Sizes: default 44px high (touch minimum), `lg` 48px, `sm` 36px and `icon-sm` 36p
 | --- | --- | --- |
 | Paper card | `bg-card ring-1 ring-border shadow-paper rounded-2xl`, padding 24/32 | Band picker, auth form |
 | Flat card | `bg-card border border-border rounded-2xl` | Menu preview, timeline month groups |
-| Highlighter panel | `bg-primary text-primary-foreground rounded-2xl` | One per page at most: auth promises, final CTA |
+| Highlighter panel | `bg-primary text-primary-foreground rounded-2xl` | One per page at most: the auth promises. The landing's final CTA is an ink panel (`bg-foreground`) holding the one yellow button. |
 | Wash | `bg-accent/40–50` | Reminder alert, introduction request |
 | Dashed slot | `border-2 border-dashed` | Empty states and "nothing chosen yet" |
 | Danger zone | `border border-destructive/30` | Account deletion |

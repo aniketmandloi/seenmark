@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect } from "react";
 
@@ -12,13 +13,15 @@ const colors = { light: "#F1F2F5", dark: "#121215" };
  */
 export default function ThemeColor() {
   const { resolvedTheme } = useTheme();
+  const pathname = usePathname();
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: client navigation restores the layout's tags, so each route change writes the color again.
   useEffect(() => {
     if (resolvedTheme !== "light" && resolvedTheme !== "dark") return;
     for (const meta of document.querySelectorAll('meta[name="theme-color"]')) {
       meta.setAttribute("content", colors[resolvedTheme]);
     }
-  }, [resolvedTheme]);
+  }, [resolvedTheme, pathname]);
 
   return null;
 }

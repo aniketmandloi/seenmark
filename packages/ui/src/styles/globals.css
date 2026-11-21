@@ -188,6 +188,10 @@
   body {
     @apply min-h-dvh bg-background font-sans text-foreground antialiased;
   }
+  /* Keeps a lone word off the last line of short copy, which reads as a typo at this size. */
+  p {
+    text-wrap: pretty;
+  }
   html {
     @apply font-sans;
     scroll-behavior: smooth;

@@ -130,7 +130,7 @@ export default function Home() {
                     sizes="(min-width: 1280px) 320px, (min-width: 768px) 66vw, 100vw"
                     className="aspect-4/3 w-full rounded-sm object-cover"
                   />
-                  <figcaption className="mt-2.5 text-[13px] text-muted-foreground">
+                  <figcaption className="mt-2.5 text-muted-foreground text-sm">
                     {note.caption}
                   </figcaption>
                 </figure>
@@ -224,7 +224,7 @@ export default function Home() {
                   <Check aria-hidden="true" className="size-4 md:size-5" strokeWidth={2.5} />
                 </span>
                 <div>
-                  <h3 className="text-balance font-display font-semibold text-3xl leading-[1.08] tracking-[-0.03em] md:text-5xl">
+                  <h3 className="text-balance font-display font-semibold text-3xl leading-[1.08] tracking-[-0.03em] md:text-4xl">
                     {item.title}
                   </h3>
                   <p className="mt-4 max-w-[52ch] text-lede text-muted-foreground">
@@ -250,7 +250,9 @@ export default function Home() {
                 <h3 className="text-balance font-semibold text-xl leading-snug tracking-tight md:text-2xl">
                   {faq.question}
                 </h3>
-                <p className="mt-4 text-[15px] leading-relaxed opacity-80">{faq.answer}</p>
+                <p className="mt-4 text-[15px] text-muted-foreground leading-relaxed">
+                  {faq.answer}
+                </p>
               </div>
             </li>
           ))}

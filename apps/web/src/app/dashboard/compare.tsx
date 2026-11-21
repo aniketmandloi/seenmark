@@ -240,7 +240,7 @@ function FirstCheckIn({ busy, onAdd }: { busy: boolean; onAdd: (file: File) => v
       </EmptyHeader>
       <EmptyContent>
         <PhotoPicker disabled={busy} label="Add your first check-in" onFile={onAdd} />
-        <p className="text-muted-foreground text-xs leading-5">On mobile, you can take one now.</p>
+        <p className="text-muted-foreground text-sm leading-6">On mobile, you can take one now.</p>
       </EmptyContent>
     </Empty>
   );

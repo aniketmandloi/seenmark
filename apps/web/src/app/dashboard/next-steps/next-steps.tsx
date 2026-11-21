@@ -109,7 +109,7 @@ export default function NextSteps() {
                   <ArrowUpRight aria-hidden="true" className="size-3.5 shrink-0" />
                 </a>
               </p>
-              <p className="mt-2 text-muted-foreground text-xs leading-5">
+              <p className="mt-2 text-muted-foreground text-sm leading-6">
                 Seenmark may be paid if you use this link. Who pays never changes your band or these
                 steps.
               </p>

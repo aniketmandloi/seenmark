@@ -171,7 +171,7 @@ export default function SignUpForm() {
                 onChange={(event) => field.handleChange(event.target.value)}
                 {...fieldErrorProps(field.name, field.state.meta.errors)}
               />
-              <p className="text-muted-foreground text-xs">At least 8 characters.</p>
+              <p className="text-muted-foreground text-sm">At least 8 characters.</p>
               <FieldError name={field.name} errors={field.state.meta.errors} />
             </div>
           )}

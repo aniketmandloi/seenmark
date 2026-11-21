@@ -71,11 +71,11 @@ export default function Account({ session }: { session: typeof authClient.$Infer
           <CardContent>
             <dl className="grid gap-5 sm:grid-cols-2">
               <div>
-                <dt className="text-muted-foreground text-xs">Name</dt>
+                <dt className="text-muted-foreground text-sm">Name</dt>
                 <dd className="mt-1 break-words font-medium text-base">{session.user.name}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground text-xs">Email</dt>
+                <dt className="text-muted-foreground text-sm">Email</dt>
                 <dd className="mt-1 break-all font-medium text-base">{session.user.email}</dd>
               </div>
             </dl>
